@@ -8,15 +8,15 @@ project(chump)
 set(CMAKE_CXX_STANDARD 17)
 
 set(SOURCES
-  manager.h
-  manager.cpp
-  package.h
-  exec.h
-  fetch.h
-  fetch.cpp
+  src/manager.h
+  src/manager.cpp
+  src/package.h
+  src/exec.h
+  src/fetch.h
+  src/fetch.cpp
 )
 
-add_executable(chump main.cpp ${SOURCES})
+add_executable(chump src/main.cpp ${SOURCES})
 
 # Fetch and link nlohmann json library
 include(FetchContent)
@@ -43,8 +43,8 @@ FetchContent_MakeAvailable(Catch2)
 
 add_executable(tests
     ${SOURCES}
-    exec_test.cpp
-    fetch_test.cpp
+    src/exec_test.cpp
+    src/fetch_test.cpp
 )
 
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
