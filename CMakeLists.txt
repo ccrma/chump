@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.26) # arbitrary cmake version
 
 project(chump)
 
+# Include(FetchContent)
+enable_testing()
+
 
 # Setup build
 
@@ -29,9 +32,6 @@ target_link_libraries(chump PRIVATE nlohmann_json::nlohmann_json)
 ##################
 # Testing
 ##################
-
-# Include(FetchContent)
-enable_testing()
 
 FetchContent_Declare(
   Catch2
