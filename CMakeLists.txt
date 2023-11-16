@@ -10,6 +10,10 @@ enable_testing()
 
 set(CMAKE_CXX_STANDARD 17)
 
+# Add src directory so I don't need to do #include "../exec.h" in the
+# test directory
+include_directories(src)
+
 set(SOURCES
   src/manager.h
   src/manager.cpp
@@ -21,7 +25,9 @@ set(SOURCES
 
 add_executable(chump src/main.cpp ${SOURCES})
 
+##################
 # Fetch and link nlohmann json library
+##################
 include(FetchContent)
 
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz)
@@ -30,9 +36,8 @@ FetchContent_MakeAvailable(json)
 target_link_libraries(chump PRIVATE nlohmann_json::nlohmann_json)
 
 ##################
-# Testing
+# Fetch and link Catch2 testing Library
 ##################
-
 FetchContent_Declare(
   Catch2
   GIT_REPOSITORY https://github.com/catchorg/Catch2.git
@@ -41,10 +46,14 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(Catch2)
 
+##################
+# Testing
+##################
+
 add_executable(tests
     ${SOURCES}
-    src/exec_test.cpp
-    src/fetch_test.cpp
+    src/test/exec_test.cpp
+    src/test/fetch_test.cpp
 )
 
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
