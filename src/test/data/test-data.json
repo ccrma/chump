@@ -1,0 +1,13 @@
+{
+  "owner": "John",
+  "name": "PackageA",
+  "version": "1.0",
+  "api_version": "9.0",
+  "homepage": "http://example.com",
+  "repository": "http://repo.com",
+  "spec_file": "specA",
+  "authors": ["AuthorA", "AuthorB"],
+  "license": "MIT",
+  "description": "DescriptionA",
+  "keywords": ["KeywordA", "KeywordB"]
+}
