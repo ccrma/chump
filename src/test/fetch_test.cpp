@@ -5,7 +5,7 @@
 TEST_CASE("fetch url", "[fetchurl]") {
   Fetch f;
 
-  std::string path = "./testdata/test.pkg";
+  std::string path = "./data/test-data.json";
 
   Package want = {"John", "PackageA", "1.0", "9.0", "http://example.com", "http://repo.com", "specA", {"AuthorA", "AuthorB"}, "MIT", "DescriptionA", {"KeywordA", "KeywordB"}};
 

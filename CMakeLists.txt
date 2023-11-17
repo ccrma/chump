@@ -18,6 +18,7 @@ set(SOURCES
   src/manager.h
   src/manager.cpp
   src/package.h
+  src/package.cpp
   src/exec.h
   src/fetch.h
   src/fetch.cpp
@@ -56,7 +57,13 @@ add_executable(tests
     src/test/fetch_test.cpp
 )
 
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain nlohmann_json::nlohmann_json)
+
+# Configure the location of the test data directory
+set(TEST_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/test/data)
+
+# Copy test data files to the build directory
+configure_file(${TEST_DATA_DIR}/test-data.json ${CMAKE_CURRENT_BINARY_DIR}/data/test-data.json COPYONLY)
 
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 include(CTest)

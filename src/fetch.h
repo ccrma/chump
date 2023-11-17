@@ -2,6 +2,10 @@
 #define __FETCH_H__
 
 #include "package.h"
+#include <nlohmann/json.hpp>
+
+#include <fstream>
+using json = nlohmann::json;
 
 // Abstract base class
 class FetchBase {

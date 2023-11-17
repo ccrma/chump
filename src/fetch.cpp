@@ -3,20 +3,20 @@
 
 #include "fetch.h"
 
-
-// Fetch::Fetch() {
-// }
-
-
 Package Fetch::fetch(std::string path) {
   Package p;
   // Check if the file path exists
+  std::cout << path << std::endl;
   if (std::filesystem::exists(path)) {
-    std::cout << "The file path is valid." << std::endl;
+    std::ifstream f(path);
+    json data = json::parse(f); // TODO error handling
+
+    p = data.template get<Package>();
+
   } else {
     std::cout << "The file path is not valid or the file doesn't exist." << std::endl;
   }
-  
+
   // only support filepath for now
   return p;
 }
