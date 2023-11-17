@@ -1,8 +1,13 @@
 // The manager interface
 
-#include "package.h"
+#ifndef __MANAGER_H__
+#define __MANAGER_H__
+
 #include <string>
 #include <vector>
+
+#include "package.h"
+#include "fetch.h"
 
 // only support the local path for now (to a spec json file)
 
@@ -18,8 +23,9 @@ class Manager {
   Package getPackage(std::string name);
 
 
-private:
-  // this is loaded from *somewhere* an initialization
-  std::vector<Package> packages;
-  
+public:
+  // the fetcher implementation
+  FetchBase* fetch;
 };
+
+#endif

@@ -2,6 +2,8 @@
 #include <tuple>
 #include <vector>
 
+#include "manager.h"
+
 
 // Parse arguments into a (command, arguments[]) tuple
 std::tuple<std::string, std::vector<std::string>> parseArgs( int argc, const char ** argv ) {
@@ -13,14 +15,16 @@ std::tuple<std::string, std::vector<std::string>> parseArgs( int argc, const cha
   return {cmd, args};
 }
 
-void execCommand(std::string cmd, std::vector<std::string> args) {
+void execCommand(std::string cmd, std::vector<std::string> args, Manager manager) {
   if (cmd == "info") {
-    // do stuff...
-    std::cout << cmd << " ";
-    for(auto arg: args) {
-      std::cout << arg << " ";
+    if (args.size() != 1) {
+      std::cerr << "\"chump info\" should have one argument" << std::endl;
+      return;
     }
-    std::cout << std::endl;
+
+    Package p = manager.fetch->fetch(args[0]);
+    std::cout << p << std::endl;
+
   } else {
     std::cerr << "command " << cmd << " is not a valid command." << std::endl;
   }

@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------------
 
 #include "exec.h"
+#include "manager.h"
 
 int main( int argc, const char ** argv ) {
   if (argc < 2) {
@@ -14,7 +15,9 @@ int main( int argc, const char ** argv ) {
   }
 
   auto [cmd, args] = parseArgs(argc, argv);
-  execCommand(cmd, args);
+
+  Manager m;
+  execCommand(cmd, args, m);
 
   return 0;
 }

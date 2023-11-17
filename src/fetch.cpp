@@ -9,7 +9,7 @@ Package Fetch::fetch(std::string path) {
   std::cout << path << std::endl;
   if (std::filesystem::exists(path)) {
     std::ifstream f(path);
-    json data = json::parse(f); // TODO error handling
+    json data = json::parse(f);
 
     p = data.template get<Package>();
 

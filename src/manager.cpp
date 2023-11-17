@@ -2,5 +2,11 @@
 #include "manager.h"
 
 Manager::Manager() {
-  // do something at some point
+  fetch = new Fetch();
 }
+
+Package Manager::getPackage(std::string name) {
+  return fetch->fetch(name);
+}
+
+
