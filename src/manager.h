@@ -7,7 +7,11 @@
 #include <vector>
 
 #include "package.h"
+#include "package_list.h"
 #include "fetch.h"
+
+using std::optional;
+using std::string;
 
 // only support the local path for now (to a spec json file)
 
@@ -20,12 +24,19 @@ class Manager {
   // return a list of all packages (installed and available)
   std::vector<Package> listPackages();
 
-  Package getPackage(std::string name);
+  optional<Package> getPackage(string name);
+
+  bool install(string packageName);
 
 
 public:
   // the fetcher implementation
   FetchBase* fetch;
+
+private:
+  PackageList* package_list;
 };
+
+
 
 #endif
