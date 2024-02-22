@@ -22,8 +22,13 @@ void execCommand(std::string cmd, std::vector<std::string> args, Manager manager
       return;
     }
 
-    Package p = manager.fetch->fetch(args[0]);
-    std::cout << p << std::endl;
+    auto p = manager.fetch->fetch(args[0]);
+
+    if (p) {
+      std::cout << p.value() << std::endl;
+    } else {
+      std::cout << "package [" << args[0] << "] not found" << std::endl;
+    }
 
   } else {
     std::cerr << "command " << cmd << " is not a valid command." << std::endl;
