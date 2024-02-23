@@ -49,6 +49,13 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(Catch2)
 
+
+##################
+# Link curlpp
+##################
+# ADD_SUBDIRECTORY(third-party/curlcpp) # Change `third-party/curlcpp` to a directory according to your setup
+# INCLUDE_DIRECTORIES(${CURLCPP_SOURCE_DIR}/include)
+
 ##################
 # Testing
 ##################
