@@ -20,7 +20,7 @@ PackageList::PackageList(string filepath) {
   json j_packages = data["packages"];
 
   for (auto& j_package : j_packages) {
-    std::cout << j_package << '\n';
+    // std::cout << j_package << '\n';
     Package p = j_package.get<Package>();
 
     packages.push_back(p);
@@ -28,6 +28,7 @@ PackageList::PackageList(string filepath) {
 }
 
 optional<Package> PackageList::lookup(string name) {
+  // TODO get highest version (how do I do that?)
   for (auto package: packages) {
     if (package.name == name) {
       return package;
@@ -37,6 +38,11 @@ optional<Package> PackageList::lookup(string name) {
 }
 
 optional<Package> PackageList::lookup(string name, string version) {
-  throw std::runtime_error("not implemented");
+  for (auto package: packages) {
+    if (package.name == name && package.version == version) {
+      return package;
+    }
+  }
+  return {};
 }
 

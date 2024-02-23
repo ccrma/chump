@@ -3,6 +3,7 @@
 
 Manager::Manager() {
   fetch = new Fetch();
+  package_list = new PackageList();
 }
 
 optional<Package> Manager::getPackage(string name) {
@@ -10,13 +11,15 @@ optional<Package> Manager::getPackage(string name) {
 }
 
 bool Manager::install(std::string packageName) {
-  // need db file loaded
-
   // lookup package name (default to latest version)
+  auto package = package_list->lookup(packageName);
 
-  // get download url
+  if (!package) {
+    std::cerr << "BADBADBAD" << std::endl;
+  }
 
   // fetch
+
 
   // validate
 
