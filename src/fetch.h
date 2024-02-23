@@ -10,6 +10,10 @@ using json = nlohmann::json;
 
 using std::optional;
 
+// Fetch should download into a temp dir, not get a package object
+// Return file object?
+// I don't think installing needs to be broken out
+
 // Abstract base class
 class FetchBase {
 public:

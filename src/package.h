@@ -11,23 +11,24 @@ using json = nlohmann::json;
 
 // A Package describes the package spec.
 struct Package {
-    std::string owner;
-    std::string name;
-    std::string version;
-    std::string api_version;
-    std::string homepage;
-    std::string repository;
-    std::string specFile;
-    std::vector<std::string> authors;
-    std::string license;
-    std::string description;
-    std::vector<std::string> keywords;
+  std::string owner;
+  std::string name;
+  std::string version;
+  std::string api_version;
+  std::string url; // download url
+  std::string homepage;
+  std::string repository;
+  std::string specFile;
+  std::vector<std::string> authors;
+  std::string license;
+  std::string description;
+  std::vector<std::string> keywords;
 
-    // Equality operator overload
-    bool operator==(const Package& other) const;
+  // Equality operator overload
+  bool operator==(const Package& other) const;
 
-    // Output stream operator overload
-    friend std::ostream& operator<<(std::ostream& os, const Package& pkg);
+  // Output stream operator overload
+  friend std::ostream& operator<<(std::ostream& os, const Package& pkg);
 };
 
 // Function declarations for JSON serialization/deserialization
