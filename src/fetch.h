@@ -13,6 +13,8 @@ using json = nlohmann::json;
 
 using std::optional;
 
+namespace fs = std::filesystem;
+
 // Fetch should download into a temp dir, not get a package object
 // Return file object?
 // I don't think installing needs to be broken out
@@ -34,6 +36,9 @@ public:
   bool isDirectory(std::string path);
   bool isURL(std::string path);
   bool isPackageName(std::string path);
+
+private:
+  static size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream);
 };
 
 

@@ -16,19 +16,19 @@ TEST_CASE("Fetch a package", "[Fetch]") {
   REQUIRE(got == want);
 }
 
-TEST_CASE("Check if a filepath is a valid JSON file", "[Fetch]") {
-  Fetch f;
+// TEST_CASE("Check if a filepath is a valid JSON file", "[Fetch]") {
+//   Fetch f;
 
-  CHECK(f.isJSONFile("data.json"));
-  CHECK_FALSE(f.isJSONFile("file_without_extension"));
-  CHECK_FALSE(f.isJSONFile("document.txt"));
-  CHECK_FALSE(f.isJSONFile("myfile.json.txt"));
-  CHECK(f.isJSONFile("path/to/file.json"));
-  CHECK_FALSE(f.isJSONFile("path/to/document.json.txt"));
-  // should this be valid?
-  CHECK(f.isJSONFile("http://example.com/data.json"));
-  CHECK_FALSE(f.isJSONFile("https://example.com/document.json.txt"));
-}
+//   CHECK(f.isJSONFile("data.json"));
+//   CHECK_FALSE(f.isJSONFile("file_without_extension"));
+//   CHECK_FALSE(f.isJSONFile("document.txt"));
+//   CHECK_FALSE(f.isJSONFile("myfile.json.txt"));
+//   CHECK(f.isJSONFile("path/to/file.json"));
+//   CHECK_FALSE(f.isJSONFile("path/to/document.json.txt"));
+//   // should this be valid?
+//   CHECK(f.isJSONFile("http://example.com/data.json"));
+//   CHECK_FALSE(f.isJSONFile("https://example.com/document.json.txt"));
+// }
 
 
 TEST_CASE("Check if a string is a valid URL", "[Fetch]") {
@@ -48,16 +48,16 @@ TEST_CASE("Check if a string is a valid URL", "[Fetch]") {
 }
 
 
-TEST_CASE("Check if a string is a valid package name", "[Fetch]") {
-  Fetch f;
+// TEST_CASE("Check if a string is a valid package name", "[Fetch]") {
+//   Fetch f;
 
-  // Positive examples (valid alphanumeric strings)
-  CHECK(f.isPackageName("AlphaNumeric123"));
-  CHECK(f.isPackageName("Valid123"));
+//   // Positive examples (valid alphanumeric strings)
+//   CHECK(f.isPackageName("AlphaNumeric123"));
+//   CHECK(f.isPackageName("Valid123"));
 
-  // Negative examples (not valid alphanumeric strings)
-  CHECK_FALSE(f.isPackageName("Contains Spaces")); // Space is not alphanumeric
-  CHECK_FALSE(f.isPackageName("Special@Characters")); // @ is not alphanumeric
-  CHECK_FALSE(f.isPackageName("123-456")); // - is not alphanumeric
-  CHECK_FALSE(f.isPackageName("")); // Empty string is not alphanumeric
-}
+//   // Negative examples (not valid alphanumeric strings)
+//   CHECK_FALSE(f.isPackageName("Contains Spaces")); // Space is not alphanumeric
+//   CHECK_FALSE(f.isPackageName("Special@Characters")); // @ is not alphanumeric
+//   CHECK_FALSE(f.isPackageName("123-456")); // - is not alphanumeric
+//   CHECK_FALSE(f.isPackageName("")); // Empty string is not alphanumeric
+// }

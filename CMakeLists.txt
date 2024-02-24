@@ -36,7 +36,6 @@ include(FetchContent)
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz)
 FetchContent_MakeAvailable(json)
 
-target_link_libraries(chump PRIVATE nlohmann_json::nlohmann_json)
 
 ##################
 # Fetch and link Catch2 testing Library
@@ -53,14 +52,17 @@ FetchContent_MakeAvailable(Catch2)
 ##################
 # Add libcurl
 ##################
-# Find libcurl (if installed system-wide)
-find_package(CURL REQUIRED)
+FetchContent_Declare(curl
+  URL https://github.com/curl/curl/releases/download/curl-8_1_2/curl-8.1.2.tar.xz
+  CMAKE_ARGS -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON
+)
+FetchContent_MakeAvailable(curl)
 
-# Include libcurl headers
-include_directories(${CURL_INCLUDE_DIR})
+# Add include directories for libcurl headers
+include_directories(${curl_SOURCE_DIR}/include)
 
-# # Link against libcurl
-# target_link_libraries(YourExecutableOrLibrary ${CURL_LIBRARY})
+target_link_libraries(chump PRIVATE nlohmann_json::nlohmann_json libcurl)
+
 
 ##################
 # Testing
@@ -73,7 +75,7 @@ add_executable(tests
     src/test/package_list_test.cpp
 )
 
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain nlohmann_json::nlohmann_json ${CURL_LIBRARY})
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain nlohmann_json::nlohmann_json libcurl)
 
 # Configure the location of the test data directory
 set(TEST_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/test/data)
