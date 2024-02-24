@@ -2,7 +2,10 @@
 #define __FETCH_H__
 
 #include "package.h"
+
 #include <nlohmann/json.hpp>
+#include <curl/curl.h>
+
 #include <fstream>
 #include <regex>
 

@@ -51,10 +51,16 @@ FetchContent_MakeAvailable(Catch2)
 
 
 ##################
-# Link curlpp
+# Add libcurl
 ##################
-# ADD_SUBDIRECTORY(third-party/curlcpp) # Change `third-party/curlcpp` to a directory according to your setup
-# INCLUDE_DIRECTORIES(${CURLCPP_SOURCE_DIR}/include)
+# Find libcurl (if installed system-wide)
+find_package(CURL REQUIRED)
+
+# Include libcurl headers
+include_directories(${CURL_INCLUDE_DIR})
+
+# # Link against libcurl
+# target_link_libraries(YourExecutableOrLibrary ${CURL_LIBRARY})
 
 ##################
 # Testing
@@ -67,7 +73,7 @@ add_executable(tests
     src/test/package_list_test.cpp
 )
 
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain nlohmann_json::nlohmann_json)
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain nlohmann_json::nlohmann_json ${CURL_LIBRARY})
 
 # Configure the location of the test data directory
 set(TEST_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/test/data)
