@@ -5,7 +5,12 @@
 
 The ChucK Manager of Packages
 
+## Dependencies
+`apt-get install libcurl4-openssl-dev`
+
 ## Building & Testing
+
+
 ```
 # create build directory in build/
 cmake -Bbuild/
