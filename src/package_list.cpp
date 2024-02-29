@@ -3,7 +3,7 @@
 
 
 PackageList::PackageList() {
-  throw std::runtime_error("not implemented");
+  // throw std::runtime_error("not implemented");
 }
 
 PackageList::PackageList(string filepath) {

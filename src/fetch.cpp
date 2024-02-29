@@ -15,7 +15,6 @@ optional<Package> Fetch::fetch(std::string url) {
     std::cerr << "Not a URL!" << std::endl;
     return {};
   }
-
   
   CURL *curl;
   FILE *fp;

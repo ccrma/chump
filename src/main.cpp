@@ -13,10 +13,9 @@ int main( int argc, const char ** argv ) {
     std::cerr << "incorrect number of argument (should be more than two)" << std::endl;
     return -1;
   }
-
   auto [cmd, args] = parseArgs(argc, argv);
 
-  Manager m;
+  Manager* m = new Manager();
   execCommand(cmd, args, m);
 
   return 0;
