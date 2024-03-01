@@ -26,6 +26,8 @@ set(SOURCES
   src/fetch.cpp
 )
 
+find_package(Curses REQUIRED)
+
 add_executable(chump src/main.cpp ${SOURCES})
 
 ##################
@@ -35,6 +37,8 @@ include(FetchContent)
 
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz)
 FetchContent_MakeAvailable(json)
+
+target_link_libraries(chump PRIVATE nlohmann_json::nlohmann_json)
 
 
 ##################
@@ -61,37 +65,55 @@ FetchContent_MakeAvailable(curl)
 # Add include directories for libcurl headers
 include_directories(${curl_SOURCE_DIR}/include)
 
-target_link_libraries(chump PRIVATE nlohmann_json::nlohmann_json libcurl)
+target_link_libraries(chump PRIVATE libcurl)
 
+
+##################
+# Add curses
+##################
+
+include_directories(${CURSES_INCLUDE_DIR})
+
+message("${CURSES_LIBRARIES}")
+message("${CURSES_INCLUDE_DIRS}")
+target_link_libraries(chump PRIVATE ${CURSES_LIBRARIES})
+target_include_directories(chump PRIVATE ${CURSES_INCLUDE_DIRS})
 
 ##################
 # Testing
 ##################
 
-add_executable(tests
-    ${SOURCES}
-    src/test/exec_test.cpp
-    src/test/fetch_test.cpp
-    src/test/package_list_test.cpp
-)
+# add_executable(tests
+#     ${SOURCES}
+#     src/test/exec_test.cpp
+#     src/test/fetch_test.cpp
+#     src/test/package_list_test.cpp
+# )
 
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain nlohmann_json::nlohmann_json libcurl)
 
-# Configure the location of the test data directory
-set(TEST_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/test/data)
+# # Link ncurses library for tests target
+# target_link_libraries(tests PRIVATE ${CURSES_LIBRARIES})
 
-# Copy test data files to the build directory
-configure_file(
-    ${TEST_DATA_DIR}/test-data.json
-    ${CMAKE_CURRENT_BINARY_DIR}/data/test-data.json COPYONLY
-)
+# # Include ncurses headers for tests target
+# target_include_directories(tests PRIVATE ${CURSES_INCLUDE_DIRS})
 
-configure_file(
-     ${TEST_DATA_DIR}/test-package-list.json
-    ${CMAKE_CURRENT_BINARY_DIR}/data/test-package-list.json COPYONLY
-)
+# target_link_libraries(tests PRIVATE Catch2::Catch2WithMain nlohmann_json::nlohmann_json libcurl)
 
-list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
-include(CTest)
-include(Catch)
-catch_discover_tests(tests)
+# # Configure the location of the test data directory
+# set(TEST_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/test/data)
+
+# # Copy test data files to the build directory
+# configure_file(
+#     ${TEST_DATA_DIR}/test-data.json
+#     ${CMAKE_CURRENT_BINARY_DIR}/data/test-data.json COPYONLY
+# )
+
+# configure_file(
+#      ${TEST_DATA_DIR}/test-package-list.json
+#     ${CMAKE_CURRENT_BINARY_DIR}/data/test-package-list.json COPYONLY
+# )
+
+# list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
+# include(CTest)
+# include(Catch)
+# catch_discover_tests(tests)

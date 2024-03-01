@@ -1,7 +1,36 @@
 #include <filesystem>
 #include <iostream>
 
+#include <curses.h>
+
 #include "fetch.h"
+
+// Callback function to update progress
+int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow) {
+    // Calculate progress percentage
+    double progress = (dlnow > 0) ? ((double)dlnow / (double)dltotal) : 0.0;
+
+    int bar_width = 50; // Width of the progress bar
+    int filled_width = progress * bar_width;
+
+    // Clear the screen
+    erase();
+
+    // Draw the progress bar
+    mvprintw(0, 0, "DownChucKing: [");
+    for (int i = 0; i < bar_width; i++) {
+        if (i < filled_width)
+          printw("=");
+        else if (i == filled_width)
+          printw("v");
+        else
+          printw(" ");
+    }
+    printw("] %3d%% ", (int)(progress * 100));
+    refresh();
+
+    return 0;
+}
 
 /*
   valid use cases:
@@ -15,7 +44,8 @@ optional<Package> Fetch::fetch(std::string url) {
     std::cerr << "Not a URL!" << std::endl;
     return {};
   }
-  
+
+  // struct progress data;
   CURL *curl;
   FILE *fp;
   CURLcode res;
@@ -44,8 +74,14 @@ optional<Package> Fetch::fetch(std::string url) {
     // Set file to write to
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
 
+    // Set the progress callback function
+    curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progressCallback);
+    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+
     // Perform the request
+    initscr();
     res = curl_easy_perform(curl);
+    endwin();
     if (res != CURLE_OK) {
       std::cerr << "Failed to download: " << curl_easy_strerror(res) << std::endl;
     }

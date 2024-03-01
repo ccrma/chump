@@ -31,7 +31,8 @@ void execCommand(std::string cmd, std::vector<std::string> args, Manager* manage
     }
 
   } else if (cmd == "install") {
-    manager->fetch->fetch("https://ccrma.stanford.edu/~nshaheed/220a/hw4/hw4.wav");
+    // manager->fetch->fetch("https://ccrma.stanford.edu/~nshaheed/220a/hw4/hw4.wav");
+    manager->fetch->fetch("https://ccrma.stanford.edu/~nshaheed/rave_models/chafe_cello.ts");
   } else {
     std::cerr << "command " << cmd << " is not a valid command." << std::endl;
   }
