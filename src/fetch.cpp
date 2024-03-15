@@ -1,5 +1,6 @@
 #include <filesystem>
 #include <iostream>
+#include <chrono>
 
 #include <curses.h>
 
@@ -13,11 +14,37 @@ int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal
     int bar_width = 50; // Width of the progress bar
     int filled_width = progress * bar_width;
 
+    // Get the current time point
+    auto currentTime = std::chrono::system_clock::now();
+
+    // Get the duration since the epoch
+    auto durationSinceEpoch = currentTime.time_since_epoch();
+
+    // Convert the duration to milliseconds
+    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(durationSinceEpoch);
+
+    // Extract the milliseconds component
+    long long milliseconds_count = milliseconds.count() % 1000;
+
     // Clear the screen
     erase();
 
     // Draw the progress bar
-    mvprintw(0, 0, "DownChucKing: [");
+    // mvprintw(0, 0, "DownChucKing: [");
+    mvprintw(0, 0, "DownChucKing ");
+
+    if (milliseconds_count < 250) {
+      printw("=>");
+    } else if (milliseconds_count < 500) {
+      printw("=v");
+    } else if (milliseconds_count < 750) {
+      printw("=<");
+    } else {
+      printw("=^");
+    }
+
+    printw(" [");
+
     for (int i = 0; i < bar_width; i++) {
         if (i < filled_width)
           printw("=");
