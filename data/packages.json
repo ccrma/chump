@@ -1,0 +1,20 @@
+{
+    "packages": [
+        {
+            "owner": "Nick Shaheed",
+            "name": "Hydra",
+            "version": "1.0",
+            "api_version": "10.1",
+            "homepage": "https://github.com/nshaheed/hydra-chugin",
+            "repository": "https://github.com/nshaheed/hydra-chugin",
+            "files": [
+                "https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/Hydra.chug"
+            ]
+            "spec_file": "specA",
+            "authors": ["Nick Shaheed"],
+            "license": "tbd",
+            "description": "This chugin is a wrapper around the python configuration framework Hydra.",
+            "keywords": ["configs", "python"]
+        }
+    ]
+}
