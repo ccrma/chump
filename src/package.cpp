@@ -10,6 +10,7 @@ bool Package::operator==(const Package& other) const {
            (api_version == other.api_version) &&
            (homepage == other.homepage) &&
            (repository == other.repository) &&
+           (files == other.files) &&
            (specFile == other.specFile) &&
            (authors == other.authors) &&
            (license == other.license) &&
@@ -48,16 +49,25 @@ std::ostream& operator<<(std::ostream& os, const Package& pkg) {
         }
     }
 
+    os << "]\nFiles: [";
+    if (!pkg.files.empty()) {
+        os << pkg.files[0];
+
+        for (size_t i = 1; i < pkg.files.size(); ++i) {
+            os << ", " << pkg.files[i];
+        }
+    }
     os << "]\n";
     return os;
 }
 
 void to_json(json& j, const Package& p) {
-    j = json{
+  j = json{
         {"owner", p.owner},
         {"name", p.name},
         {"version", p.version},
         {"api_version", p.api_version},
+        {"files", p.files},
         {"homepage", p.homepage},
         {"repository", p.repository},
         {"spec_file", p.specFile},
@@ -73,6 +83,7 @@ void from_json(const json& j, Package& p) {
     j.at("name").get_to(p.name);
     j.at("version").get_to(p.version);
     j.at("api_version").get_to(p.api_version);
+    j.at("files").get_to(p.files);
     j.at("homepage").get_to(p.homepage);
     j.at("repository").get_to(p.repository);
     j.at("spec_file").get_to(p.specFile);

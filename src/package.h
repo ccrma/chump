@@ -15,7 +15,7 @@ struct Package {
   std::string name;
   std::string version;
   std::string api_version;
-  std::string url; // download url
+  std::vector<std::string> files; // download urls
   std::string homepage;
   std::string repository;
   std::string specFile;

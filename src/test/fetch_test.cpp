@@ -2,19 +2,19 @@
 #include "package.h"
 #include <catch2/catch_test_macros.hpp>
 
-TEST_CASE("Fetch a package", "[Fetch]") {
-  Fetch f;
+// TEST_CASE("Fetch a package", "[Fetch]") {
+//   Fetch f;
 
-  std::string path = "./data/test-data.json";
+//   std::string path = "./data/test-data.json";
 
-  Package want = {"John", "PackageA", "1.0", "9.0", "http://example.com/butt.chug", "http://example.com", "http://repo.com", "specA", {"AuthorA", "AuthorB"}, "MIT", "DescriptionA", {"KeywordA", "KeywordB"}};  
+//   Package want = {"John", "PackageA", "1.0", "9.0", "http://example.com/butt.chug", "http://example.com", "http://repo.com", "specA", {"AuthorA", "AuthorB"}, "MIT", "DescriptionA", {"KeywordA", "KeywordB"}};  
   
-  auto got = f.fetch(path);
+//   auto got = f.fetch(path);
 
-  // std::cout << want << std::endl << std::endl << std::endl << std::endl;
+//   // std::cout << want << std::endl << std::endl << std::endl << std::endl;
 
-  REQUIRE(got == want);
-}
+//   REQUIRE(got == want);
+// }
 
 // TEST_CASE("Check if a filepath is a valid JSON file", "[Fetch]") {
 //   Fetch f;

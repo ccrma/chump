@@ -83,37 +83,37 @@ target_include_directories(chump PRIVATE ${CURSES_INCLUDE_DIRS})
 # Testing
 ##################
 
-# add_executable(tests
-#     ${SOURCES}
-#     src/test/exec_test.cpp
-#     src/test/fetch_test.cpp
-#     src/test/package_list_test.cpp
-# )
+add_executable(tests
+    ${SOURCES}
+    src/test/exec_test.cpp
+    src/test/fetch_test.cpp
+    src/test/package_list_test.cpp
+)
 
 
-# # Link ncurses library for tests target
-# target_link_libraries(tests PRIVATE ${CURSES_LIBRARIES})
+# Link ncurses library for tests target
+target_link_libraries(tests PRIVATE ${CURSES_LIBRARIES})
 
-# # Include ncurses headers for tests target
-# target_include_directories(tests PRIVATE ${CURSES_INCLUDE_DIRS})
+# Include ncurses headers for tests target
+target_include_directories(tests PRIVATE ${CURSES_INCLUDE_DIRS})
 
-# target_link_libraries(tests PRIVATE Catch2::Catch2WithMain nlohmann_json::nlohmann_json libcurl)
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain nlohmann_json::nlohmann_json libcurl)
 
-# # Configure the location of the test data directory
-# set(TEST_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/test/data)
+# Configure the location of the test data directory
+set(TEST_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/test/data)
 
-# # Copy test data files to the build directory
-# configure_file(
-#     ${TEST_DATA_DIR}/test-data.json
-#     ${CMAKE_CURRENT_BINARY_DIR}/data/test-data.json COPYONLY
-# )
+# Copy test data files to the build directory
+configure_file(
+    ${TEST_DATA_DIR}/test-data.json
+    ${CMAKE_CURRENT_BINARY_DIR}/data/test-data.json COPYONLY
+)
 
-# configure_file(
-#      ${TEST_DATA_DIR}/test-package-list.json
-#     ${CMAKE_CURRENT_BINARY_DIR}/data/test-package-list.json COPYONLY
-# )
+configure_file(
+     ${TEST_DATA_DIR}/test-package-list.json
+    ${CMAKE_CURRENT_BINARY_DIR}/data/test-package-list.json COPYONLY
+)
 
-# list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
-# include(CTest)
-# include(Catch)
-# catch_discover_tests(tests)
+list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
+include(CTest)
+include(Catch)
+catch_discover_tests(tests)
