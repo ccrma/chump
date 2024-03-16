@@ -15,7 +15,7 @@ int main( int argc, const char ** argv ) {
   }
   auto [cmd, args] = parseArgs(argc, argv);
 
-  Manager* m = new Manager();
+  Manager* m = new Manager("../data/packages.json");
   execCommand(cmd, args, m);
 
   return 0;

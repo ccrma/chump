@@ -8,6 +8,7 @@
 
 #include <fstream>
 #include <regex>
+#include <cstdlib>
 
 using json = nlohmann::json;
 
@@ -23,13 +24,13 @@ namespace fs = std::filesystem;
 class FetchBase {
 public:
   virtual ~FetchBase() = default;
-  virtual optional<Package> fetch(std::string data) = 0;
+  virtual optional<Package> fetch(std::string data, std::string package_name) = 0;
 };
 
 
 class Fetch : public FetchBase {
  public:
-  optional<Package> fetch(std::string data);
+  optional<Package> fetch(std::string data, std::string package_name);
 
 public:
   bool isJSONFile(std::string path);

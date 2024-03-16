@@ -66,7 +66,7 @@ int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal
   - chump info www.package.com/ABSaturator.zip # the path is a url to be downloaded
   - chump info pkg-name # search pre-defined directories for the pkg name (or online pkg list)
  */
-optional<Package> Fetch::fetch(std::string url) {
+optional<Package> Fetch::fetch(std::string url, std::string package_name) {
   if (!isURL(url)) {
     std::cerr << "Not a URL!" << std::endl;
     return {};
@@ -80,8 +80,10 @@ optional<Package> Fetch::fetch(std::string url) {
   // Create a temporary directory
   fs::path tempDir = fs::temp_directory_path();
 
+  fs::path filename = fs::path(url).filename();
+
   // Generate a unique temporary file name
-  fs::path tempFilePath = tempDir / "downloaded_file.tmp";
+  fs::path tempFilePath = tempDir / filename;
 
   fp = fopen(tempFilePath.c_str(), "wb");
   if (!fp) {
@@ -117,11 +119,29 @@ optional<Package> Fetch::fetch(std::string url) {
     curl_easy_cleanup(curl);
     fclose(fp);
 
-    std::cout << "File downloaded successfully" << std::endl;
   } else {
     std::cerr << "Failed to initialize libcurl" << std::endl;
     return {};
   }
+
+  // copy file to the proper install dir
+
+  // get home environment variable
+  const char* env_p = std::getenv("HOME");
+  fs::path home = fs::path(env_p);
+  fs::path install_dir = home / ".chuck/lib" / package_name;
+  fs::path install_path = install_dir / filename;
+
+  // create dir if needed
+  fs::create_directory(install_dir);
+
+  try {
+    std::filesystem::rename(tempFilePath, install_path);
+  } catch (std::filesystem::filesystem_error& e) {
+    std::cout << e.what() << '\n';
+  }
+
+  std::cout << "Successfully installed " << package_name << "!" << std::endl;
 
   return {};
 

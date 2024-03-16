@@ -9,7 +9,7 @@
             "repository": "https://github.com/nshaheed/hydra-chugin",
             "files": [
                 "https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/Hydra.chug"
-            ]
+            ],
             "spec_file": "specA",
             "authors": ["Nick Shaheed"],
             "license": "tbd",

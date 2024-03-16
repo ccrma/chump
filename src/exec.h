@@ -17,22 +17,23 @@ std::tuple<std::string, std::vector<std::string>> parseArgs( int argc, const cha
 
 void execCommand(std::string cmd, std::vector<std::string> args, Manager* manager) {
   if (cmd == "info") {
-    if (args.size() != 1) {
-      std::cerr << "\"chump info\" should have one argument" << std::endl;
-      return;
-    }
+    // if (args.size() != 1) {
+    //   std::cerr << "\"chump info\" should have one argument" << std::endl;
+    //   return;
+    // }
 
-    auto p = manager->fetch->fetch(args[0]);
+    // auto p = manager->fetch->fetch(args[0]);
 
-    if (p) {
-      std::cout << p.value() << std::endl;
-    } else {
-      std::cout << "package [" << args[0] << "] not found" << std::endl;
-    }
+    // if (p) {
+    //   std::cout << p.value() << std::endl;
+    // } else {
+    //   std::cout << "package [" << args[0] << "] not found" << std::endl;
+    // }
 
   } else if (cmd == "install") {
     // manager->fetch->fetch("https://ccrma.stanford.edu/~nshaheed/220a/hw4/hw4.wav");
-    manager->fetch->fetch("https://ccrma.stanford.edu/~nshaheed/rave_models/chafe_cello.ts");
+    // manager->fetch->fetch("https://ccrma.stanford.edu/~nshaheed/rave_models/chafe_cello.ts");
+    manager->install(args[0]);
   } else {
     std::cerr << "command " << cmd << " is not a valid command." << std::endl;
   }
