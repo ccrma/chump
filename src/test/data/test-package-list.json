@@ -7,7 +7,9 @@
             "api_version": "9.0",
             "homepage": "http://example.com",
             "repository": "http://repo.com",
-            "files": ["https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug"],
+            "files": {
+                "linux": ["https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug"]
+            },
             "spec_file": "specA",
             "authors": ["AuthorA", "AuthorB"],
             "license": "MIT",

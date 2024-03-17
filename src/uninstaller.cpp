@@ -24,9 +24,10 @@ bool Uninstaller::uninstall(std::string package_name) {
     return false;
   }
 
+  std::string os = "linux";
 
   // only delete files that chump knows about
-  for (auto file: package.files) {
+  for (auto file: package.files[os]) {
     fs::path filename = fs::path(file).filename();
 
     fs::path filepath = package_dir / filename;

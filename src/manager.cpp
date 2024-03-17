@@ -28,8 +28,10 @@ bool Manager::install(std::string packageName) {
 
   auto package = pkg.value();
 
+  // TODO actually fetch operating system
+  std::string os = "linux";
   // fetch
-  for (auto file: package.files) {
+  for (auto file: package.files[os]) {
     fetch->fetch(file, package);
   }
 
