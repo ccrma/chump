@@ -5,6 +5,7 @@
 #include <curses.h>
 
 #include "fetch.h"
+#include "util.h"
 
 // Callback function to update progress
 int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow) {
@@ -66,11 +67,13 @@ int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal
   - chump info www.package.com/ABSaturator.zip # the path is a url to be downloaded
   - chump info pkg-name # search pre-defined directories for the pkg name (or online pkg list)
  */
-optional<Package> Fetch::fetch(std::string url, std::string package_name) {
+optional<Package> Fetch::fetch(std::string url, Package package) {
   if (!isURL(url)) {
     std::cerr << "Not a URL!" << std::endl;
     return {};
   }
+
+  std::string package_name = package.name;
 
   // struct progress data;
   CURL *curl;
@@ -129,7 +132,7 @@ optional<Package> Fetch::fetch(std::string url, std::string package_name) {
   // get home environment variable
   const char* env_p = std::getenv("HOME");
   fs::path home = fs::path(env_p);
-  fs::path install_dir = home / ".chuck/lib" / package_name;
+  fs::path install_dir = packagePath(package);
   fs::path install_path = install_dir / filename;
 
   // create dir if needed

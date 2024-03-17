@@ -9,6 +9,7 @@
 #include "package.h"
 #include "package_list.h"
 #include "fetch.h"
+#include "uninstaller.h"
 
 using std::optional;
 using std::string;
@@ -28,6 +29,7 @@ class Manager {
   optional<Package> getPackage(string name);
 
   bool install(string packageName);
+  bool uninstall(string packageName);
 
 
 public:
@@ -36,6 +38,7 @@ public:
 
 private:
   PackageList* package_list;
+  UninstallerBase* uninstaller;
 };
 
 

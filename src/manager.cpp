@@ -9,6 +9,7 @@ Manager::Manager() {
 Manager::Manager(std::string package_list_path) {
   fetch = new Fetch();
   package_list = new PackageList(package_list_path);
+  uninstaller = new Uninstaller(package_list);
 }
 
 optional<Package> Manager::getPackage(string name) {
@@ -29,7 +30,7 @@ bool Manager::install(std::string packageName) {
 
   // fetch
   for (auto file: package.files) {
-    fetch->fetch(file, package.name);
+    fetch->fetch(file, package);
   }
 
   // validate
@@ -39,4 +40,13 @@ bool Manager::install(std::string packageName) {
   return true;
 }
 
+bool Manager::uninstall(std::string packageName) {
+  if(!uninstaller->uninstall(packageName)) {
+    std::cerr << "Failed to uninstall " << packageName << std::endl;
+    return false;
+  } else {
+    std::cout << "Successfully uninstalled " << packageName << std::endl;
+  }
 
+  return true;
+}
