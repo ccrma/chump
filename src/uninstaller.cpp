@@ -24,7 +24,7 @@ bool Uninstaller::uninstall(std::string package_name) {
     return false;
   }
 
-  std::string os = "linux";
+  std::string os = whichOS();
 
   // only delete files that chump knows about
   for (auto file: package.files[os]) {

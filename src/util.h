@@ -7,4 +7,6 @@ namespace fs = std::filesystem;
 
 fs::path packagePath(Package p);
 
+std::string whichOS();
+
 #endif

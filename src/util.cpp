@@ -8,3 +8,16 @@ fs::path packagePath(Package p) {
 
     return package_dir;
 }
+
+std::string whichOS() {
+#if defined(_WIN32) || defined(_WIN64) || defined(__CYGWIN__)
+  return "windows";
+#elif defined(__APPLE__)
+  return "mac";
+#elif defined(__linux__)
+  return "linux";
+#else
+    std::cerr << "Unknown operating system" << std::endl;
+    return "";
+#endif
+}
