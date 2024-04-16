@@ -9,6 +9,7 @@
 #include <fstream>
 #include <regex>
 #include <cstdlib>
+#include <optional>
 
 using json = nlohmann::json;
 

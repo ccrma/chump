@@ -2,7 +2,7 @@
 #define __PACKAGELIST_H__
 
 #include <fstream>
-
+#include <optional>
 #include <nlohmann/json.hpp>
 
 #include "package.h"
