@@ -4,31 +4,28 @@
 
 // Equality operator overload
 bool Package::operator==(const Package& other) const {
-    return (owner == other.owner) &&
-           (name == other.name) &&
-           (version == other.version) &&
-           (api_version == other.api_version) &&
+    return (name == other.name) &&
+           (authors == other.authors) &&
            (homepage == other.homepage) &&
            (repository == other.repository) &&
-           (files == other.files) &&
-           (specFile == other.specFile) &&
-           (authors == other.authors) &&
            (license == other.license) &&
            (description == other.description) &&
-           (keywords == other.keywords);
+           (keywords == other.keywords) &&
+           (versions == other.versions);
+}
+
+bool PackageVersion::operator==(const PackageVersion& other) const {
+    return (version == other.version) &&
+           (api_version == other.api_version) &&
+           (language_version == other.language_version) &&
+           (os == other.os) &&
+           (files == other.files);
 }
 
 // Output stream operator overload
 std::ostream& operator<<(std::ostream& os, const Package& pkg) {
-  os << "Owner: " << pkg.owner << "\n"
-     << "Name: " << pkg.name << "\n"
-     << "Version: " << pkg.version << "\n"
-     << "API Version: " << pkg.api_version << "\n"
-     << "Homepage: " << pkg.homepage << "\n"
-     << "Repository: " << pkg.repository << "\n"
-     << "Spec File: " << pkg.specFile << "\n"
+  os << "Name: " << pkg.name << "\n"
      << "Authors: [";
-
   if (!pkg.authors.empty()) {
     os << pkg.authors[0];
 
@@ -36,8 +33,9 @@ std::ostream& operator<<(std::ostream& os, const Package& pkg) {
       os << ", " << pkg.authors[i];
     }
   }
-
-  os << "]\nLicense: " << pkg.license << "\n"
+  os << "]\nHomepage: " << pkg.homepage << "\n"
+     << "Repository: " << pkg.repository << "\n"
+     << "License: " << pkg.license << "\n"
      << "Description: " << pkg.description << "\n"
      << "Keywords: [";
 
@@ -49,51 +47,79 @@ std::ostream& operator<<(std::ostream& os, const Package& pkg) {
     }
   }
 
-  os << "]\nFiles: [";
-  if (!pkg.files.empty()) {
+  os << "]\nVersions: [";
+  if (!pkg.versions.empty()) {
 
-    for (const auto& pair : pkg.files) {
-      os << pair.first << ":" << std::endl;
-
-      // os << pkg.files[0];
-
-      for (size_t i = 1; i < pair.second.size(); ++i) {
-        os << ", " << pair.second[i];
-      }
+    for (const auto& ver : pkg.versions) {
+      os << ver << "\n";
     }
   }
   os << "]\n";
   return os;
 }
 
+std::ostream& operator<<(std::ostream& os, const PackageVersion& ver) {
+  os << "Version: " << ver.version << "\n"
+     << "API Version: " << ver.api_version << "\n"
+     << "Language Version: " << ver.language_version << "\n"
+     << "Operating System: " << ver.os << "\n"
+     << "Files: [";
+
+  if (!ver.files.empty()) {
+    os << ver.files[0];
+
+    for (size_t i = 1; i < ver.files.size(); ++i) {
+      os << ", " << ver.files[i];
+    }
+  }
+  os << "]\n";
+
+  return os;
+}
+
 void to_json(json& j, const Package& p) {
   j = json{
-        {"owner", p.owner},
-        {"name", p.name},
-        {"version", p.version},
-        {"api_version", p.api_version},
-        {"files", p.files},
-        {"homepage", p.homepage},
-        {"repository", p.repository},
-        {"spec_file", p.specFile},
-        {"authors", p.authors},
-        {"license", p.license},
-        {"description", p.description},
-        {"keywords", p.keywords}
+    {"name", p.name},
+    {"homepage", p.homepage},
+    {"repository", p.repository},
+    {"authors", p.authors},
+    {"license", p.license},
+    {"description", p.description},
+    {"keywords", p.keywords},
+    {"versions", p.versions}
     };
 }
 
 void from_json(const json& j, Package& p) {
-    j.at("owner").get_to(p.owner);
     j.at("name").get_to(p.name);
-    j.at("version").get_to(p.version);
-    j.at("api_version").get_to(p.api_version);
-    j.at("files").get_to(p.files);
     j.at("homepage").get_to(p.homepage);
     j.at("repository").get_to(p.repository);
-    j.at("spec_file").get_to(p.specFile);
     j.at("authors").get_to(p.authors);
     j.at("license").get_to(p.license);
     j.at("description").get_to(p.description);
     j.at("keywords").get_to(p.keywords);
+    j.at("versions").get_to(p.versions);
 }
+
+void to_json(json& j, const PackageVersion& p) {
+  j = json{
+        {"version", p.version},
+        {"api_version", p.api_version},
+        {"language_version", p.language_version},
+        {"os", p.os},
+        {"files", p.files},
+    };
+}
+
+void from_json(const json& j, PackageVersion& p) {
+    j.at("version").get_to(p.version);
+    j.at("api_version").get_to(p.api_version);
+    j.at("language_version").get_to(p.language_version);
+    j.at("os").get_to(p.os);
+    j.at("files").get_to(p.files);
+}
+
+optional<PackageVersion> Package::latest_version(string os) {
+  return {};
+}
+

@@ -23,16 +23,27 @@ bool Manager::install(std::string packageName) {
   auto pkg = package_list->lookup(packageName);
 
   if (!pkg) {
-    std::cerr << "BADBADBAD" << std::endl;
+    std::cerr << "Package " << packageName << " not found." << std::endl;
     return false;
   }
 
-  auto package = pkg.value();
+  Package package = pkg.value();
 
-  // TODO actually fetch operating system
   std::string os = whichOS();
+
+  optional<PackageVersion> ver = package.latest_version(os);
+
+  if (!ver) {
+    std::cerr << "Unable to find version of package " << package.name
+              << " that works on your system" << std::endl;
+
+    return false;
+  }
+
+  PackageVersion version = ver.value();
+
   // fetch
-  for (auto file: package.files[os]) {
+  for (auto file: version.files) {
     fetch->fetch(file, package);
   }
 

@@ -24,23 +24,10 @@ bool Uninstaller::uninstall(std::string package_name) {
     return false;
   }
 
-  std::string os = whichOS();
+  // Delete entire directory - you've been warned
+  fs::remove_all(package_dir);
 
-  // only delete files that chump knows about
-  for (auto file: package.files[os]) {
-    fs::path filename = fs::path(file).filename();
-
-    fs::path filepath = package_dir / filename;
-
-    if (!fs::remove(filepath)) {
-      std::cerr << "File " << filepath << " not found." << std::endl;
-    }
-  }
-
-  // If the package directory still has files, don't remove it.
-  if (!fs::remove(package_dir)) {
-    std::cerr << "Directory " << package_dir << " not removed." << std::endl;
-  }
+  std::cout << "Package " << package.name << " was removed." << std::endl;
 
   return true;
 }

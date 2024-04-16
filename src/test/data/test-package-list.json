@@ -1,20 +1,22 @@
 {
     "packages": [
         {
-            "owner": "John",
             "name": "Butt",
-            "version": "1.0",
-            "api_version": "9.0",
+            "authors": ["AuthorA", "AuthorB"],
             "homepage": "http://example.com",
             "repository": "http://repo.com",
-            "files": {
-                "linux": ["https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug"]
-            },
-            "spec_file": "specA",
-            "authors": ["AuthorA", "AuthorB"],
             "license": "MIT",
             "description": "DescriptionA",
-            "keywords": ["KeywordA", "KeywordB"]
+            "keywords": ["KeywordA", "KeywordB"],
+            "versions": [
+                {
+                    "version": "1.0",
+                    "api_version": "9.0",
+                    "language_version": "1.5.2.1",
+                    "os": "linux",
+                    "files": ["https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug"]
+                }
+            ]
         }
     ]
 }

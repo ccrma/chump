@@ -39,7 +39,7 @@ optional<Package> PackageList::lookup(string name) {
 
 optional<Package> PackageList::lookup(string name, string version) {
   for (auto package: packages) {
-    if (package.name == name && package.version == version) {
+    if (package.name == name) {
       return package;
     }
   }
