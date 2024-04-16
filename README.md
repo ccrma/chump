@@ -6,7 +6,7 @@
 The ChucK Manager of Packages
 
 ## Dependencies
-`apt-get install libcurl4-openssl-dev`
+`apt-get install libssl-dev libncurses5-dev libncursesw5-dev`
 
 ## Building & Testing
 
