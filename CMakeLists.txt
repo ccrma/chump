@@ -24,6 +24,10 @@ set(SOURCES
   src/exec.h
   src/fetch.h
   src/fetch.cpp
+  src/uninstaller.h
+  src/uninstaller.cpp
+  src/util.h
+  src/util.cpp
 )
 
 find_package(Curses REQUIRED)

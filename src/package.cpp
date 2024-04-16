@@ -20,45 +20,50 @@ bool Package::operator==(const Package& other) const {
 
 // Output stream operator overload
 std::ostream& operator<<(std::ostream& os, const Package& pkg) {
-    os << "Owner: " << pkg.owner << "\n"
-       << "Name: " << pkg.name << "\n"
-       << "Version: " << pkg.version << "\n"
-       << "API Version: " << pkg.api_version << "\n"
-       << "Homepage: " << pkg.homepage << "\n"
-       << "Repository: " << pkg.repository << "\n"
-       << "Spec File: " << pkg.specFile << "\n"
-       << "Authors: [";
+  os << "Owner: " << pkg.owner << "\n"
+     << "Name: " << pkg.name << "\n"
+     << "Version: " << pkg.version << "\n"
+     << "API Version: " << pkg.api_version << "\n"
+     << "Homepage: " << pkg.homepage << "\n"
+     << "Repository: " << pkg.repository << "\n"
+     << "Spec File: " << pkg.specFile << "\n"
+     << "Authors: [";
 
-    if (!pkg.authors.empty()) {
-        os << pkg.authors[0];
+  if (!pkg.authors.empty()) {
+    os << pkg.authors[0];
 
-        for (size_t i = 1; i < pkg.authors.size(); ++i) {
-            os << ", " << pkg.authors[i];
-        }
+    for (size_t i = 1; i < pkg.authors.size(); ++i) {
+      os << ", " << pkg.authors[i];
     }
+  }
 
-    os << "]\nLicense: " << pkg.license << "\n"
-       << "Description: " << pkg.description << "\n"
-       << "Keywords: [";
+  os << "]\nLicense: " << pkg.license << "\n"
+     << "Description: " << pkg.description << "\n"
+     << "Keywords: [";
 
-    if (!pkg.keywords.empty()) {
-        os << pkg.keywords[0];
+  if (!pkg.keywords.empty()) {
+    os << pkg.keywords[0];
 
-        for (size_t i = 1; i < pkg.keywords.size(); ++i) {
-            os << ", " << pkg.keywords[i];
-        }
+    for (size_t i = 1; i < pkg.keywords.size(); ++i) {
+      os << ", " << pkg.keywords[i];
     }
+  }
 
-    os << "]\nFiles: [";
-    if (!pkg.files.empty()) {
-        os << pkg.files[0];
+  os << "]\nFiles: [";
+  if (!pkg.files.empty()) {
 
-        for (size_t i = 1; i < pkg.files.size(); ++i) {
-            os << ", " << pkg.files[i];
-        }
+    for (const auto& pair : pkg.files) {
+      os << pair.first << ":" << std::endl;
+
+      // os << pkg.files[0];
+
+      for (size_t i = 1; i < pair.second.size(); ++i) {
+        os << ", " << pair.second[i];
+      }
     }
-    os << "]\n";
-    return os;
+  }
+  os << "]\n";
+  return os;
 }
 
 void to_json(json& j, const Package& p) {
