@@ -7,7 +7,7 @@ Uninstaller::Uninstaller(PackageList* pkg_list) {
 
 bool Uninstaller::uninstall(std::string package_name) {
   // lookup package name (default to latest version)
-  auto pkg = package_list->lookup(package_name);
+  auto pkg = package_list->find_package(package_name);
 
   if (!pkg) {
     std::cerr << "BADBADBAD" << std::endl;

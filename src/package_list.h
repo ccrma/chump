@@ -6,6 +6,7 @@
 #include <nlohmann/json.hpp>
 
 #include "package.h"
+#include "util.h"
 
 using json = nlohmann::json;
 using std::string;
@@ -17,14 +18,17 @@ using std::optional;
 class PackageList {
  public:
   PackageList();
-  PackageList(string filepath);
+  PackageList(string filepath) : PackageList(filepath, whichOS()) {};
+  // set OS explicitly for unit tests
+  PackageList(string filepath, string operating_system);
 
  public:
+  optional<Package> find_package(string name);
   // return latest (maybe latest && most compatible?) version of package
-  optional<Package> lookup(string name);
+  optional<PackageVersion> find_latest_package_version(string name);
 
   // return specific version of package
-  optional<Package> lookup(string name, string version);
+  optional<PackageVersion> find_package_version(string name, string version);
 
 
   /* static void from_json(const json& j, PackageList& pkg_list); */
@@ -32,6 +36,9 @@ class PackageList {
  private:
   // TODO could be a more efficient lookup implementation
   std::vector<Package> packages;
+
+  // set OS at initialization time
+  string os;
 };
 
 #endif

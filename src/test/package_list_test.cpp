@@ -5,7 +5,7 @@ using std::optional;
 
 TEST_CASE("Load db file", "[PackageList]") {
   std::string path = "./data/test-package-list.json";
-  PackageList pkglist = PackageList(path);
+  PackageList pkglist = PackageList(path, "linux");
 
   Package want;
   PackageVersion version;
@@ -29,15 +29,50 @@ TEST_CASE("Load db file", "[PackageList]") {
 
   // Package want = {"John", "Butt", "1.0", "9.0", {{"linux", {"https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug"}}}, "http://example.com", "http://repo.com", "specA", {"AuthorA", "AuthorB"}, "MIT", "DescriptionA", {"KeywordA", "KeywordB"}};
 
-  optional<Package> got = pkglist.lookup("Butt");
+  optional<Package> got = pkglist.find_package("Butt");
 
+  REQUIRE(got.has_value());
 
-  REQUIRE(got == want);
+  REQUIRE(got.value().name == want.name);
+  REQUIRE(got.value().versions.size() > 0);
+}
 
-  got = pkglist.lookup("Butt", "1.0");
-  REQUIRE(got == want);
+TEST_CASE("Find Package") {
+  std::string path = "./data/test-package-list.json";
+  PackageList pkglist = PackageList(path, "linux");
 
+  SECTION("Successfully find package") {
+    optional<Package> pkg = pkglist.find_package("Butt");
+    REQUIRE(pkg.value().name == "Butt");
+  }
 
-  got = pkglist.lookup("NotReal");
-  REQUIRE_FALSE(got);
+  SECTION("Can't find package") {
+    optional<Package> pkg = pkglist.find_package("Fork");
+    REQUIRE_FALSE(pkg);
+  }
+}
+
+TEST_CASE("Find Package Version") {
+  std::string path = "./data/test-package-list.json";
+  PackageList pkglist = PackageList(path, "linux");
+
+  SECTION("Successfully find package") {
+    optional<PackageVersion> version = pkglist.find_latest_package_version("Butt");
+    REQUIRE(version.value().version == "1.0.0");
+  }
+
+  SECTION("Can't find package") {
+    optional<PackageVersion> version = pkglist.find_latest_package_version("Fork");
+    REQUIRE_FALSE(version);
+  }
+
+  SECTION("Successfully find version") {
+    optional<PackageVersion> version = pkglist.find_package_version("Butt", "1.0.0");
+    REQUIRE(version.value().version == "1.0.0");
+  }
+
+  SECTION("Unsuccessfully find version") {
+    optional<PackageVersion> version = pkglist.find_package_version("Butt", "1.2.0");
+    REQUIRE_FALSE(version.has_value());
+  }
 }

@@ -6,7 +6,9 @@ PackageList::PackageList() {
   // throw std::runtime_error("not implemented");
 }
 
-PackageList::PackageList(string filepath) {
+PackageList::PackageList(string filepath, string operating_system) {
+  os = operating_system;
+
   std::ifstream f(filepath);
 
   // TODO better error checks
@@ -27,20 +29,35 @@ PackageList::PackageList(string filepath) {
   }
 }
 
-optional<Package> PackageList::lookup(string name) {
-  // TODO get highest version (how do I do that?)
+optional<Package> PackageList::find_package(string name) {
   for (auto package: packages) {
     if (package.name == name) {
       return package;
     }
   }
+
   return {};
 }
 
-optional<Package> PackageList::lookup(string name, string version) {
+optional<PackageVersion> PackageList::find_latest_package_version(string name) {
+  // TODO get highest version (how do I do that?)
   for (auto package: packages) {
     if (package.name == name) {
-      return package;
+      string os = whichOS();
+      return package.latest_version(os);
+    }
+  }
+  return {};
+}
+
+optional<PackageVersion> PackageList::find_package_version(string name, string version) {
+  for (auto package: packages) {
+    if (package.name == name) {
+      for (auto package_version: package.versions) {
+        if (package_version.version == version) {
+          return package_version;
+        }
+      }
     }
   }
   return {};

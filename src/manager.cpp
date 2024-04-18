@@ -20,7 +20,7 @@ optional<Package> Manager::getPackage(string name) {
 
 bool Manager::install(std::string packageName) {
   // lookup package name (default to latest version)
-  auto pkg = package_list->lookup(packageName);
+  auto pkg = package_list->find_package(packageName);
 
   if (!pkg) {
     std::cerr << "Package " << packageName << " not found." << std::endl;

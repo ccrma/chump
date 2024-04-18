@@ -119,13 +119,24 @@ void from_json(const json& j, PackageVersion& p) {
     j.at("files").get_to(p.files);
 }
 
+// find the latest compatible version
+// TODO expand filtering criteria beyond OS
 optional<PackageVersion> Package::latest_version(string os) {
-  optional<PackageVersion> latest;
+  optional<PackageVersion> latest_package;
+  optional<Version> latest_version;
 
-  for (PackageVersion ver : versions) {
-    if (ver.os != os) continue;
+  for (PackageVersion pkg_ver : versions) {
+    if (pkg_ver.os != os) continue;
+
+    Version version = parseVersionString(pkg_ver.version);
+
+    if (version > latest_version) {
+      latest_package = pkg_ver;
+      latest_version = version;
+    }
+
   }
-  return {};
+  return latest_package;
 }
 
 // converts a string of the format "1.2.3" into a Version struct
