@@ -156,16 +156,6 @@ size_t Fetch::write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
     return written;
 }
 
-// bool Fetch::isJSONFile(std::string path) {
-//   // Check if the path has a json extension
-//   return (path.size() > 5) && (path.substr(path.size() - 5) == ".json");
-// }
-
-// bool Fetch::isDirectory(std::string path) {
-//   // Check if the path is a directory
-//   return std::filesystem::is_directory(path);
-// }
-
 bool Fetch::isURL(std::string path) {
   // https://www.geeksforgeeks.org/check-if-an-url-is-valid-or-not-using-regular-expression/#
   const std::regex pattern("((http|https)://)(www.)?[a-zA-Z0-9@:%._\\+~#?&//=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%._\\+~#?&//=]*)");
