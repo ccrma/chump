@@ -120,6 +120,71 @@ void from_json(const json& j, PackageVersion& p) {
 }
 
 optional<PackageVersion> Package::latest_version(string os) {
+  optional<PackageVersion> latest;
+
+  for (PackageVersion ver : versions) {
+    if (ver.os != os) continue;
+  }
   return {};
 }
 
+// converts a string of the format "1.2.3" into a Version struct
+Version parseVersionString(const std::string& versionStr) {
+    Version version;
+
+    vector<int> values;
+
+    size_t pos = 0;
+    string token;
+    string delimiter = ".";
+
+    /*****/
+    size_t last = 0;
+    size_t next = 0;
+    while ((next = versionStr.find(delimiter, last)) != string::npos) {
+      token = versionStr.substr(last, next-last);
+
+      int value = std::stoi(token);
+      values.push_back(value);
+
+      last = next + 1;
+    }
+
+    token = versionStr.substr(last, versionStr.size() - last);
+    int value = std::stoi(token);
+    values.push_back(value);
+
+    if (values.size() != 3) {
+      throw std::invalid_argument("Invalid version string format");
+    }
+
+    version.major = values[0];
+    version.minor = values[1];
+    version.patch = values[2];
+
+    return version;
+}
+
+bool operator==(const Version& lhs, const Version& rhs) {
+  return std::tie(lhs.major, lhs.minor, lhs.patch) == std::tie(rhs.major, rhs.minor, rhs.patch);
+}
+
+bool operator!=(const Version& lhs, const Version& rhs) {
+  return std::tie(lhs.major, lhs.minor, lhs.patch) != std::tie(rhs.major, rhs.minor, rhs.patch);
+}
+
+bool operator<(const Version& lhs, const Version& rhs) {
+  return std::tie(lhs.major, lhs.minor, lhs.patch) < std::tie(rhs.major, rhs.minor, rhs.patch);
+}
+
+bool operator<=(const Version& lhs, const Version& rhs) {
+  return std::tie(lhs.major, lhs.minor, lhs.patch) <= std::tie(rhs.major, rhs.minor, rhs.patch);
+}
+
+bool operator>(const Version& lhs, const Version& rhs) {
+  return std::tie(lhs.major, lhs.minor, lhs.patch) > std::tie(rhs.major, rhs.minor, rhs.patch);
+}
+
+bool operator>=(const Version& lhs, const Version& rhs) {
+  return std::tie(lhs.major, lhs.minor, lhs.patch) >= std::tie(rhs.major, rhs.minor, rhs.patch);
+}

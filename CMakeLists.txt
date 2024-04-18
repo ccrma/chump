@@ -91,6 +91,7 @@ add_executable(tests
     ${SOURCES}
     src/test/exec_test.cpp
     src/test/fetch_test.cpp
+    src/test/package_test.cpp
     src/test/package_list_test.cpp
 )
 

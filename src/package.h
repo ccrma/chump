@@ -59,4 +59,20 @@ struct Package {
 void to_json(json& j, const Package& p);
 void from_json(const json& j, Package& p);
 
+struct Version {
+  int major;
+  int minor;
+  int patch;
+
+  // Equality operator overload
+  friend bool operator==(const Version& lhs, const Version& rhs);
+  friend bool operator!=(const Version& lhs, const Version& rhs);
+  friend bool operator<(const Version& lhs, const Version& rhs);
+  friend bool operator<=(const Version& lhs, const Version& rhs);
+  friend bool operator>(const Version& lhs, const Version& rhs);
+  friend bool operator>=(const Version& lhs, const Version& rhs);
+};
+
+Version parseVersionString(const std::string& versionStr);
+
 #endif
