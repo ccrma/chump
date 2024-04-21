@@ -9,4 +9,6 @@ fs::path packagePath(Package p);
 
 std::string whichOS();
 
+std::filesystem::path get_home_directory();
+
 #endif
