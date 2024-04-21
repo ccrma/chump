@@ -35,3 +35,16 @@
 *.cpp#
 /build/
 /Testing/
+
+# VS-specifics
+*.sln
+*.vcxproj
+*.vcxproj.filters
+
+# Cmake stuff
+build/*
+build-release/*
+build-debug/*
+*.cmake
+
+third-party/*
