@@ -9,11 +9,19 @@
 // Returns the path to the directory where a package will be installed
 // TODO expand to other OS
 fs::path packagePath(Package p) {
-    const char* env_p = std::getenv("HOME");
-    fs::path home = fs::path(env_p);
-    fs::path package_dir = home / ".chuck/lib/.chump" / p.name;
-
+    fs::path package_dir = chumpDir() / p.name;
     return package_dir;
+}
+
+fs::path chumpDir() {
+  fs::path home = getHomeDirectory();
+#ifdef _WIN32
+  fs::path chump_dir = home / "Documents" / "chuck" / "chugins" / ".chump";
+#else
+  fs::path chump_dir = home / ".chuck" / "lib" / ".chump";
+#endif
+
+  return chump_dir;
 }
 
 std::string whichOS() {
@@ -30,7 +38,7 @@ std::string whichOS() {
 }
 
 // Get user's home directory.
-std::filesystem::path get_home_directory() {
+std::filesystem::path getHomeDirectory() {
     std::filesystem::path home_dir;
 
 #ifdef _WIN32

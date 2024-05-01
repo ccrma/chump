@@ -9,6 +9,8 @@ fs::path packagePath(Package p);
 
 std::string whichOS();
 
-std::filesystem::path get_home_directory();
+fs::path getHomeDirectory();
+
+fs::path chumpDir();
 
 #endif

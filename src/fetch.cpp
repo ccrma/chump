@@ -2,7 +2,7 @@
 #include <iostream>
 #include <chrono>
 
-#include <curses.h>
+#include "curses.h"
 
 #include "fetch.h"
 #include "util.h"
@@ -79,7 +79,7 @@ optional<Package> Fetch::fetch(std::string url, Package package) {
   CURL *curl;
   FILE *fp;
   CURLcode res;
-
+ 
   // Create a temporary directory
   fs::path tempDir = fs::temp_directory_path();
 
@@ -88,14 +88,21 @@ optional<Package> Fetch::fetch(std::string url, Package package) {
   // Generate a unique temporary file name
   fs::path tempFilePath = tempDir / filename;
 
-  fp = fopen(tempFilePath.c_str(), "wb");
+#ifdef _MSC_VER
+    fp = _wfopen(tempFilePath.c_str(), L"wb");
+#else
+    fp = fopen(tempFilePath.c_str(), "wb");
+#endif
+
   if (!fp) {
     std::cerr << "Error opening file for writing" << std::endl;
     return {};
   }
-
+  
   // Initialize libcurl
   curl = curl_easy_init();
+
+
   if (curl) {
     // Set URL
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
@@ -114,13 +121,15 @@ optional<Package> Fetch::fetch(std::string url, Package package) {
     initscr();
     res = curl_easy_perform(curl);
     endwin();
-    if (res != CURLE_OK) {
-      std::cerr << "Failed to download: " << curl_easy_strerror(res) << std::endl;
-    }
 
     // Clean up
     curl_easy_cleanup(curl);
     fclose(fp);
+
+    if (res != CURLE_OK) {
+      std::cerr << "Failed to download: " << curl_easy_strerror(res) << std::endl;
+      return {};
+    }
 
   } else {
     std::cerr << "Failed to initialize libcurl" << std::endl;
@@ -128,10 +137,6 @@ optional<Package> Fetch::fetch(std::string url, Package package) {
   }
 
   // copy file to the proper install dir
-
-  // get home environment variable
-  const char* env_p = std::getenv("HOME");
-  fs::path home = fs::path(env_p);
   fs::path install_dir = packagePath(package);
   fs::path install_path = install_dir / filename;
 

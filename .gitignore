@@ -42,9 +42,7 @@
 *.vcxproj.filters
 
 # Cmake stuff
-build/*
-build-release/*
-build-debug/*
+build*/
 *.cmake
 
 third-party/*
