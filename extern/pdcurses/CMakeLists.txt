@@ -63,4 +63,4 @@ target_include_directories(PDcurses
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_compile_features(pdcurses PUBLIC cxx_std_17)
+target_compile_features(PDcurses PUBLIC cxx_std_17)
