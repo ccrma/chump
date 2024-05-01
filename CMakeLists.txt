@@ -46,24 +46,20 @@ FetchContent_MakeAvailable(curl)
 ##################
 # Add curses
 ##################
-# IF (WIN32)
-#   # add_subdirectory(pdcurses)
-#   # target_link_libraries(chump
-#   #         PRIVATE
-#   #         PDcurses
-#   # )
-# ELSE()
-#   find_package(Curses REQUIRED)
-#   include_directories(${CURSES_INCLUDE_DIR})
-#   target_link_libraries(chump PRIVATE ${CURSES_LIBRARIES})
-#   target_include_directories(chump PRIVATE ${CURSES_INCLUDE_DIRS})
-# ENDIF()
+IF (WIN32)
+  add_subdirectory(extern/pdcurses)
+ELSE()
+  find_package(Curses REQUIRED)
+  include_directories(${CURSES_INCLUDE_DIR})
+  # target_link_libraries(chump PRIVATE ${CURSES_LIBRARIES})
+  # target_include_directories(chump PRIVATE ${CURSES_INCLUDE_DIRS})
+ENDIF()
 
 
 
 # All subdirectories
 add_subdirectory(src)
-add_subdirectory(extern/pdcurses)
+# add_subdirectory(extern/pdcurses)
 add_subdirectory(chump-cli)
 
 if(BUILD_TESTING)

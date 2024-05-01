@@ -30,7 +30,13 @@ add_library(chump_lib
 target_include_directories(chump_lib PUBLIC ../include)
 
 # This depends on (header only) boost
-target_link_libraries(chump_lib PRIVATE nlohmann_json::nlohmann_json libcurl PDcurses)
+target_link_libraries(chump_lib PRIVATE nlohmann_json::nlohmann_json libcurl)
+
+if (WIN32)
+   target_link_libraries(chump_lib PRIVATE PDcurses)
+ELSE()
+   target_link_libraries(chump_lib PRIVATE ${CURSES_LIBRARIES})
+ENDIF()
 
 # All users of this library will need at least C++17
 target_compile_features(chump_lib PUBLIC cxx_std_17)

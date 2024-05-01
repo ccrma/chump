@@ -14,12 +14,15 @@ The ChucK Manager of Packages
 
 ### Linux
 ```
-# create build directory in build/
-cmake -Bbuild/
+# Create a build dir
+mkdir build
+cd build
+# configure cmake
+cmake . -S ../
 # compile
-cmake --build build/ -j
+cmake --build . -j
 # run tests
-cmake --build build --target test
+ctest
 ```
 
 ### Windows
