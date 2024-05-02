@@ -1,0 +1,66 @@
+add_library(PDcurses STATIC
+        common/acs437.h
+        common/acsgr.h
+        common/acsuni.h
+        common/font437.h
+        common/iconbmp.h
+        curses.h
+        curspriv.h
+        panel.h
+        pdcurses/addch.c
+        pdcurses/addchstr.c
+        pdcurses/addstr.c
+        pdcurses/attr.c
+        pdcurses/beep.c
+        pdcurses/bkgd.c
+        pdcurses/border.c
+        pdcurses/clear.c
+        pdcurses/color.c
+        pdcurses/debug.c
+        pdcurses/delch.c
+        pdcurses/deleteln.c
+        pdcurses/getch.c
+        pdcurses/getstr.c
+        pdcurses/getyx.c
+        pdcurses/inch.c
+        pdcurses/inchstr.c
+        pdcurses/initscr.c
+        pdcurses/inopts.c
+        pdcurses/insch.c
+        pdcurses/insstr.c
+        pdcurses/instr.c
+        pdcurses/kernel.c
+        pdcurses/keyname.c
+        pdcurses/mouse.c
+        pdcurses/move.c
+        pdcurses/outopts.c
+        pdcurses/overlay.c
+        pdcurses/pad.c
+        pdcurses/panel.c
+        pdcurses/printw.c
+        pdcurses/refresh.c
+        pdcurses/scanw.c
+        pdcurses/scroll.c
+        pdcurses/scr_dump.c
+        pdcurses/slk.c
+        pdcurses/termattr.c
+        pdcurses/touch.c
+        pdcurses/util.c
+        pdcurses/window.c
+        wincon/pdcclip.c
+        wincon/pdcdisp.c
+        wincon/pdcgetsc.c
+        wincon/pdckbd.c
+        wincon/pdcscrn.c
+        wincon/pdcsetsc.c
+        wincon/pdcutil.c
+        wincon/pdcwin.h
+)
+
+message("current source dir [pdcurses] ${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(PDcurses
+        PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_compile_features(PDcurses PUBLIC cxx_std_17)

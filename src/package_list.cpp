@@ -43,7 +43,6 @@ optional<PackageVersion> PackageList::find_latest_package_version(string name) {
   // TODO get highest version (how do I do that?)
   for (auto package: packages) {
     if (package.name == name) {
-      string os = whichOS();
       return package.latest_version(os);
     }
   }

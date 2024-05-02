@@ -6,17 +6,34 @@
 The ChucK Manager of Packages
 
 ## Dependencies
+
+### Linux
 `apt-get install libssl-dev libncurses5-dev libncursesw5-dev`
 
 ## Building & Testing
 
+### Linux
+```
+# Create a build dir
+mkdir build
+cd build
+# configure cmake
+cmake . -S ../
+# compile
+cmake --build . -j
+# run tests
+ctest
+```
 
+### Windows
 ```
 # create build directory in build/
-cmake -Bbuild/
+cmake -Bbuild
 # compile
-cmake --build build/ -j
+cmake --build build -j
 # run tests
 cd build
-./tests
+# configure your build dir
+ctest -C Debug # or Release
+ctest
 ```
