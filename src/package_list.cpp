@@ -13,7 +13,7 @@ PackageList::PackageList(string filepath, string operating_system) {
 
   // TODO better error checks
   if (!f.good()) {
-    std::cout << "BADBADBAD" << std::endl;
+    std::cerr << "Unable to open Package List \"" << filepath << "\"" << std::endl;
   }
   
   json data = json::parse(f);
@@ -22,7 +22,6 @@ PackageList::PackageList(string filepath, string operating_system) {
   json j_packages = data["packages"];
 
   for (auto& j_package : j_packages) {
-    // std::cout << j_package << '\n';
     Package p = j_package.get<Package>();
 
     packages.push_back(p);
