@@ -13,9 +13,8 @@ Manager::Manager(std::string package_list_path) {
   uninstaller = new Uninstaller(package_list);
 }
 
-optional<Package> Manager::getPackage(string name) {
-  // return fetch->fetch(name);
-  return {};
+optional<Package> Manager::getPackage(string packageName) {
+  return package_list->find_package(packageName);
 }
 
 bool Manager::install(std::string packageName) {

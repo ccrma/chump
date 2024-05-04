@@ -5,6 +5,7 @@
 #include "manager.h"
 
 void printLogo();
+void printPackage(Package pkg);
 
 // Parse arguments into a (command, arguments[]) tuple
 std::tuple<std::string, std::vector<std::string>> parseArgs( int argc, const char ** argv ) {
@@ -18,18 +19,20 @@ std::tuple<std::string, std::vector<std::string>> parseArgs( int argc, const cha
 
 void execCommand(std::string cmd, std::vector<std::string> args, Manager* manager) {
   if (cmd == "info") {
-    // if (args.size() != 1) {
-    //   std::cerr << "\"chump info\" should have one argument" << std::endl;
-    //   return;
-    // }
+    if (args.size() != 1) {
+      std::cerr << "\"chump info\" should follow the format \"chump info PACKAGENAME\"" << std::endl;
+      return;
+    }
 
-    // auto p = manager->fetch->fetch(args[0]);
+    std::string pkg_name = args[0];
+    optional<Package> pkg = manager->getPackage(pkg_name);
 
-    // if (p) {
-    //   std::cout << p.value() << std::endl;
-    // } else {
-    //   std::cout << "package [" << args[0] << "] not found" << std::endl;
-    // }
+    if (!pkg) {
+      std::cerr << "Unable to find package " << pkg_name << std::endl;
+      return;
+    }
+
+    printPackage(pkg.value());
 
   } else if (cmd == "install") {
     // manager->fetch->fetch("https://ccrma.stanford.edu/~nshaheed/220a/hw4/hw4.wav");
@@ -42,6 +45,10 @@ void execCommand(std::string cmd, std::vector<std::string> args, Manager* manage
   } else {
     std::cerr << "command " << cmd << " is not a valid command." << std::endl;
   }
+}
+
+void printPackage(Package pkg) {
+  std::cout << pkg << std::endl;
 }
 
 
