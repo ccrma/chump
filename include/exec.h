@@ -6,6 +6,7 @@
 
 void printLogo();
 void printPackage(Package pkg);
+void printPackages(Manager* mgr);
 
 // Parse arguments into a (command, arguments[]) tuple
 std::tuple<std::string, std::vector<std::string>> parseArgs( int argc, const char ** argv ) {
@@ -34,6 +35,13 @@ void execCommand(std::string cmd, std::vector<std::string> args, Manager* manage
 
     printPackage(pkg.value());
 
+  } else if (cmd == "list") {
+    if (args.size() != 0) {
+      std::cerr << "\"chump list\" should have no arguments" << std::endl;
+      return;
+    }
+
+    printPackages(manager);
   } else if (cmd == "install") {
     // manager->fetch->fetch("https://ccrma.stanford.edu/~nshaheed/220a/hw4/hw4.wav");
     // manager->fetch->fetch("https://ccrma.stanford.edu/~nshaheed/rave_models/chafe_cello.ts");
@@ -49,6 +57,13 @@ void execCommand(std::string cmd, std::vector<std::string> args, Manager* manage
 
 void printPackage(Package pkg) {
   std::cout << pkg << std::endl;
+}
+
+void printPackages(Manager* mgr) {
+  vector<Package> packages = mgr->listPackages();
+  for (Package p: packages) {
+    std::cout << p.name << std::endl;
+  }
 }
 
 

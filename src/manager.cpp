@@ -63,3 +63,7 @@ bool Manager::uninstall(std::string packageName) {
 
   return true;
 }
+
+std::vector<Package> Manager::listPackages() {
+  return package_list->get_packages();
+}

@@ -61,3 +61,7 @@ optional<PackageVersion> PackageList::find_package_version(string name, string v
   return {};
 }
 
+std::vector<Package> PackageList::get_packages() {
+  return packages;
+}
+
