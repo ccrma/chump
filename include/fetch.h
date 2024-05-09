@@ -34,10 +34,10 @@ class Fetch : public FetchBase {
   optional<Package> fetch(std::string data, Package package);
 
 public:
-  bool isJSONFile(std::string path);
-  bool isDirectory(std::string path);
+  // bool isJSONFile(std::string path);
+  // bool isDirectory(std::string path);
   bool isURL(std::string path);
-  bool isPackageName(std::string path);
+  // bool isPackageName(std::string path);
 
 private:
   static size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream);

@@ -168,6 +168,6 @@ bool Fetch::isURL(std::string path) {
   return regex_match(path, pattern);
 }
 
-bool Fetch::isPackageName(std::string path) {
-  return path != "" && std::all_of(path.begin(), path.end(), ::isalnum);
-}
+// bool Fetch::isPackageName(std::string path) {
+//   return path != "" && std::all_of(path.begin(), path.end(), ::isalnum);
+// }
