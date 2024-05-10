@@ -60,17 +60,14 @@ int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal
     return 0;
 }
 
-/*
-  valid use cases:
-  - chump info path/to/spec.json # directly link to the pkg file
-  - chump info path/to/ # dir containing spec file
-  - chump info www.package.com/ABSaturator.zip # the path is a url to be downloaded
-  - chump info pkg-name # search pre-defined directories for the pkg name (or online pkg list)
- */
-optional<Package> Fetch::fetch(std::string url, Package package) {
+//*******************************************
+// Download file to proper package directory.
+// Return true on success, False on failure.
+//*******************************************
+bool Fetch::fetch(std::string url, Package package) {
   if (!isURL(url)) {
     std::cerr << "Not a URL!" << std::endl;
-    return {};
+    false;
   }
 
   std::string package_name = package.name;
@@ -96,7 +93,7 @@ optional<Package> Fetch::fetch(std::string url, Package package) {
 
   if (!fp) {
     std::cerr << "Error opening file for writing" << std::endl;
-    return {};
+    return false;
   }
   
   // Initialize libcurl
@@ -128,12 +125,12 @@ optional<Package> Fetch::fetch(std::string url, Package package) {
 
     if (res != CURLE_OK) {
       std::cerr << "Failed to download: " << curl_easy_strerror(res) << std::endl;
-      return {};
+      return false;
     }
 
   } else {
     std::cerr << "Failed to initialize libcurl" << std::endl;
-    return {};
+    return false;
   }
 
   // copy file to the proper install dir
@@ -147,12 +144,12 @@ optional<Package> Fetch::fetch(std::string url, Package package) {
     std::filesystem::rename(tempFilePath, install_path);
   } catch (std::filesystem::filesystem_error& e) {
     std::cout << e.what() << '\n';
+    return false;
   }
 
   std::cout << "Successfully installed " << package_name << "!" << std::endl;
 
-  return {};
-
+  return true;
 }
 
 // Callback function to write data into a file

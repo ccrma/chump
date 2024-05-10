@@ -53,8 +53,18 @@ bool Manager::install(std::string packageName) {
 
   // fetch
   for (auto file: version.files) {
-    fetch->fetch(file, package);
+    bool result = fetch->fetch(file, package);
+    if (!result) {
+      std::cerr << "Failed to fetch " << file << ", exiting." << std::endl;
+      return false;
+    }
   }
+
+  // Write version.json to file.
+  json version_json = version;
+
+  std::ofstream o(install_dir / "version.json");
+  o << std::setw(4) << version_json << std::endl;
 
   // validate
 
