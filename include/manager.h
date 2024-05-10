@@ -30,6 +30,7 @@ class Manager {
 
   bool install(string packageName);
   bool uninstall(string packageName);
+  bool update(string packageName); // TODO update install specific version
 
 
 public:

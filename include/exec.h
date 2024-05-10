@@ -46,6 +46,8 @@ void execCommand(std::string cmd, std::vector<std::string> args, Manager* manage
     // manager->fetch->fetch("https://ccrma.stanford.edu/~nshaheed/220a/hw4/hw4.wav");
     // manager->fetch->fetch("https://ccrma.stanford.edu/~nshaheed/rave_models/chafe_cello.ts");
     manager->install(args[0]);
+  } else if (cmd == "update") {
+    manager->update(args[0]);
   } else if (cmd == "uninstall") {
     manager->uninstall(args[0]);
   } else if (cmd == "help") {
