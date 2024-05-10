@@ -82,8 +82,6 @@ bool Manager::update(string packageName) {
     return false;
   }
 
-  std::cout << "update!\n";
-
   Package package = pkg.value();
 
   // if there is already a .chump/PACKAGE directory, error out and tell the user to call update
@@ -96,6 +94,16 @@ bool Manager::update(string packageName) {
   }
 
   // TODO validate that the version is newer
+  std::ifstream f(install_dir / "version.json");
+
+  if (!f.good()) {
+    std::cerr << "Unable to open " << install_dir / "version.json" << std::endl;
+    return false;
+  }
+
+  json pkg_ver = json::parse(f);
+  PackageVersion installed_package_version = pkg_ver.template get<PackageVersion>();
+  Version installed_version = parseVersionString(installed_package_version.version);
 
   std::string os = whichOS();
 
@@ -110,8 +118,19 @@ bool Manager::update(string packageName) {
 
   PackageVersion version = ver.value();
 
+  Version latest_version = parseVersionString(version.version);
+
+  if (installed_version == latest_version) {
+    std::cout << package.name << " is already up-to-date." << std::endl;
+    return true;
+  }
+
+  if (installed_version > latest_version) {
+    std::cout << package.name << " is installed already with a newer version." << std::endl;
+    return true;
+  }
+
   // remove old package
-  // std::cout << install_dir << std::endl;
   fs::remove_all(install_dir);
 
   // fetch
