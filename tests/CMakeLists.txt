@@ -14,7 +14,8 @@ add_executable(testlib
     exec_test.cpp
     fetch_test.cpp
     package_test.cpp
-    package_list_test.cpp   
+    package_list_test.cpp
+    chuck_version_test.cpp
 )
 
 target_compile_features(testlib PRIVATE cxx_std_17)
