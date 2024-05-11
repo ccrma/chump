@@ -8,6 +8,8 @@
 #include <optional>
 #include <nlohmann/json.hpp>
 
+#include "chuck_version.h"
+
 using json = nlohmann::json;
 using std::string;
 using std::map;
@@ -52,7 +54,7 @@ struct Package {
   friend std::ostream& operator<<(std::ostream& os, const Package& pkg);
 
   // Automatically find highest version package compatible with your system.
-  optional<PackageVersion> latest_version(string os);
+  optional<PackageVersion> latest_version(string os, ChuckVersion language_ver, ApiVersion api_ver);
 };
 
 // Function declarations for JSON serialization/deserialization

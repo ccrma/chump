@@ -121,12 +121,19 @@ void from_json(const json& j, PackageVersion& p) {
 
 // find the latest compatible version
 // TODO expand filtering criteria beyond OS
-optional<PackageVersion> Package::latest_version(string os) {
+optional<PackageVersion> Package::latest_version(string os, ChuckVersion language_version,
+                                                 ApiVersion api_version) {
   optional<PackageVersion> latest_package;
   optional<Version> latest_version;
 
   for (PackageVersion pkg_ver : versions) {
+    ChuckVersion ck(pkg_ver.language_version);
+    ApiVersion api(pkg_ver.api_version);
+
+    // filter out bad candidates
     if (pkg_ver.os != os) continue;
+    if (ck != language_version) continue;
+    if (api != api_version) continue;
 
     Version version = parseVersionString(pkg_ver.version);
 

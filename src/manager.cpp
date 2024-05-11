@@ -40,7 +40,7 @@ bool Manager::install(std::string packageName) {
 
   std::string os = whichOS();
 
-  optional<PackageVersion> ver = package.latest_version(os);
+  optional<PackageVersion> ver = package.latest_version(os, language_version, api_version);
 
   if (!ver) {
     std::cerr << "Unable to find version of package " << package.name
@@ -107,7 +107,7 @@ bool Manager::update(string packageName) {
 
   std::string os = whichOS();
 
-  optional<PackageVersion> ver = package.latest_version(os);
+  optional<PackageVersion> ver = package.latest_version(os, language_version, api_version);
 
   if (!ver) {
     std::cerr << "Unable to find version of package " << package.name

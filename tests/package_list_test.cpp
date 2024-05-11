@@ -5,7 +5,7 @@ using std::optional;
 
 TEST_CASE("Load db file", "[PackageList]") {
   std::string path = "./data/test-package-list.json";
-  PackageList pkglist = PackageList(path, "linux");
+  PackageList pkglist = PackageList(path, "linux", ChuckVersion("1.5.2.4"), ApiVersion("10.1"));
 
   Package want;
   PackageVersion version;
@@ -39,7 +39,7 @@ TEST_CASE("Load db file", "[PackageList]") {
 
 TEST_CASE("Find Package") {
   std::string path = "./data/test-package-list.json";
-  PackageList pkglist = PackageList(path, "linux");
+  PackageList pkglist = PackageList(path, "linux", ChuckVersion("1.5.2.4"), ApiVersion("10.1"));
 
   SECTION("Successfully find package") {
     optional<Package> pkg = pkglist.find_package("Butt");
@@ -54,10 +54,11 @@ TEST_CASE("Find Package") {
 
 TEST_CASE("Find Package Version") {
   std::string path = "./data/test-package-list.json";
-  PackageList pkglist = PackageList(path, "linux");
+  PackageList pkglist = PackageList(path, "linux", ChuckVersion("1.5.2.1"), ApiVersion("9.0"));
 
   SECTION("Successfully find package") {
     optional<PackageVersion> version = pkglist.find_latest_package_version("Butt");
+    REQUIRE(version.has_value());
     REQUIRE(version.value().version == "1.0.0");
   }
 
@@ -68,6 +69,7 @@ TEST_CASE("Find Package Version") {
 
   SECTION("Successfully find version") {
     optional<PackageVersion> version = pkglist.find_package_version("Butt", "1.0.0");
+    REQUIRE(version.has_value());
     REQUIRE(version.value().version == "1.0.0");
   }
 
