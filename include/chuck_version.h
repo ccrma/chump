@@ -8,7 +8,7 @@ using std::string;
 struct ChuckVersion {
   ChuckVersion();
   ChuckVersion(string version_string);
-  
+
   // Format is mega.major.minor.patch (i.e. 1.5.2.4)
   int mega;
   int major;
@@ -40,6 +40,8 @@ struct ApiVersion {
   friend bool operator<=(const ApiVersion& lhs, const ApiVersion& rhs);
   friend bool operator>(const ApiVersion& lhs, const ApiVersion& rhs);
   friend bool operator>=(const ApiVersion& lhs, const ApiVersion& rhs);
+
+  void set_version(string version_string);
 };
 
 #endif

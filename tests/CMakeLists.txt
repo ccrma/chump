@@ -16,6 +16,7 @@ add_executable(testlib
     package_test.cpp
     package_list_test.cpp
     chuck_version_test.cpp
+    api_version_test.cpp
 )
 
 target_compile_features(testlib PRIVATE cxx_std_17)
