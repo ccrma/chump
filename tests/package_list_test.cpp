@@ -4,7 +4,7 @@
 using std::optional;
 
 TEST_CASE("Load db file", "[PackageList]") {
-  std::string path = "./data/test-package-list.json";
+  std::string path = "./test-package-list.json";
   PackageList pkglist = PackageList(path, "linux", ChuckVersion("1.5.2.4"), ApiVersion("10.1"));
 
   Package want;
@@ -38,7 +38,7 @@ TEST_CASE("Load db file", "[PackageList]") {
 }
 
 TEST_CASE("Find Package") {
-  std::string path = "./data/test-package-list.json";
+  std::string path = "./test-package-list.json";
   PackageList pkglist = PackageList(path, "linux", ChuckVersion("1.5.2.4"), ApiVersion("10.1"));
 
   SECTION("Successfully find package") {
@@ -53,7 +53,7 @@ TEST_CASE("Find Package") {
 }
 
 TEST_CASE("Find Package Version") {
-  std::string path = "./data/test-package-list.json";
+  std::string path = "./test-package-list.json";
   PackageList pkglist = PackageList(path, "linux", ChuckVersion("1.5.2.1"), ApiVersion("9.0"));
 
   SECTION("Successfully find package") {

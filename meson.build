@@ -18,3 +18,8 @@ endif
 
 subdir('src')
 subdir('chump-cli')
+subdir('tests')
+
+# Expose data for tests at local level in build dir
+fs = import('fs')
+fs.copyfile('tests/data/test-package-list.json')
