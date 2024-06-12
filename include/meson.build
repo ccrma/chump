@@ -1,0 +1,10 @@
+install_headers(
+    'chuck_version.h',
+    'exec.h',
+    'fetch.h',
+    'manager.h',
+    'package.h',
+    'package_list.h',
+    'uninstaller.h',
+    'util.h'
+)
