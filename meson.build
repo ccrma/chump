@@ -7,14 +7,14 @@ project('chump', ['c', 'cpp'],
 
 add_global_arguments(language : ['c', 'cpp'])
 
-inc = include_directories('include')
+inc = [include_directories('include')]
 
 subdir('include')
 
 # windows needs pdcurses
 if build_machine.system() == 'windows'
   subdir('extern/pdcurses')
-  pdcurses_inc = include_directories('extern/pdcurses')
+  inc += include_directories('extern/pdcurses')
 endif
 
 subdir('src')
