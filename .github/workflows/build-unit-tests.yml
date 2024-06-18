@@ -29,6 +29,7 @@ jobs:
           - os: windows-latest
             c_compiler: cl
             cpp_compiler: cl
+            meson_flags: --backend vs
           - os: ubuntu-latest
             c_compiler: gcc
             cpp_compiler: g++
@@ -49,4 +50,4 @@ jobs:
       env:
         CC: gcc
     - name: Run Tests
-      run: meson test -C builddir/ -v
+      run: meson test -C builddir/ -v ${{ matrix.meson_flags }}
