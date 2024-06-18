@@ -29,7 +29,7 @@
                     "language_version": "1.5.2.5",
                     "os": "windows",
                     "files": [
-                        "http://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/Hydra.chug"
+                        "https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/Hydra.chug"
                     ]
                 }
             ]

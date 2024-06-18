@@ -9,7 +9,11 @@
 
 ChuckVersion::ChuckVersion() {
   // Query chuck to get verison string
+#ifdef _WIN32
+  FILE* pipe = _popen("chuck --query:version 2>&1", "r");
+#else
   FILE* pipe = popen("chuck --query:version 2>&1", "r");
+#endif
   if (!pipe) {
     throw std::runtime_error("popen() failed!");
   }
@@ -22,7 +26,11 @@ ChuckVersion::ChuckVersion() {
     version += buffer;
   }
 
+#ifdef _WIN32
+  auto status = _pclose(pipe);
+#else
   auto status = pclose(pipe);
+#endif
   if (status == -1) {
     throw std::runtime_error("pclose() failed!");
   }
@@ -76,7 +84,11 @@ bool operator>=(const ChuckVersion& lhs, const ChuckVersion& rhs) {
 
 ApiVersion::ApiVersion() {
   // Query chuck to get api version string
+#ifdef _WIN32
+  FILE* pipe = _popen("chuck --query:version_chugin_api 2>&1", "r");
+#else
   FILE* pipe = popen("chuck --query:version_chugin_api 2>&1", "r");
+#endif
   if (!pipe) {
     throw std::runtime_error("popen() failed!");
   }
@@ -89,7 +101,11 @@ ApiVersion::ApiVersion() {
     version += buffer;
   }
 
+#ifdef _WIN32
+  auto status = _pclose(pipe);
+#else
   auto status = pclose(pipe);
+#endif
   if (status == -1) {
     throw std::runtime_error("pclose() failed!");
   }

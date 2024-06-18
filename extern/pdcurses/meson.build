@@ -62,4 +62,7 @@ pdcurses_lib = static_library(
   sources: pdcurses_lib_sources,
   install: true
 )
-  
+
+pdcurses_lib_dep = declare_dependency(
+  link_with : pdcurses_lib
+)
