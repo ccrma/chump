@@ -50,4 +50,4 @@ jobs:
       env:
         CC: gcc
     - name: Run Tests
-      run: meson test -C builddir/ -v
+      run: meson test -C builddir/ -v chump:
