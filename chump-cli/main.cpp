@@ -5,6 +5,7 @@
 // desc: command line chuck entry point
 //-----------------------------------------------------------------------------
 
+#include "chuck_version.h"
 #include "exec.h"
 #include "manager.h"
 #include "util.h"
@@ -25,7 +26,7 @@ int main( int argc, const char ** argv ) {
   fs::create_directories(path);
 
   // Build manager and run command
-  Manager* m = new Manager("../data/packages.json");
+  Manager* m = new Manager("../data/packages.json", ChuckVersion::makeSystemVersion(), ApiVersion::makeSystemVersion());
   execCommand(cmd, args, m);
 
   return 0;

@@ -9,6 +9,9 @@ struct ChuckVersion {
   ChuckVersion();
   ChuckVersion(string version_string);
 
+  static ChuckVersion makeSystemVersion();
+  static ChuckVersion makeVersion(string version_string);
+
   // Format is mega.major.minor.patch (i.e. 1.5.2.4)
   int mega;
   int major;
@@ -29,6 +32,10 @@ struct ChuckVersion {
 struct ApiVersion {
   ApiVersion();
   ApiVersion(string version_string);
+
+  static ApiVersion makeSystemVersion();
+  static ApiVersion makeVersion(string version_string);
+
 
   // Format is major.minor (i.e. 10.1)
   int major;

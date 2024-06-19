@@ -21,7 +21,7 @@ class Manager {
  public:
   // constructor
   Manager();
-  Manager(std::string package_list_path);
+  Manager(std::string package_list_path, ChuckVersion ck_ver, ApiVersion api_ver);
 
  public:
   // return a list of all packages (installed and available)

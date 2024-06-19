@@ -7,10 +7,12 @@ Manager::Manager() {
   package_list = new PackageList();
 }
 
-Manager::Manager(std::string package_list_path) {
+Manager::Manager(std::string package_list_path, ChuckVersion ck_ver, ApiVersion api_ver) {
   fetch = new Fetch();
   package_list = new PackageList(package_list_path);
   uninstaller = new Uninstaller(package_list);
+  language_version = ck_ver;
+  api_version = api_ver;
 }
 
 optional<Package> Manager::getPackage(string packageName) {

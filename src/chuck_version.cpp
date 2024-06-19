@@ -8,6 +8,14 @@
 
 
 ChuckVersion::ChuckVersion() {
+
+}
+
+ChuckVersion::ChuckVersion(string version_string) {
+  set_version(version_string);
+}
+
+ChuckVersion ChuckVersion::makeSystemVersion() {
   // Query chuck to get verison string
 #ifdef _WIN32
   FILE* pipe = _popen("chuck --query:version 2>&1", "r");
@@ -35,12 +43,13 @@ ChuckVersion::ChuckVersion() {
     throw std::runtime_error("pclose() failed!");
   }
 
-  set_version(version);
+  return ChuckVersion(version);
 }
 
-ChuckVersion::ChuckVersion(string version_string) {
-  set_version(version_string);
+ChuckVersion ChuckVersion::makeVersion(string version_string) {
+  return ChuckVersion(version_string);
 }
+
 
 void ChuckVersion::set_version(string version_string) {
   std::regex version_regex("(\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+)");
@@ -83,6 +92,13 @@ bool operator>=(const ChuckVersion& lhs, const ChuckVersion& rhs) {
 
 
 ApiVersion::ApiVersion() {
+}
+
+ApiVersion::ApiVersion(string version_string) {
+  set_version(version_string);
+}
+
+ApiVersion ApiVersion::makeSystemVersion() {
   // Query chuck to get api version string
 #ifdef _WIN32
   FILE* pipe = _popen("chuck --query:version_chugin_api 2>&1", "r");
@@ -110,11 +126,11 @@ ApiVersion::ApiVersion() {
     throw std::runtime_error("pclose() failed!");
   }
 
-  set_version(version);
+  return ApiVersion(version);
 }
 
-ApiVersion::ApiVersion(string version_string) {
-  set_version(version_string);
+ApiVersion ApiVersion::makeVersion(string version_string) {
+  return ApiVersion(version_string);
 }
 
 void ApiVersion::set_version(string version_string) {

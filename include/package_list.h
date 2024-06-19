@@ -19,7 +19,10 @@ using std::optional;
 class PackageList {
  public:
   PackageList();
-  PackageList(string filepath) : PackageList(filepath, whichOS(), ChuckVersion(), ApiVersion()) {};
+  PackageList(string filepath) : PackageList(filepath, whichOS(),
+                                             ChuckVersion::makeSystemVersion(),
+                                             ApiVersion::makeSystemVersion()
+                                             ) {};
   // set OS explicitly for unit tests
   PackageList(string filepath, string operating_system, ChuckVersion ck_ver, ApiVersion api_ver);
 
