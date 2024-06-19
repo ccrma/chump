@@ -49,5 +49,7 @@ jobs:
       run: meson setup builddir/ ${{ matrix.meson_flags }}
       env:
         CC: gcc
+    - name: Compile
+      run: meson compile -c builddir/
     - name: Run Tests
       run: "meson test -C builddir/ -v chump:"
