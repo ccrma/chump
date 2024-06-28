@@ -10,30 +10,30 @@ The ChucK Manager of Packages
 ### Linux
 `apt-get install libssl-dev libncurses5-dev libncursesw5-dev`
 
+
+
 ## Building & Testing
 
 ### Linux
 ```
-# Create a build dir
-mkdir build
-cd build
-# configure cmake
-cmake . -S ../
-# compile
-cmake --build . -j
-# run tests
-ctest
+# configure build dir
+meson setup builddir
+# Go to build dir
+cd builddir
+# Compile the project
+meson compile
+# Run unit tests
+meson test
 ```
 
 ### Windows
 ```
-# create build directory in build/
-cmake -Bbuild
-# compile
-cmake --build build -j
-# run tests
-cd build
-# configure your build dir
-ctest -C Debug # or Release
-ctest
+# configure build dir
+meson setup builddir --backend vs
+# Go to build dir
+cd builddir
+# Compile the project
+meson compile
+# Run unit tests
+meson test
 ```

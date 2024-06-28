@@ -10,6 +10,7 @@
 #include "package_list.h"
 #include "fetch.h"
 #include "uninstaller.h"
+#include "chuck_version.h"
 
 using std::optional;
 using std::string;
@@ -20,7 +21,7 @@ class Manager {
  public:
   // constructor
   Manager();
-  Manager(std::string package_list_path);
+  Manager(std::string package_list_path, ChuckVersion ck_ver, ApiVersion api_ver);
 
  public:
   // return a list of all packages (installed and available)
@@ -40,6 +41,8 @@ public:
 private:
   PackageList* package_list;
   UninstallerBase* uninstaller;
+  ChuckVersion language_version;
+  ApiVersion api_version;
 };
 
 

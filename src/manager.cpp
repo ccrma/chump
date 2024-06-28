@@ -7,10 +7,12 @@ Manager::Manager() {
   package_list = new PackageList();
 }
 
-Manager::Manager(std::string package_list_path) {
+Manager::Manager(std::string package_list_path, ChuckVersion ck_ver, ApiVersion api_ver) {
   fetch = new Fetch();
   package_list = new PackageList(package_list_path);
   uninstaller = new Uninstaller(package_list);
+  language_version = ck_ver;
+  api_version = api_ver;
 }
 
 optional<Package> Manager::getPackage(string packageName) {
@@ -40,7 +42,7 @@ bool Manager::install(std::string packageName) {
 
   std::string os = whichOS();
 
-  optional<PackageVersion> ver = package.latest_version(os);
+  optional<PackageVersion> ver = package.latest_version(os, language_version, api_version);
 
   if (!ver) {
     std::cerr << "Unable to find version of package " << package.name
@@ -107,7 +109,7 @@ bool Manager::update(string packageName) {
 
   std::string os = whichOS();
 
-  optional<PackageVersion> ver = package.latest_version(os);
+  optional<PackageVersion> ver = package.latest_version(os, language_version, api_version);
 
   if (!ver) {
     std::cerr << "Unable to find version of package " << package.name

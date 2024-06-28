@@ -12,6 +12,7 @@ set(HEADER_LIST
     "${chump_SOURCE_DIR}/include/package.h"
     "${chump_SOURCE_DIR}/include/uninstaller.h"
     "${chump_SOURCE_DIR}/include/util.h"
+    "${chump_SOURCE_DIR}/include/chuck_version.h"
 )
 
 # Make an automatic library - will be static or dynamic based on user setting
@@ -22,7 +23,8 @@ add_library(chump_lib
     package_list.cpp
     package.cpp
     uninstaller.cpp
-    util.cpp 
+    util.cpp
+    chuck_version.cpp
     ${HEADER_LIST}
 )
 

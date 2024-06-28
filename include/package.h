@@ -1,6 +1,10 @@
-// Package info and metadata
+//-----------------------------------------------------------------------------
+// name: package.h
+// desc: Package information and version metadata
+//-----------------------------------------------------------------------------
+
 #ifndef __PACKAGE_H__
-#define __PACKAGE_H__
+i#define __PACKAGE_H__
 
 #include <string>
 #include <vector>
@@ -8,14 +12,20 @@
 #include <optional>
 #include <nlohmann/json.hpp>
 
+#include "chuck_version.h"
+
 using json = nlohmann::json;
 using std::string;
 using std::map;
 using std::vector;
 using std::optional;
 
+//-----------------------------------------------------------------------------
+// PackageVersion describes a specific version of a package. For examples,
+// this is a usually a .chug file, the associated download link, and
+// metadata specifying which language and API versions it is compatible with.
+// -----------------------------------------------------------------------------
 struct PackageVersion {
-  // Version follows the major.minor.patch versioning scheme. Will enforce this strictly
   string version;
   string api_version;
   string language_version;
@@ -33,7 +43,12 @@ struct PackageVersion {
 void to_json(json& j, const PackageVersion& p);
 void from_json(const json& j, PackageVersion& p);
 
-// A Package describes the package spec.
+
+//-----------------------------------------------------------------------------
+// Package describes a package spec. This will include metadata
+// (authors, description, etc), as well as a list of all available
+// verisons of this package.
+// -----------------------------------------------------------------------------
 struct Package {
   string name;
   vector<string> authors;
@@ -52,12 +67,18 @@ struct Package {
   friend std::ostream& operator<<(std::ostream& os, const Package& pkg);
 
   // Automatically find highest version package compatible with your system.
-  optional<PackageVersion> latest_version(string os);
+  optional<PackageVersion> latest_version(string os, ChuckVersion language_ver, ApiVersion api_ver);
 };
 
 // Function declarations for JSON serialization/deserialization
 void to_json(json& j, const Package& p);
 void from_json(const json& j, Package& p);
+
+
+//-----------------------------------------------------------------------------
+// Version is a struct describing semantic versioning. It follows the
+// major.minor.patch versioning scheme. i.e. "1.2.1"
+// -----------------------------------------------------------------------------
 
 struct Version {
   int major;

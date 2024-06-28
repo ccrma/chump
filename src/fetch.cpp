@@ -67,7 +67,7 @@ int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal
 bool Fetch::fetch(std::string url, Package package) {
   if (!isURL(url)) {
     std::cerr << "Not a URL!" << std::endl;
-    false;
+    return false;
   }
 
   std::string package_name = package.name;

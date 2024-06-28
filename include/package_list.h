@@ -7,6 +7,7 @@
 
 #include "package.h"
 #include "util.h"
+// #include "chuck_version.h"
 
 using json = nlohmann::json;
 using std::string;
@@ -18,9 +19,12 @@ using std::optional;
 class PackageList {
  public:
   PackageList();
-  PackageList(string filepath) : PackageList(filepath, whichOS()) {};
+  PackageList(string filepath) : PackageList(filepath, whichOS(),
+                                             ChuckVersion::makeSystemVersion(),
+                                             ApiVersion::makeSystemVersion()
+                                             ) {};
   // set OS explicitly for unit tests
-  PackageList(string filepath, string operating_system);
+  PackageList(string filepath, string operating_system, ChuckVersion ck_ver, ApiVersion api_ver);
 
  public:
   optional<Package> find_package(string name);
@@ -37,6 +41,9 @@ class PackageList {
  private:
   // TODO could be a more efficient lookup implementation
   std::vector<Package> packages;
+
+  ChuckVersion language_version;
+  ApiVersion api_version;
 
   // set OS at initialization time
   string os;
