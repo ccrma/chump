@@ -17,7 +17,7 @@
                 {
                     "version": "1.0.0",
                     "api_version": "10.1",
-                    "language_version": "1.5.2.5",
+                    "language_version_min": "1.5.2.0",
                     "os": "linux",
                     "files": [
                         "https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/Hydra.chug"
@@ -26,7 +26,7 @@
                 {
                     "version": "1.0.0",
                     "api_version": "10.1",
-                    "language_version": "1.5.2.5",
+                    "language_version_min": "1.5.2.0",
                     "os": "windows",
                     "files": [
                         "https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/Hydra.chug"
