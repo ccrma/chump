@@ -52,6 +52,16 @@ void execCommand(std::string cmd, std::vector<std::string> args, Manager* manage
     manager->uninstall(args[0]);
   } else if (cmd == "help") {
     printLogo();
+    std::cout << "usage: chump {help, info, list, install, uninstall, update} ..." << std::endl;
+    std::cout << std::endl << std::endl;
+    std::cout << "Commands:" << std::endl;
+    std::cout << std::endl;
+    std::cout << "\thelp\t\t\t\t\t\t\tPrint help info" << std::endl;
+    std::cout << "\tinfo <package> \t\t\t\t\tDisplay information about <package>" << std::endl;
+    std::cout << "\tlist \t\t\t\t\t\t\tList all available package" << std::endl;
+    std::cout << "\tinstall <package> \t\t\t\tDownload and install <package>" << std::endl;
+    std::cout << "\tuninstall <package> \t\t\tUninstall <package>" << std::endl;
+    std::cout << "\tupdate <package> \t\t\t\tUpdate <package> to latest compatible verison" << std::endl;
   } else {
     std::cerr << "command " << cmd << " is not a valid command." << std::endl;
   }
