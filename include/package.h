@@ -4,7 +4,7 @@
 //-----------------------------------------------------------------------------
 
 #ifndef __PACKAGE_H__
-i#define __PACKAGE_H__
+#define __PACKAGE_H__
 
 #include <string>
 #include <vector>
@@ -20,24 +20,7 @@ using std::map;
 using std::vector;
 using std::optional;
 
-//-----------------------------------------------------------------------------
-// PackageVersion describes a specific version of a package. For examples,
-// this is a usually a .chug file, the associated download link, and
-// metadata specifying which language and API versions it is compatible with.
-// -----------------------------------------------------------------------------
-struct PackageVersion {
-  string version;
-  string api_version;
-  string language_version;
-  string os;
-  vector<string> files;
-
-  // Equality operator overload
-  bool operator==(const PackageVersion& other) const;
-
-  // Output stream operator overload
-  friend std::ostream& operator<<(std::ostream& os, const PackageVersion& pkg);
-};
+struct PackageVersion;
 
 // Function declarations for JSON serialization/deserialization
 void to_json(json& j, const PackageVersion& p);
@@ -76,24 +59,46 @@ void from_json(const json& j, Package& p);
 
 
 //-----------------------------------------------------------------------------
-// Version is a struct describing semantic versioning. It follows the
-// major.minor.patch versioning scheme. i.e. "1.2.1"
+// PackageVersion describes a specific version of a package. For examples,
+// this is a usually a .chug file, the associated download link, and
+// metadata specifying which language and API versions it is compatible with.
+//
+// PackageVersion follows the major.minor.patch versioning scheme. i.e. "1.2.1"
 // -----------------------------------------------------------------------------
+struct PackageVersion {
+  PackageVersion();
+  PackageVersion(string version);
+  PackageVersion(int major, int minor, int patch);
+  PackageVersion(string version, string language_version_min,
+                 string api_version, string os, vector<string> files);
+  PackageVersion(string version, string language_version_min,
+                 string language_version_max, string api_version,
+                 string os, vector<string> files);
 
-struct Version {
-  int major;
-  int minor;
-  int patch;
+  int major, minor, patch;
+
+  string api_version;
+  // minimum compatible version of chuck
+  string language_version_min;
+  // Maximal compatible version of chuck. If this is None, then
+  // all versions >= language_version_min are compatible
+  optional<string> language_version_max;
+  string os;
+  vector<string> files;
 
   // Equality operator overload
-  friend bool operator==(const Version& lhs, const Version& rhs);
-  friend bool operator!=(const Version& lhs, const Version& rhs);
-  friend bool operator<(const Version& lhs, const Version& rhs);
-  friend bool operator<=(const Version& lhs, const Version& rhs);
-  friend bool operator>(const Version& lhs, const Version& rhs);
-  friend bool operator>=(const Version& lhs, const Version& rhs);
-};
+  bool operator==(const PackageVersion& other) const;
+  bool operator!=(const PackageVersion& other) const;
+  bool operator<(const PackageVersion& other) const;
+  bool operator<=(const PackageVersion& other) const;
+  bool operator>(const PackageVersion& other) const;
+  bool operator>=(const PackageVersion& other) const;
 
-Version parseVersionString(const std::string& versionStr);
+  // Output stream operator overload
+  friend std::ostream& operator<<(std::ostream& os, const PackageVersion& pkg);
+
+  void setVersionString(string version);
+  string getVersionString() const;
+};
 
 #endif

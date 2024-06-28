@@ -8,14 +8,10 @@ TEST_CASE("Load db file", "[PackageList]") {
   PackageList pkglist = PackageList(path, "linux", ChuckVersion("1.5.2.4"), ApiVersion("10.1"));
 
   Package want;
-  PackageVersion version;
+  PackageVersion version("1.0.0", "1.5.2.1", "9.0", "linux",
+                         {"https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug"}
+                         );
 
-  // Version initialization
-  version.version = "1.0";
-  version.api_version = "9.0";
-  version.language_version = "1.5.2.1";
-  version.os = "linux";
-  version.files.push_back("https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug");
 
   // Package initialization
   want.name = "Butt";
@@ -54,12 +50,14 @@ TEST_CASE("Find Package") {
 
 TEST_CASE("Find Package Version") {
   std::string path = "./test-package-list.json";
-  PackageList pkglist = PackageList(path, "linux", ChuckVersion("1.5.2.1"), ApiVersion("9.0"));
+  PackageList pkglist = PackageList(path, "linux", ChuckVersion("1.5.2.0"), ApiVersion("8.8"));
 
   SECTION("Successfully find package") {
     optional<PackageVersion> version = pkglist.find_latest_package_version("Butt");
     REQUIRE(version.has_value());
-    REQUIRE(version.value().version == "1.0.0");
+    REQUIRE(version.value().major == 0);
+    REQUIRE(version.value().minor == 9);
+    REQUIRE(version.value().patch == 1);
   }
 
   SECTION("Can't find package") {
@@ -70,7 +68,9 @@ TEST_CASE("Find Package Version") {
   SECTION("Successfully find version") {
     optional<PackageVersion> version = pkglist.find_package_version("Butt", "1.0.0");
     REQUIRE(version.has_value());
-    REQUIRE(version.value().version == "1.0.0");
+    REQUIRE(version.value().major == 1);
+    REQUIRE(version.value().minor == 0);
+    REQUIRE(version.value().patch == 0);
   }
 
   SECTION("Unsuccessfully find version") {

@@ -104,8 +104,7 @@ bool Manager::update(string packageName) {
   }
 
   json pkg_ver = json::parse(f);
-  PackageVersion installed_package_version = pkg_ver.template get<PackageVersion>();
-  Version installed_version = parseVersionString(installed_package_version.version);
+  PackageVersion installed_version = pkg_ver.template get<PackageVersion>();
 
   std::string os = whichOS();
 
@@ -118,9 +117,9 @@ bool Manager::update(string packageName) {
     return false;
   }
 
-  PackageVersion version = ver.value();
+  PackageVersion latest_version = ver.value();
 
-  Version latest_version = parseVersionString(version.version);
+  // Version latest_version = parseVersionString(version.version);
 
   if (installed_version == latest_version) {
     std::cout << package.name << " is already up-to-date." << std::endl;
@@ -136,7 +135,7 @@ bool Manager::update(string packageName) {
   fs::remove_all(install_dir);
 
   // fetch
-  for (auto file: version.files) {
+  for (auto file: latest_version.files) {
     fetch->fetch(file, package);
   }
 
