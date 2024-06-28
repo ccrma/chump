@@ -73,8 +73,20 @@ void printPackage(Package pkg) {
 
 void printPackages(Manager* mgr) {
   vector<Package> packages = mgr->listPackages();
+
+  std::cout << "Name | Latest Ver. | Description" << std::endl;
+
   for (Package p: packages) {
-    std::cout << p.name << std::endl;
+    optional<PackageVersion> latest = mgr->latestPackageVersion(p.name);
+
+    string latest_version = "N/A";
+    if (latest)
+      latest_version = latest.value().getVersionString();
+
+    std::cout
+      << p.name << " | "
+      << latest_version << " | "
+      << p.description << std::endl;
   }
 }
 

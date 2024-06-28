@@ -19,6 +19,10 @@ optional<Package> Manager::getPackage(string packageName) {
   return package_list->find_package(packageName);
 }
 
+optional<PackageVersion> Manager::latestPackageVersion(string name) {
+  return package_list->find_latest_package_version(name);
+}
+
 bool Manager::install(std::string packageName) {
   // lookup package name (default to latest version)
   auto pkg = package_list->find_package(packageName);

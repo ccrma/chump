@@ -28,6 +28,7 @@ class Manager {
   std::vector<Package> listPackages();
 
   optional<Package> getPackage(string name);
+  optional<PackageVersion> latestPackageVersion(string name);
 
   bool install(string packageName);
   bool uninstall(string packageName);
