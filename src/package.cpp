@@ -14,12 +14,109 @@ bool Package::operator==(const Package& other) const {
            (versions == other.versions);
 }
 
+PackageVersion::PackageVersion() {
+}
+
+PackageVersion::PackageVersion(string version) {
+  setVersionString(version);
+}
+
+PackageVersion::PackageVersion(int _major, int _minor, int _patch) {
+  if (_major < 0 || _minor < 0 || _patch < 0) {
+    throw std::invalid_argument("Version numbers cannot be negative.");
+  }
+
+  major = _major;
+  minor = _minor;
+  patch = _patch;
+}
+
+PackageVersion::PackageVersion(string version, string _language_ver_min, string _api_ver,
+                               string _os, vector<string> _files) {
+  setVersionString(version);
+
+  language_version_min = _language_ver_min;
+  api_version = _api_ver;
+  files = _files;
+  os = _os;
+}
+
+PackageVersion::PackageVersion(string version, string _language_ver_min,
+                               string _language_ver_max, string _api_ver,
+                               string _os, vector<string> _files) {
+  setVersionString(version);
+
+  language_version_min = _language_ver_min;
+  language_version_max = _language_ver_max;
+  api_version = _api_ver;
+  files = _files;
+  os = _os;
+}
+
+void PackageVersion::setVersionString(string versionStr) {
+  vector<int> values;
+
+  string token;
+  string delimiter = ".";
+
+  /*****/
+  size_t last = 0;
+  size_t next = 0;
+  while ((next = versionStr.find(delimiter, last)) != string::npos) {
+    token = versionStr.substr(last, next-last);
+
+    int value = std::stoi(token);
+    values.push_back(value);
+
+    last = next + 1;
+  }
+
+  token = versionStr.substr(last, versionStr.size() - last);
+  int value = std::stoi(token);
+  values.push_back(value);
+
+  if (values.size() != 3) {
+    throw std::invalid_argument("Invalid version string format");
+  }
+
+  if (values[0] < 0 || values[1] < 0 || values[2] < 0) {
+    throw std::invalid_argument("Version numbers cannot be negative.");
+  }
+
+  major = values[0];
+  minor = values[1];
+  patch = values[2];
+}
+
+string PackageVersion::getVersionString() const {
+  std::ostringstream stringStream;
+  stringStream << major << "." << minor << "." << patch;
+
+  return stringStream.str();
+}
+
 bool PackageVersion::operator==(const PackageVersion& other) const {
-    return (version == other.version) &&
-           (api_version == other.api_version) &&
-           (language_version == other.language_version) &&
-           (os == other.os) &&
-           (files == other.files);
+  return std::tie(major, minor, patch) == std::tie(other.major, other.minor, other.patch);;
+}
+
+bool PackageVersion::operator!=(const PackageVersion& other) const {
+  return std::tie(major, minor, patch) != std::tie(other.major, other.minor, other.patch);;
+}
+
+bool PackageVersion::operator<(const PackageVersion& other) const {
+  return std::tie(major, minor, patch) < std::tie(other.major, other.minor, other.patch);;
+}
+
+bool PackageVersion::operator<=(const PackageVersion& other) const {
+  return std::tie(major, minor, patch) <= std::tie(other.major, other.minor, other.patch);;
+}
+
+bool PackageVersion::operator>(const PackageVersion& other) const {
+  return std::tie(major, minor, patch) > std::tie(other.major, other.minor, other.patch);;
+}
+
+bool PackageVersion::operator>=(const PackageVersion& other) const {
+  return std::tie(major, minor, patch) >= std::tie(other.major, other.minor, other.patch);;
 }
 
 // Output stream operator overload
@@ -59,10 +156,14 @@ std::ostream& operator<<(std::ostream& os, const Package& pkg) {
 }
 
 std::ostream& operator<<(std::ostream& os, const PackageVersion& ver) {
-  os << "Version: " << ver.version << "\n"
+  os << "Version: " << ver.major << "." << ver.minor << "." << ver.patch << "\n"
      << "API Version: " << ver.api_version << "\n"
-     << "Language Version: " << ver.language_version << "\n"
-     << "Operating System: " << ver.os << "\n"
+     << "Language Version (min): " << ver.language_version_min << "\n";
+
+  if (ver.language_version_max) {
+    os << "Language Version (max): " << ver.language_version_max.value() << "\n";
+  }
+  os << "Operating System: " << ver.os << "\n"
      << "Files: [";
 
   if (!ver.files.empty()) {
@@ -75,6 +176,32 @@ std::ostream& operator<<(std::ostream& os, const PackageVersion& ver) {
   os << "]\n";
 
   return os;
+}
+
+void to_json(json& j, const PackageVersion& p) {
+  string version = p.getVersionString();
+  j = json{
+        {"version", version},
+        {"api_version", p.api_version},
+        {"language_version_min", p.language_version_min},
+        {"os", p.os},
+        {"files", p.files},
+    };
+  if (p.language_version_max) {
+    j["language_version_max"] = p.language_version_max.value();
+  }
+}
+
+void from_json(const json& j, PackageVersion& p) {
+  p.setVersionString(j.at("version"));
+  j.at("api_version").get_to(p.api_version);
+  j.at("language_version_min").get_to(p.language_version_min);
+
+  if (j.contains("language_version_max"))
+    p.language_version_max = j.at("language_version_max");
+
+  j.at("os").get_to(p.os);
+  j.at("files").get_to(p.files);
 }
 
 void to_json(json& j, const Package& p) {
@@ -101,108 +228,31 @@ void from_json(const json& j, Package& p) {
     j.at("versions").get_to(p.versions);
 }
 
-void to_json(json& j, const PackageVersion& p) {
-  j = json{
-        {"version", p.version},
-        {"api_version", p.api_version},
-        {"language_version", p.language_version},
-        {"os", p.os},
-        {"files", p.files},
-    };
-}
-
-void from_json(const json& j, PackageVersion& p) {
-    j.at("version").get_to(p.version);
-    j.at("api_version").get_to(p.api_version);
-    j.at("language_version").get_to(p.language_version);
-    j.at("os").get_to(p.os);
-    j.at("files").get_to(p.files);
-}
-
 // find the latest compatible version
 // TODO expand filtering criteria beyond OS
 optional<PackageVersion> Package::latest_version(string os, ChuckVersion language_version,
                                                  ApiVersion api_version) {
-  optional<PackageVersion> latest_package;
-  optional<Version> latest_version;
+  optional<PackageVersion> latest_version;
 
-  for (PackageVersion pkg_ver : versions) {
-    ChuckVersion ck(pkg_ver.language_version);
-    ApiVersion api(pkg_ver.api_version);
+  for (PackageVersion version : versions) {
+    ChuckVersion ck_min(version.language_version_min);
+    ApiVersion api(version.api_version);
 
     // filter out bad candidates
-    if (pkg_ver.os != os) continue;
-    if (ck != language_version) continue;
+    if (version.os != os) continue;
+    if (language_version < ck_min) continue;
+
+    if (version.language_version_max) {
+      ChuckVersion ck_max(version.language_version_max.value());
+      if (language_version > ck_max) continue;
+    }
+
     if (api != api_version) continue;
 
-    Version version = parseVersionString(pkg_ver.version);
-
     if (version > latest_version) {
-      latest_package = pkg_ver;
       latest_version = version;
     }
 
   }
-  return latest_package;
-}
-
-// converts a string of the format "1.2.3" into a Version struct
-Version parseVersionString(const std::string& versionStr) {
-    Version version;
-
-    vector<int> values;
-
-    size_t pos = 0;
-    string token;
-    string delimiter = ".";
-
-    /*****/
-    size_t last = 0;
-    size_t next = 0;
-    while ((next = versionStr.find(delimiter, last)) != string::npos) {
-      token = versionStr.substr(last, next-last);
-
-      int value = std::stoi(token);
-      values.push_back(value);
-
-      last = next + 1;
-    }
-
-    token = versionStr.substr(last, versionStr.size() - last);
-    int value = std::stoi(token);
-    values.push_back(value);
-
-    if (values.size() != 3) {
-      throw std::invalid_argument("Invalid version string format");
-    }
-
-    version.major = values[0];
-    version.minor = values[1];
-    version.patch = values[2];
-
-    return version;
-}
-
-bool operator==(const Version& lhs, const Version& rhs) {
-  return std::tie(lhs.major, lhs.minor, lhs.patch) == std::tie(rhs.major, rhs.minor, rhs.patch);
-}
-
-bool operator!=(const Version& lhs, const Version& rhs) {
-  return std::tie(lhs.major, lhs.minor, lhs.patch) != std::tie(rhs.major, rhs.minor, rhs.patch);
-}
-
-bool operator<(const Version& lhs, const Version& rhs) {
-  return std::tie(lhs.major, lhs.minor, lhs.patch) < std::tie(rhs.major, rhs.minor, rhs.patch);
-}
-
-bool operator<=(const Version& lhs, const Version& rhs) {
-  return std::tie(lhs.major, lhs.minor, lhs.patch) <= std::tie(rhs.major, rhs.minor, rhs.patch);
-}
-
-bool operator>(const Version& lhs, const Version& rhs) {
-  return std::tie(lhs.major, lhs.minor, lhs.patch) > std::tie(rhs.major, rhs.minor, rhs.patch);
-}
-
-bool operator>=(const Version& lhs, const Version& rhs) {
-  return std::tie(lhs.major, lhs.minor, lhs.patch) >= std::tie(rhs.major, rhs.minor, rhs.patch);
+  return latest_version;
 }

@@ -89,6 +89,13 @@ bool operator>=(const ChuckVersion& lhs, const ChuckVersion& rhs) {
   return std::tie(lhs.mega, lhs.major, lhs.minor, lhs.patch) >= std::tie(rhs.mega, rhs.major, rhs.minor, rhs.patch);
 }
 
+// Output stream operator overload
+std::ostream& operator<<(std::ostream& os, const ChuckVersion& ver) {
+  os << ver.mega << "." << ver.major << "." << ver.minor << "." << ver.patch;
+
+  return os;
+}
+
 
 
 ApiVersion::ApiVersion() {
@@ -167,4 +174,11 @@ bool operator>(const ApiVersion& lhs, const ApiVersion& rhs) {
 
 bool operator>=(const ApiVersion& lhs, const ApiVersion& rhs) {
   return std::tie(lhs.major, lhs.minor) >= std::tie(rhs.major, rhs.minor);
+}
+
+// Output stream operator overload
+std::ostream& operator<<(std::ostream& os, const ApiVersion& ver) {
+  os << ver.major << "." << ver.minor;
+
+  return os;
 }

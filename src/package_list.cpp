@@ -18,7 +18,7 @@ PackageList::PackageList(string filepath, string operating_system,
   if (!f.good()) {
     std::cerr << "Unable to open Package List \"" << filepath << "\"" << std::endl;
   }
-  
+
   json data = json::parse(f);
 
   // parse all the packages
@@ -54,10 +54,12 @@ optional<PackageVersion> PackageList::find_latest_package_version(string name) {
 }
 
 optional<PackageVersion> PackageList::find_package_version(string name, string version) {
+  PackageVersion want(version);
+
   for (auto package: packages) {
     if (package.name == name) {
       for (auto package_version: package.versions) {
-        if (package_version.version == version) {
+        if (package_version == want) {
           return package_version;
         }
       }
@@ -69,4 +71,3 @@ optional<PackageVersion> PackageList::find_package_version(string name, string v
 std::vector<Package> PackageList::get_packages() {
   return packages;
 }
-

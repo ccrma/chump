@@ -26,6 +26,8 @@ struct ChuckVersion {
   friend bool operator>=(const ChuckVersion& lhs, const ChuckVersion& rhs);
 
   void set_version(string version_string);
+
+  friend std::ostream& operator<<(std::ostream& os, const ChuckVersion& pkg);
 };
 
 
@@ -49,6 +51,8 @@ struct ApiVersion {
   friend bool operator>=(const ApiVersion& lhs, const ApiVersion& rhs);
 
   void set_version(string version_string);
+
+  friend std::ostream& operator<<(std::ostream& os, const ApiVersion& pkg);
 };
 
 #endif
