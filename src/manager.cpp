@@ -2,15 +2,14 @@
 #include "manager.h"
 #include "util.h"
 
-Manager::Manager() {
-  fetch = new Fetch();
-  package_list = new PackageList();
-}
+Manager::Manager(std::string package_list_path, fs::path package_install_dir, ChuckVersion ck_ver, ApiVersion api_ver, std::string system_os) {
+  chump_dir = package_install_dir;
+  os = system_os;
 
-Manager::Manager(std::string package_list_path, ChuckVersion ck_ver, ApiVersion api_ver) {
-  fetch = new Fetch();
+  fetch = new Fetch(chump_dir);
   package_list = new PackageList(package_list_path);
-  uninstaller = new Uninstaller(package_list);
+  uninstaller = new Uninstaller(package_list, chump_dir);
+
   language_version = ck_ver;
   api_version = api_ver;
 }
@@ -35,7 +34,7 @@ bool Manager::install(std::string packageName) {
   Package package = pkg.value();
 
   // if there is already a .chump/PACKAGE directory, error out and tell the user to call update
-  fs::path install_dir = packagePath(package);
+  fs::path install_dir = packagePath(package, chump_dir);
 
   if (fs::exists(install_dir)) {
     std::cerr << "The install directory '" << install_dir << "' already exists." << std::endl;
@@ -43,8 +42,6 @@ bool Manager::install(std::string packageName) {
     std::cerr << "Or use `chump uninstall " << package.name << "` to remove the package" << std::endl;
     return false;
   }
-
-  std::string os = whichOS();
 
   optional<PackageVersion> ver = package.latest_version(os, language_version, api_version);
 
@@ -91,7 +88,7 @@ bool Manager::update(string packageName) {
   Package package = pkg.value();
 
   // if there is already a .chump/PACKAGE directory, error out and tell the user to call update
-  fs::path install_dir = packagePath(package);
+  fs::path install_dir = packagePath(package, chump_dir);
 
   if (!fs::exists(install_dir)) {
     std::cerr << "The install directory '" << install_dir << "' does not exist." << std::endl;
@@ -109,8 +106,6 @@ bool Manager::update(string packageName) {
 
   json pkg_ver = json::parse(f);
   PackageVersion installed_version = pkg_ver.template get<PackageVersion>();
-
-  std::string os = whichOS();
 
   optional<PackageVersion> ver = package.latest_version(os, language_version, api_version);
 

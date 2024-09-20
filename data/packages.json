@@ -58,6 +58,42 @@
                     ]
                 }
             ]
+        },
+        {
+            "name": "TestPackage",
+            "authors": [
+                "Nick Shaheed"
+            ],
+            "homepage": "",
+            "repository": "",
+            "license": "gpl3",
+            "description": "This is a test package for running integration tests.",
+            "keywords": [
+                "tests",
+                "useless",
+                "do no use",
+                "seriously"
+            ],
+            "versions": [
+                {
+                    "version": "1.0.0",
+                    "api_version": "9.1",
+                    "language_version_min": "1.5.2.0",
+                    "os": "linux",
+                    "files": [
+                        "https://ccrma.stanford.edu/~nshaheed/chugins/test_package/1.0.0/hello.ck"
+                    ]
+                },
+                {
+                    "version": "2.0.0",
+                    "api_version": "10.1",
+                    "language_version_min": "1.5.2.6",
+                    "os": "linux",
+                    "files": [
+                        "https://ccrma.stanford.edu/~nshaheed/chugins/test_package/2.0.0/hello.ck"
+                    ]
+                }
+            ]
         }
     ]
 }

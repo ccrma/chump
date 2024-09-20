@@ -20,8 +20,7 @@ using std::string;
 class Manager {
  public:
   // constructor
-  Manager();
-  Manager(std::string package_list_path, ChuckVersion ck_ver, ApiVersion api_ver);
+  Manager(std::string package_list_path, fs::path package_install_dir, ChuckVersion ck_ver, ApiVersion api_ver, std::string system_os);
 
  public:
   // return a list of all packages (installed and available)
@@ -44,6 +43,8 @@ private:
   UninstallerBase* uninstaller;
   ChuckVersion language_version;
   ApiVersion api_version;
+  fs::path chump_dir;
+  std::string os;
 };
 
 

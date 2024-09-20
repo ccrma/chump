@@ -30,7 +30,8 @@ public:
 
 
 class Fetch : public FetchBase {
- public:
+public:
+  Fetch(fs::path package_install_dir);
   bool fetch(std::string data, Package package);
 
 public:
@@ -41,6 +42,7 @@ public:
 
 private:
   static size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream);
+  fs::path chump_dir;
 };
 
 

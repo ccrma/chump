@@ -5,7 +5,7 @@
 
 namespace fs = std::filesystem;
 
-fs::path packagePath(Package p);
+fs::path packagePath(Package p, fs::path install_dir);
 
 std::string whichOS();
 

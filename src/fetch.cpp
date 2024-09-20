@@ -7,6 +7,10 @@
 #include "fetch.h"
 #include "util.h"
 
+Fetch::Fetch(fs::path package_install_dir) {
+  chump_dir = package_install_dir;
+}
+
 // Callback function to update progress
 int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow) {
     // Calculate progress percentage
@@ -134,7 +138,7 @@ bool Fetch::fetch(std::string url, Package package) {
   }
 
   // copy file to the proper install dir
-  fs::path install_dir = packagePath(package);
+  fs::path install_dir = packagePath(package, chump_dir);
   fs::path install_path = install_dir / filename;
 
   // create dir if needed

@@ -8,8 +8,8 @@
 
 // Returns the path to the directory where a package will be installed
 // TODO expand to other OS
-fs::path packagePath(Package p) {
-    fs::path package_dir = chumpDir() / p.name;
+fs::path packagePath(Package p, fs::path install_dir) {
+    fs::path package_dir = install_dir / p.name;
     return package_dir;
 }
 

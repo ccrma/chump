@@ -26,7 +26,7 @@ int main( int argc, const char ** argv ) {
   fs::create_directories(path);
 
   // Build manager and run command
-  Manager* m = new Manager("../data/packages.json", ChuckVersion::makeSystemVersion(), ApiVersion::makeSystemVersion());
+  Manager* m = new Manager("../data/packages.json", path, ChuckVersion::makeSystemVersion(), ApiVersion::makeSystemVersion(), whichOS());
   execCommand(cmd, args, m);
 
   return 0;

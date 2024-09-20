@@ -1,8 +1,9 @@
 #include "uninstaller.h"
 #include "util.h"
 
-Uninstaller::Uninstaller(PackageList* pkg_list) {
+Uninstaller::Uninstaller(PackageList* pkg_list, fs::path package_install_dir) {
   package_list = pkg_list;
+  chump_dir = package_install_dir;
 }
 
 bool Uninstaller::uninstall(std::string package_name) {
@@ -16,7 +17,7 @@ bool Uninstaller::uninstall(std::string package_name) {
 
   auto package = pkg.value();
 
-  fs::path package_dir = packagePath(package);
+  fs::path package_dir = packagePath(package, chump_dir);
 
   // validate that it's actually a directory
   if (!fs::exists(package_dir) || !fs::is_directory(package_dir)) {
