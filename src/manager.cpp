@@ -135,12 +135,18 @@ bool Manager::update(string packageName) {
 
   // fetch
   for (auto file: latest_version.files) {
-    fetch->fetch(file, package);
+    bool result = fetch->fetch(file, package);
+    if (!result) {
+      std::cerr << "Failed to fetch " << file << ", exiting." << std::endl;
+      return false;
+    }
   }
 
-  // validate
+  // Write version.json to file.
+  json latest_version_json = latest_version;
 
-  // return true (maybe find better return value)
+  std::ofstream o(install_dir / "version.json");
+  o << std::setw(4) << latest_version_json << std::endl;
 
   return true;
 }
