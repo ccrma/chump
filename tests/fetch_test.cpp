@@ -4,7 +4,7 @@
 
 
 TEST_CASE("Check if a string is a valid URL", "[Fetch]") {
-  Fetch f("fake");
+  Fetch f;
 
   // Positive examples (valid URLs)
   CHECK(f.isURL("http://example.com"));
@@ -20,9 +20,9 @@ TEST_CASE("Check if a string is a valid URL", "[Fetch]") {
 }
 
 TEST_CASE("Fetch::fetch() tests") {
-  Fetch f("fake");
+  Fetch f;
   Package p;
   SECTION("Invalid URL") {
-    REQUIRE_FALSE(f.fetch("badurl", p));
+    REQUIRE_FALSE(f.fetch("badurl", p, "/tmp/"));
   }
 }

@@ -25,14 +25,14 @@ namespace fs = std::filesystem;
 class FetchBase {
 public:
   virtual ~FetchBase() = default;
-  virtual bool fetch(std::string data, Package package) = 0;
+  virtual bool fetch(std::string data, Package package, fs::path temp_dir) = 0;
 };
 
 
 class Fetch : public FetchBase {
 public:
-  Fetch(fs::path package_install_dir);
-  bool fetch(std::string data, Package package);
+  Fetch();
+  bool fetch(std::string data, Package package, fs::path temp_dir);
 
 public:
   // bool isJSONFile(std::string path);

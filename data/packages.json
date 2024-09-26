@@ -76,6 +76,15 @@
             ],
             "versions": [
                 {
+                    "version": "0.9.0",
+                    "api_version": "9.1",
+                    "language_version_min": "1.5.2.0",
+                    "os": "linux",
+                    "files": [
+                        "https://ccrma.stanford.edu/~nshaheed/chugins/test_package/1.0.0/doesnotexist.ck"
+                    ]
+                },
+                {
                     "version": "1.0.0",
                     "api_version": "9.1",
                     "language_version_min": "1.5.2.0",

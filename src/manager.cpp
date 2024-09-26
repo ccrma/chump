@@ -6,7 +6,7 @@ Manager::Manager(std::string package_list_path, fs::path package_install_dir, Ch
   chump_dir = package_install_dir;
   os = system_os;
 
-  fetch = new Fetch(chump_dir);
+  fetch = new Fetch;
   package_list = new PackageList(package_list_path);
   uninstaller = new Uninstaller(package_list, chump_dir);
 
@@ -54,13 +54,27 @@ bool Manager::install(std::string packageName) {
 
   PackageVersion version = ver.value();
 
+  // Create a temporary directory to download our files to
+  fs::path temp_dir = fs::temp_directory_path();
+
   // fetch
   for (auto file: version.files) {
-    bool result = fetch->fetch(file, package);
+    bool result = fetch->fetch(file, package, temp_dir);
     if (!result) {
       std::cerr << "Failed to fetch " << file << ", exiting." << std::endl;
       return false;
     }
+  }
+
+  // create install dir if needed
+  fs::create_directory(install_dir);
+
+  // Copy temp files over to the install directory
+  try {
+    std::filesystem::copy(temp_dir, install_dir, std::filesystem::copy_options::recursive);
+  } catch (std::filesystem::filesystem_error& e) {
+    std::cerr << e.what() << '\n';
+    return false;
   }
 
   // Write version.json to file.
@@ -68,8 +82,6 @@ bool Manager::install(std::string packageName) {
 
   std::ofstream o(install_dir / "version.json");
   o << std::setw(4) << version_json << std::endl;
-
-  // validate
 
   // return true (maybe find better return value)
 
@@ -133,13 +145,27 @@ bool Manager::update(string packageName) {
   // remove old package
   fs::remove_all(install_dir);
 
+  // Create a temporary directory to download our files to
+  fs::path temp_dir = fs::temp_directory_path();
+
   // fetch
   for (auto file: latest_version.files) {
-    bool result = fetch->fetch(file, package);
+    bool result = fetch->fetch(file, package, temp_dir);
     if (!result) {
       std::cerr << "Failed to fetch " << file << ", exiting." << std::endl;
       return false;
     }
+  }
+
+  // create install dir if needed
+  fs::create_directory(install_dir);
+
+  // Copy temp files over to the install directory
+  try {
+    std::filesystem::copy(temp_dir, install_dir, std::filesystem::copy_options::recursive);
+  } catch (std::filesystem::filesystem_error& e) {
+    std::cerr << e.what() << '\n';
+    return false;
   }
 
   // Write version.json to file.
