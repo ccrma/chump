@@ -2,7 +2,9 @@
 #include "manager.h"
 #include "util.h"
 
-Manager::Manager(std::string package_list_path, fs::path package_install_dir, ChuckVersion ck_ver, ApiVersion api_ver, std::string system_os) {
+#include <regex>
+
+Manager::Manager(string package_list_path, fs::path package_install_dir, ChuckVersion ck_ver, ApiVersion api_ver, string system_os) {
   chump_dir = package_install_dir;
   os = system_os;
 
@@ -22,16 +24,41 @@ optional<PackageVersion> Manager::latestPackageVersion(string name) {
   return package_list->find_latest_package_version(name);
 }
 
-bool Manager::install(std::string packageName) {
-  // lookup package name (default to latest version)
-  auto pkg = package_list->find_package(packageName);
+bool Manager::install(string packageName) {
+  // parse packages here
+  auto [name, version_string] = parsePackageName(packageName);
 
-  if (!pkg) {
+  // lookup package name (default to latest version)
+  auto pkg = package_list->find_package(name);
+
+  if (!package_list->find_package(name)) {
     std::cerr << "Package " << packageName << " not found." << std::endl;
     return false;
   }
 
   Package package = pkg.value();
+
+  optional<PackageVersion> ver;
+  if (version_string) {
+    try {
+      PackageVersion pkgver(version_string.value());
+      ver = package.version(pkgver, os, language_version, api_version);
+    } catch (std::invalid_argument& e) {
+      std::cerr << e.what() << '\n';
+      return false;
+    }
+  } else {
+    ver = package.latest_version(os, language_version, api_version);
+  }
+
+  if (!ver) {
+    std::cerr << "Unable to find version of package " << package.name
+              << " that works on your system" << std::endl;
+
+    return false;
+  }
+
+  PackageVersion version = ver.value();
 
   // if there is already a .chump/PACKAGE directory, error out and tell the user to call update
   fs::path install_dir = packagePath(package, chump_dir);
@@ -43,19 +70,9 @@ bool Manager::install(std::string packageName) {
     return false;
   }
 
-  optional<PackageVersion> ver = package.latest_version(os, language_version, api_version);
-
-  if (!ver) {
-    std::cerr << "Unable to find version of package " << package.name
-              << " that works on your system" << std::endl;
-
-    return false;
-  }
-
-  PackageVersion version = ver.value();
-
   // Create a temporary directory to download our files to
-  fs::path temp_dir = fs::temp_directory_path();
+  fs::path temp_dir = {fs::temp_directory_path() /= std::tmpnam(nullptr)};
+  fs::create_directory(temp_dir);
 
   // fetch
   for (auto file: version.files) {
@@ -71,7 +88,7 @@ bool Manager::install(std::string packageName) {
 
   // Copy temp files over to the install directory
   try {
-    std::filesystem::copy(temp_dir, install_dir, std::filesystem::copy_options::recursive);
+    fs::copy(temp_dir, install_dir, std::filesystem::copy_options::recursive);
   } catch (std::filesystem::filesystem_error& e) {
     std::cerr << e.what() << '\n';
     return false;
@@ -130,8 +147,6 @@ bool Manager::update(string packageName) {
 
   PackageVersion latest_version = ver.value();
 
-  // Version latest_version = parseVersionString(version.version);
-
   if (installed_version == latest_version) {
     std::cout << package.name << " is already up-to-date." << std::endl;
     return true;
@@ -146,7 +161,8 @@ bool Manager::update(string packageName) {
   fs::remove_all(install_dir);
 
   // Create a temporary directory to download our files to
-  fs::path temp_dir = fs::temp_directory_path();
+  fs::path temp_dir = {fs::temp_directory_path() /= std::tmpnam(nullptr)};
+  fs::create_directory(temp_dir);
 
   // fetch
   for (auto file: latest_version.files) {
@@ -177,7 +193,7 @@ bool Manager::update(string packageName) {
   return true;
 }
 
-bool Manager::uninstall(std::string packageName) {
+bool Manager::uninstall(string packageName) {
   if(!uninstaller->uninstall(packageName)) {
     std::cerr << "Failed to uninstall " << packageName << std::endl;
     return false;

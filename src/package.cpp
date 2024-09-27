@@ -23,7 +23,8 @@ PackageVersion::PackageVersion(string version) {
 
 PackageVersion::PackageVersion(int _major, int _minor, int _patch) {
   if (_major < 0 || _minor < 0 || _patch < 0) {
-    throw std::invalid_argument("Version numbers cannot be negative.");
+    throw std::invalid_argument("Version numbers cannot be negative. (" + std::to_string(major)
+                                + "." + std::to_string(minor) + "." + std::to_string(patch) + ")");
   }
 
   major = _major;
@@ -65,8 +66,12 @@ void PackageVersion::setVersionString(string versionStr) {
   while ((next = versionStr.find(delimiter, last)) != string::npos) {
     token = versionStr.substr(last, next-last);
 
-    int value = std::stoi(token);
-    values.push_back(value);
+    try {
+      int value = std::stoi(token);
+      values.push_back(value);
+    } catch (...) {
+      throw std::invalid_argument("Version string must be in the format major.minor.patch (i.e. 1.2.3)");
+    }
 
     last = next + 1;
   }
@@ -76,11 +81,11 @@ void PackageVersion::setVersionString(string versionStr) {
   values.push_back(value);
 
   if (values.size() != 3) {
-    throw std::invalid_argument("Invalid version string format");
+    throw std::invalid_argument("Invalid version string format (" + versionStr + ")");
   }
 
   if (values[0] < 0 || values[1] < 0 || values[2] < 0) {
-    throw std::invalid_argument("Version numbers cannot be negative.");
+    throw std::invalid_argument("Version numbers cannot be negative. (" + versionStr + ")");
   }
 
   major = values[0];
@@ -255,4 +260,32 @@ optional<PackageVersion> Package::latest_version(string os, ChuckVersion languag
 
   }
   return latest_version;
+}
+
+optional<PackageVersion> Package::version(PackageVersion ver, string os, ChuckVersion language_ver, ApiVersion api_ver) {
+  optional<PackageVersion> returned_version;
+
+  for (PackageVersion version : versions) {
+    ChuckVersion ck_min(version.language_version_min);
+    ApiVersion api(version.api_version);
+
+    // filter out bad candidates
+    if (version.os != os) continue;
+    if (language_ver < ck_min) continue;
+
+    if (version.language_version_max) {
+      ChuckVersion ck_max(version.language_version_max.value());
+      if (language_ver > ck_max) continue;
+    }
+
+    if (api != api_ver) continue;
+
+    if (version == ver) {
+      returned_version = version;
+      break;
+    }
+
+  }
+
+  return returned_version;
 }

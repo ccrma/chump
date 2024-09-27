@@ -5,6 +5,7 @@ test_sources = [
     'package_list_test.cpp',
     'chuck_version_test.cpp',
     'api_version_test.cpp',
+    'util_test.cpp'
 ]
 
 integration_sources = [

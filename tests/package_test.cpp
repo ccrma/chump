@@ -88,13 +88,13 @@ TEST_CASE("Comparison operators for PackageVersion struct") {
 }
 
 TEST_CASE("latest_version returns the highest compatible version", "[latest_version]") {
-    // Mockup versions
+  // Mockup versions
   PackageVersion v1("1.0.0", "1.5.2.1", "10.1", "linux", {"file1", "file2"});
   PackageVersion v2("2.0.0", "1.5.2.1", "10.1", "linux", {"file1", "file2"});
   PackageVersion v3("3.0.0", "1.5.2.1", "10.1", "linux", {"file1", "file2"});
   PackageVersion v4("3.0.1", "1.5.2.1", "1.5.2.4", "10.1", "linux", {"file1", "file2"});
 
-    // Mockup Package with versions
+  // Mockup Package with versions
   Package package {"TestPackage", {"Author1", "Author2"}, "https://example.com", "https://github.com/example/test", "MIT", "Test package description", {"keyword1", "keyword2"}, {v1, v2, v3, v4}};
 
   SECTION("Test with compatible versions") {
@@ -133,5 +133,43 @@ TEST_CASE("latest_version returns the highest compatible version", "[latest_vers
 
     // Assert that no version is returned
     REQUIRE_FALSE(latest.has_value());
+  }
+}
+
+TEST_CASE("version() test") {
+  // Mockup versions
+  PackageVersion v1("1.0.0", "1.5.2.1", "10.1", "linux", {"file1", "file2"});
+  PackageVersion v2("2.0.0", "1.5.2.1", "10.1", "linux", {"file1", "file2"});
+  PackageVersion v3("3.0.0", "1.5.2.1", "10.1", "linux", {"file1", "file2"});
+  PackageVersion v4("3.0.1", "1.5.2.1", "1.5.2.4", "10.1", "linux", {"file1", "file2"});
+
+  // Mockup Package with versions
+  Package package {"TestPackage", {"Author1", "Author2"}, "https://example.com", "https://github.com/example/test", "MIT", "Test package description", {"keyword1", "keyword2"}, {v1, v2, v3, v4}};
+
+  SECTION("Test with compatible versions") {
+    ChuckVersion language_ver = ChuckVersion("1.5.2.1 (chai)"); // Mockup ChuckVersion
+    ApiVersion api_ver = ApiVersion("10.1"); // Mockup ApiVersion
+    string os = "linux";
+    PackageVersion version("1.0.0");
+
+    // Get the latest compatible version
+    auto ver = package.version(version, os, language_ver, api_ver);
+
+    // Assert that the latest version is v3
+    REQUIRE(ver.has_value());
+    REQUIRE(*ver == v1);
+  }
+
+  SECTION("Test with incompatible chuck version") {
+    ChuckVersion language_ver = ChuckVersion("1.5.2.0 (chai)"); // Mockup ChuckVersion
+    ApiVersion api_ver = ApiVersion("10.1"); // Mockup ApiVersion
+    string os = "linux";
+    PackageVersion version("1.0.0");
+
+    // Get the latest compatible version
+    auto ver = package.version(version, os, language_ver, api_ver);
+
+    // Assert that the latest version is v3
+    REQUIRE_FALSE(ver.has_value());
   }
 }
