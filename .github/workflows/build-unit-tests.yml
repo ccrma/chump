@@ -53,3 +53,5 @@ jobs:
       run: CC=${{ matrix.c_compiler }} meson compile -C builddir/
     - name: Run Tests
       run: "meson test -C builddir/ -v chump:"
+    - name: Print test log
+      run: cat /home/runner/work/chump/chump/builddir/meson-logs/testlog.txt
