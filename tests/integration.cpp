@@ -5,10 +5,13 @@
 #include <catch2/catch_test_macros.hpp>
 
 TEST_CASE("Integration Tests - install/update/uninstall") {
-
+  std::cerr << "beginning\n";
+  
   // reference: https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
   fs::path installPath {fs::temp_directory_path() /= std::tmpnam(nullptr)};
   fs::create_directories(installPath);
+
+  std::cerr << "tmp dir mad: " << installPath << std::endl;
 
   std::string dataPath = "../data/packages.json";
 
@@ -17,11 +20,15 @@ TEST_CASE("Integration Tests - install/update/uninstall") {
 
   Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux");
 
+  std::cerr <<"Manager made\n";
+
   // install package
   std::cout << "the install dir: " << installPath << std::endl;
 
   std::vector<std::string> args = {"TestPackage"};
+  std::cerr << "executing install\n";
   execCommand("install", args, m);
+  std::cerr << "finish install\n";
 
   REQUIRE(fs::exists(installPath / "TestPackage"));
   REQUIRE(fs::exists(installPath / "TestPackage" / "hello.ck"));
@@ -33,14 +40,19 @@ TEST_CASE("Integration Tests - install/update/uninstall") {
 
   m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux");
 
+  std::cerr << "executing update\n";
   execCommand("update", args, m);
+  std::cerr << "finishign install\n";
 
   REQUIRE(fs::exists(installPath / "TestPackage"));
   REQUIRE(fs::exists(installPath / "TestPackage" / "hello.ck"));
   CHECK(fs::exists(installPath / "TestPackage" / "version.json"));
 
   // Uninstall Package
+
+  std::cerr << "executing uninstall\n";
   execCommand("uninstall", args, m);
+  std::cerr << "finishing uninstall\n";
 
   REQUIRE_FALSE(fs::exists(installPath / "TestPackage"));
 }
