@@ -9,7 +9,7 @@ Manager::Manager(string package_list_path, fs::path package_install_dir, ChuckVe
   os = system_os;
 
   fetch = new Fetch;
-  package_list = new PackageList(package_list_path);
+  package_list = new PackageList(package_list_path, os, ck_ver, api_ver);
   uninstaller = new Uninstaller(package_list, chump_dir);
 
   language_version = ck_ver;
