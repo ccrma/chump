@@ -15,7 +15,7 @@ ChuckVersion::ChuckVersion(string version_string) {
   set_version(version_string);
 }
 
-cdChuckVersion ChuckVersion::makeSystemVersion() {
+ChuckVersion ChuckVersion::makeSystemVersion() {
   // Query chuck to get verison string
 #ifdef _WIN32
   FILE* pipe = _popen("chuck --query:version 2>&1", "r");
