@@ -85,6 +85,8 @@ bool Fetch::fetch(std::string url, Package package, fs::path temp_dir) {
   // Generate a unique temporary file name
   fs::path tempFilePath = temp_dir / filename;
 
+  std::cerr << "fopen\n";
+
 #ifdef _MSC_VER
   fp = _wfopen(tempFilePath.c_str(), L"wb");
 #else
@@ -95,6 +97,8 @@ bool Fetch::fetch(std::string url, Package package, fs::path temp_dir) {
     std::cerr << "Error opening file for writing" << std::endl;
     return false;
   }
+
+  std::cerr << "curl init\n";
   
   // Initialize libcurl
   curl = curl_easy_init();
@@ -117,11 +121,14 @@ bool Fetch::fetch(std::string url, Package package, fs::path temp_dir) {
     // We don't want to write the error to a file if the request fails
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
 
+    std::cerr << "curl request\n";
+    
     // Perform the request
     initscr();
     res = curl_easy_perform(curl);
     endwin();
 
+    std::cerr << "curl cleanup";
     // Clean up
     curl_easy_cleanup(curl);
     fclose(fp);
