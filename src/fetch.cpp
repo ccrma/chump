@@ -125,6 +125,7 @@ bool Fetch::fetch(std::string url, Package package, fs::path temp_dir) {
     
     // Perform the request
     initscr();
+    std::cerr << "curl_easy_perform";
     res = curl_easy_perform(curl);
     endwin();
 
