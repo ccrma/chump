@@ -21,7 +21,7 @@ using std::tuple;
 class Manager {
  public:
   // constructor
-  Manager(std::string package_list_path, fs::path package_install_dir, ChuckVersion ck_ver, ApiVersion api_ver, std::string system_os);
+  Manager(std::string package_list_path, fs::path package_install_dir, ChuckVersion ck_ver, ApiVersion api_ver, std::string system_os, bool render_tui);
 
  public:
   // return a list of all packages (installed and available)

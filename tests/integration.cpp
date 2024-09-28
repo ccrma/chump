@@ -18,7 +18,7 @@ TEST_CASE("Integration Tests - install/update/uninstall") {
   ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
   ApiVersion langVersion = ApiVersion("9.1");
 
-  Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux");
+  Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
 
   std::cerr <<"Manager made\n";
 
@@ -38,7 +38,7 @@ TEST_CASE("Integration Tests - install/update/uninstall") {
   ckVersion = ChuckVersion("1.5.2.6");
   langVersion = ApiVersion("10.1");
 
-  m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux");
+  m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
 
   std::cerr << "executing update\n";
   execCommand("update", args, m);
@@ -68,7 +68,7 @@ TEST_CASE("Integration Tests - install specific version") {
   ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
   ApiVersion langVersion = ApiVersion("9.1");
 
-  Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux");
+  Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
 
   std::vector<std::string> args = {"TestPackage=1.0.0"};
   execCommand("install", args, m);
@@ -92,7 +92,7 @@ TEST_CASE("Integration Tests - package doesn't exist") {
   ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
   ApiVersion langVersion = ApiVersion("9.1");
 
-  Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux");
+  Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
 
   // install package
   std::vector<std::string> args = {"DoesNotExist"};
@@ -116,7 +116,7 @@ TEST_CASE("Integration Tests - file doesn't exist") {
   ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
   ApiVersion langVersion = ApiVersion("9.1");
 
-  Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux");
+  Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
 
   // install specific version of package (with file that can't be found)
   std::vector<std::string> args = {"TestPackage=0.9.0"}; // do this once I get the file thing working
@@ -139,7 +139,7 @@ TEST_CASE("Integration Tests - bad version input") {
   ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
   ApiVersion langVersion = ApiVersion("9.1");
 
-  Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux");
+  Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
 
   // This is incorrect
   std::vector<std::string> args = {"TestPackage=vfjdklsaf1.0.0"};

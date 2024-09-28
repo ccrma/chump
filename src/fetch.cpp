@@ -7,7 +7,13 @@
 #include "fetch.h"
 #include "util.h"
 
+
 Fetch::Fetch() {
+  render = false;
+}
+
+Fetch::Fetch(bool render_tui) {
+  render = render_tui;
 }
 
 // Callback function to update progress
@@ -115,7 +121,8 @@ bool Fetch::fetch(std::string url, Package package, fs::path temp_dir) {
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
 
     // Set the progress callback function
-    curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progressCallback);
+    if (render)
+      curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progressCallback);
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 
     // We don't want to write the error to a file if the request fails
@@ -124,10 +131,10 @@ bool Fetch::fetch(std::string url, Package package, fs::path temp_dir) {
     std::cerr << "curl request\n";
     
     // Perform the request
-    initscr();
+    if (render) initscr();
     std::cerr << "curl_easy_perform";
     res = curl_easy_perform(curl);
-    endwin();
+    if (render) endwin();
 
     std::cerr << "curl cleanup";
     // Clean up

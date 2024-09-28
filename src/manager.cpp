@@ -4,11 +4,11 @@
 
 #include <regex>
 
-Manager::Manager(string package_list_path, fs::path package_install_dir, ChuckVersion ck_ver, ApiVersion api_ver, string system_os) {
+Manager::Manager(string package_list_path, fs::path package_install_dir, ChuckVersion ck_ver, ApiVersion api_ver, string system_os, bool render_tui) {
   chump_dir = package_install_dir;
   os = system_os;
 
-  fetch = new Fetch;
+  fetch = new Fetch(render_tui);
   package_list = new PackageList(package_list_path, os, ck_ver, api_ver);
   uninstaller = new Uninstaller(package_list, chump_dir);
 

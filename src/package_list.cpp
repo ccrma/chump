@@ -16,7 +16,7 @@ PackageList::PackageList(string filepath, string operating_system,
 
   // TODO better error checks
   if (!f.good()) {
-    std::cerr << "Unable to open Package List \"" << filepath << "\"" << std::endl;
+    throw std::invalid_argument("Unable to open Package List \"" + filepath + "\"");
   }
 
   json data = json::parse(f);

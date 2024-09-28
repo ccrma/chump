@@ -32,6 +32,7 @@ public:
 class Fetch : public FetchBase {
 public:
   Fetch();
+  Fetch(bool render_tui);
   bool fetch(std::string data, Package package, fs::path temp_dir);
 
 public:
@@ -43,6 +44,7 @@ public:
 private:
   static size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream);
   fs::path chump_dir;
+  bool render;
 };
 
 

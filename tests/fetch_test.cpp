@@ -4,7 +4,7 @@
 
 
 TEST_CASE("Check if a string is a valid URL", "[Fetch]") {
-  Fetch f;
+  Fetch f(false);
 
   // Positive examples (valid URLs)
   CHECK(f.isURL("http://example.com"));
