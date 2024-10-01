@@ -2,6 +2,8 @@
 
 #include "package.h"
 
+#include <sstream>
+
 // Equality operator overload
 bool Package::operator==(const Package& other) const {
     return (name == other.name) &&

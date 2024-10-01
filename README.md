@@ -36,4 +36,9 @@ cd builddir
 meson compile
 # Run unit tests
 meson test
+
+# If you want to run chump.exe, you need to run it in a meson devenv:
+meson devenv -C .\builddir\
+.\chump-cli\chump.exe
+
 ```

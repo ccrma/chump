@@ -99,12 +99,16 @@ bool Manager::install(string packageName) {
     return false;
   }
 
+  // Removing temp dir
+  fs::remove_all(temp_dir);
+
   std::cerr << "json writing\n";
   // Write version.json to file.
   json version_json = version;
 
   std::ofstream o(install_dir / "version.json");
   o << std::setw(4) << version_json << std::endl;
+  o.close();
 
   // return true (maybe find better return value)
 
@@ -140,6 +144,7 @@ bool Manager::update(string packageName) {
   }
 
   json pkg_ver = json::parse(f);
+  f.close();
   PackageVersion installed_version = pkg_ver.template get<PackageVersion>();
 
   optional<PackageVersion> ver = package.latest_version(os, language_version, api_version);
@@ -195,6 +200,7 @@ bool Manager::update(string packageName) {
 
   std::ofstream o(install_dir / "version.json");
   o << std::setw(4) << latest_version_json << std::endl;
+  o.close();
 
   return true;
 }

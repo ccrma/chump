@@ -10,7 +10,7 @@ chump_lib_sources = [
 
 # Fetch the dependency
 nlohmann_json_dep = subproject('nlohmann_json').get_variable('nlohmann_json_dep')
-libcurl_dep = dependency('libcurl')
+libcurl_dep = dependency('libcurl', required: true)
 
 # Windows needs pdcurses, linux/macos needs curses
 if build_machine.system() == 'windows'

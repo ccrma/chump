@@ -2,7 +2,7 @@
 
 project('chump', ['c', 'cpp'],
   version : '0.0.9',
-  default_options : ['cpp_std=c++17'],
+  default_options : ['cpp_std=c++17', 'default_library=static'],
   license : '?')
 
 add_global_arguments(language : ['c', 'cpp'])
