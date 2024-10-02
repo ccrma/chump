@@ -50,8 +50,6 @@ jobs:
       uses: microsoft/setup-msbuild@v2
     - name: Configure Project
       run: meson setup builddir/ ${{ matrix.meson_flags }}
-      env:
-        CC: gcc
     - name: Compile
       run: meson compile -C builddir/
     - name: Run Tests
