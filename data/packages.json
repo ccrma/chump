@@ -17,7 +17,7 @@
                 {
                     "version": "1.0.0",
                     "api_version": "10.1",
-                    "language_version": "1.5.2.3",
+                    "language_version_min": "1.5.2.0",
                     "os": "linux",
                     "files": [
                         "https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/Hydra.chug"
@@ -26,10 +26,80 @@
                 {
                     "version": "1.0.0",
                     "api_version": "10.1",
-                    "language_version": "1.5.2.3",
+                    "language_version_min": "1.5.2.0",
                     "os": "windows",
                     "files": [
-                        "http://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/Hydra.chug"
+                        "https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/Hydra.chug"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Rec",
+            "authors": [
+                "Nick Shaheed"
+            ],
+            "homepage": "https://github.com/nshaheed/helper-ck",
+            "repository": "https://github.com/nshaheed/helper-ck",
+            "license": "tbd",
+            "description": "Helper functions for recording to audio files. Supports recording from dac, ugens, and arrays of ugens.",
+            "keywords": [
+                "utility",
+                "recording"
+            ],
+            "versions": [
+                {
+                    "version": "1.0.0",
+                    "api_version": "10.1",
+                    "language_version_min": "1.5.2.0",
+                    "os": "linux",
+                    "files": [
+                        "https://github.com/nshaheed/helper-ck/raw/7a0a9be47a89c4d91ff2ea4b6ea02dc740ec8278/Rec.ck"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "TestPackage",
+            "authors": [
+                "Nick Shaheed"
+            ],
+            "homepage": "",
+            "repository": "",
+            "license": "gpl3",
+            "description": "This is a test package for running integration tests.",
+            "keywords": [
+                "tests",
+                "useless",
+                "do no use",
+                "seriously"
+            ],
+            "versions": [
+                {
+                    "version": "0.9.0",
+                    "api_version": "9.1",
+                    "language_version_min": "1.5.2.0",
+                    "os": "linux",
+                    "files": [
+                        "https://ccrma.stanford.edu/~nshaheed/chugins/test_package/1.0.0/doesnotexist.ck"
+                    ]
+                },
+                {
+                    "version": "1.0.0",
+                    "api_version": "9.1",
+                    "language_version_min": "1.5.2.0",
+                    "os": "linux",
+                    "files": [
+                        "https://ccrma.stanford.edu/~nshaheed/chugins/test_package/1.0.0/hello.ck"
+                    ]
+                },
+                {
+                    "version": "2.0.0",
+                    "api_version": "10.1",
+                    "language_version_min": "1.5.2.6",
+                    "os": "linux",
+                    "files": [
+                        "https://ccrma.stanford.edu/~nshaheed/chugins/test_package/2.0.0/hello.ck"
                     ]
                 }
             ]

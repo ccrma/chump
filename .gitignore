@@ -45,4 +45,13 @@
 build*/
 *.cmake
 
+# Externals
 third-party/*
+subprojects/Catch2-3.6.0/
+subprojects/Catch2-3.7.1/
+subprojects/curl-8.8.0/*
+subprojects/nlohmann_json-3.11.2/*
+subprojects/packagecache/*
+.vscode/
+
+

@@ -1,5 +1,7 @@
 #include "util.h"
 
+#include <regex>
+
 #ifdef _WIN32
 #include <windows.h>
 #include <Shlobj.h>
@@ -8,8 +10,8 @@
 
 // Returns the path to the directory where a package will be installed
 // TODO expand to other OS
-fs::path packagePath(Package p) {
-    fs::path package_dir = chumpDir() / p.name;
+fs::path packagePath(Package p, fs::path install_dir) {
+    fs::path package_dir = install_dir / p.name;
     return package_dir;
 }
 
@@ -64,4 +66,20 @@ std::filesystem::path getHomeDirectory() {
 #endif
 
     return home_dir;
+}
+
+tuple<string, optional<string>> parsePackageName(string packageName) {
+    std::regex pattern("(.*)=(.*)"); // Regular expression to match "name=version" or just "name"
+    std::smatch matches;
+    string name;
+    optional<string> version;
+
+    if (std::regex_match(packageName, matches, pattern)) {
+      name = matches[1]; // The part before '='
+      version = matches[2]; // The part after '='
+    } else {
+      name = packageName;
+    }
+
+    return {name, version};
 }

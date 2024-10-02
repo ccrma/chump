@@ -18,13 +18,14 @@ public:
 
 class Uninstaller : public UninstallerBase {
  public:
-  Uninstaller(PackageList* package_list);
+  Uninstaller(PackageList* package_list, fs::path package_install_dir);
 
  public:
   bool uninstall(std::string package_name);
 
  private:
   PackageList* package_list;
+  fs::path chump_dir;
 };
 
 #endif

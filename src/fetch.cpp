@@ -7,6 +7,15 @@
 #include "fetch.h"
 #include "util.h"
 
+
+Fetch::Fetch() {
+  render = false;
+}
+
+Fetch::Fetch(bool render_tui) {
+  render = render_tui;
+}
+
 // Callback function to update progress
 int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow) {
     // Calculate progress percentage
@@ -64,10 +73,10 @@ int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal
 // Download file to proper package directory.
 // Return true on success, False on failure.
 //*******************************************
-bool Fetch::fetch(std::string url, Package package) {
+bool Fetch::fetch(std::string url, Package package, fs::path temp_dir) {
   if (!isURL(url)) {
     std::cerr << "Not a URL!" << std::endl;
-    false;
+    return false;
   }
 
   std::string package_name = package.name;
@@ -76,19 +85,16 @@ bool Fetch::fetch(std::string url, Package package) {
   CURL *curl;
   FILE *fp;
   CURLcode res;
- 
-  // Create a temporary directory
-  fs::path tempDir = fs::temp_directory_path();
 
   fs::path filename = fs::path(url).filename();
 
   // Generate a unique temporary file name
-  fs::path tempFilePath = tempDir / filename;
+  fs::path tempFilePath = temp_dir / filename;
 
 #ifdef _MSC_VER
-    fp = _wfopen(tempFilePath.c_str(), L"wb");
+  fp = _wfopen(tempFilePath.c_str(), L"wb");
 #else
-    fp = fopen(tempFilePath.c_str(), "wb");
+  fp = fopen(tempFilePath.string().c_str(), "wb");
 #endif
 
   if (!fp) {
@@ -111,13 +117,17 @@ bool Fetch::fetch(std::string url, Package package) {
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
 
     // Set the progress callback function
-    curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progressCallback);
+    if (render)
+      curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progressCallback);
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 
+    // We don't want to write the error to a file if the request fails
+    curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
+    
     // Perform the request
-    initscr();
+    if (render) initscr();
     res = curl_easy_perform(curl);
-    endwin();
+    if (render) endwin();
 
     // Clean up
     curl_easy_cleanup(curl);
@@ -133,21 +143,7 @@ bool Fetch::fetch(std::string url, Package package) {
     return false;
   }
 
-  // copy file to the proper install dir
-  fs::path install_dir = packagePath(package);
-  fs::path install_path = install_dir / filename;
-
-  // create dir if needed
-  fs::create_directory(install_dir);
-
-  try {
-    std::filesystem::rename(tempFilePath, install_path);
-  } catch (std::filesystem::filesystem_error& e) {
-    std::cout << e.what() << '\n';
-    return false;
-  }
-
-  std::cout << "Successfully installed " << package_name << "!" << std::endl;
+  std::cout << "Successfully downloaded " << filename << "!" << std::endl;
 
   return true;
 }
