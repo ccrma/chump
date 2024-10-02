@@ -56,6 +56,4 @@ jobs:
     - name: Compile
       run: meson compile -C builddir/
     - name: Run Tests
-      run: "meson test -C builddir/ -v chump:integration_test"
-    - name: Print test log
-      run: cat /home/runner/work/chump/chump/builddir/meson-logs/testlog.txt
+      run: "meson test -C builddir/ -v chump:"
