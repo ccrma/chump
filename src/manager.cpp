@@ -70,13 +70,10 @@ bool Manager::install(string packageName) {
     return false;
   }
 
-  std::cerr << "temp dir creation\n";
-
   // Create a temporary directory to download our files to
   fs::path temp_dir = {fs::temp_directory_path() /= std::tmpnam(nullptr)};
   fs::create_directory(temp_dir);
 
-  std::cerr << "fetching\n";
   // fetch
   for (auto file: version.files) {
     bool result = fetch->fetch(file, package, temp_dir);
@@ -86,12 +83,10 @@ bool Manager::install(string packageName) {
     }
   }
 
-  std::cerr << "install dir creation\n";
   // create install dir if needed
   fs::create_directory(install_dir);
 
   // Copy temp files over to the install directory
-  std::cerr << "file copying\n";
   try {
     fs::copy(temp_dir, install_dir, std::filesystem::copy_options::recursive);
   } catch (std::filesystem::filesystem_error& e) {
@@ -102,7 +97,6 @@ bool Manager::install(string packageName) {
   // Removing temp dir
   fs::remove_all(temp_dir);
 
-  std::cerr << "json writing\n";
   // Write version.json to file.
   json version_json = version;
 
