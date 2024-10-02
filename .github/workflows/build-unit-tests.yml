@@ -46,7 +46,7 @@ jobs:
     - name: Install dependencies
       run: python -m pip install meson ninja
     - name: Configure Project
-      run: meson setup builddir/ ${{ matrix.meson_flags }}
+      run: meson setup builddir/
       env:
         CC: gcc
     - name: Compile
