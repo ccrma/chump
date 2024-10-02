@@ -96,7 +96,7 @@ bool Fetch::fetch(std::string url, Package package, fs::path temp_dir) {
 #ifdef _MSC_VER
   fp = _wfopen(tempFilePath.c_str(), L"wb");
 #else
-  fp = fopen(tempFilePath.c_str(), "wb");
+  fp = fopen(tempFilePath.string().c_str(), "wb");
 #endif
 
   if (!fp) {
