@@ -50,7 +50,7 @@ jobs:
       env:
         CC: gcc
     - name: Compile
-      run: CC=${{ matrix.c_compiler }} meson compile -C builddir/
+      run: meson compile -C builddir/
     - name: Run Tests
       run: "meson test -C builddir/ -v chump:integration_test"
     - name: Print test log
