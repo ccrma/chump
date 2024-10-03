@@ -52,7 +52,7 @@
                     "version": "1.0.0",
                     "api_version": "10.1",
                     "language_version_min": "1.5.2.0",
-                    "os": "linux",
+                    "os": "any",
                     "files": [
                         "https://github.com/nshaheed/helper-ck/raw/7a0a9be47a89c4d91ff2ea4b6ea02dc740ec8278/Rec.ck"
                     ]
