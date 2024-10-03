@@ -246,7 +246,7 @@ optional<PackageVersion> Package::latest_version(string os, ChuckVersion languag
     ApiVersion api(version.api_version);
 
     // filter out bad candidates
-    if (version.os != os) continue;
+    if (version.os != "any" && version.os != os) continue;
     if (language_version < ck_min) continue;
 
     if (version.language_version_max) {
@@ -272,7 +272,7 @@ optional<PackageVersion> Package::version(PackageVersion ver, string os, ChuckVe
     ApiVersion api(version.api_version);
 
     // filter out bad candidates
-    if (version.os != os) continue;
+    if (version.os != "any" && version.os != os) continue;
     if (language_ver < ck_min) continue;
 
     if (version.language_version_max) {
