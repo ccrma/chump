@@ -27,7 +27,7 @@ int main( int argc, const char ** argv ) {
 
   // Build manager and run command
   try {
-    Manager* m = new Manager("../data/packages.json", path, ChuckVersion::makeSystemVersion(), ApiVersion::makeSystemVersion(), whichOS(), true);
+    Manager* m = new Manager(chumpDir() / "packages.json", path, ChuckVersion::makeSystemVersion(), ApiVersion::makeSystemVersion(), whichOS(), true);
     execCommand(cmd, args, m);
   } catch (const std::exception &e) {
     std::cerr << e.what() << std::endl;

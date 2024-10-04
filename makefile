@@ -12,6 +12,9 @@ build-release:
 build-release-win:
 	meson setup builddir-release --backend vs
 
+install:
+	meson install -C builddir-release
+
 .PHONY: mac osx linux linux-oss linux-jack linux-alsa linux-all
 mac osx linux linux-oss linux-jack linux-alsa linux-all: build-release
 	meson compile -C builddir-release
