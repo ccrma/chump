@@ -9,7 +9,7 @@ TEST_CASE("Load db file", "[PackageList]") {
 
   Package want;
   PackageVersion version("1.0.0", "1.5.2.1", "9.0", "linux",
-                         {"https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug"}
+                         {{"./", "https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug"}}
                          );
 
 
@@ -40,6 +40,27 @@ TEST_CASE("Find Package") {
   SECTION("Successfully find package") {
     optional<Package> pkg = pkglist.find_package("Butt");
     REQUIRE(pkg.value().name == "Butt");
+  }
+
+  SECTION("Successfully find package 2") {
+    PackageVersion new_ver("1.0.0", "1.5.2.7", "9.0", "linux",
+                           {{"./boot", "https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug"}}
+                           );
+
+    // Package initialization
+    Package want;
+    want.name = "ButtFiles";
+    want.authors = {"AuthorA", "AuthorB"};
+    want.homepage = "http://example.com";
+    want.repository = "http://repo.com";
+    want.license = "MIT";
+    want.description = "DescriptionA";
+    want.keywords = {"KeywordA", "KeywordB"};
+    want.versions.push_back(new_ver);
+
+    optional<Package> pkg = pkglist.find_package("ButtFiles");
+    REQUIRE(pkg.value().name == "ButtFiles");
+    REQUIRE(pkg == want);
   }
 
   SECTION("Can't find package") {

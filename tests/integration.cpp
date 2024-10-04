@@ -4,7 +4,7 @@
 #include <filesystem>
 #include <catch2/catch_test_macros.hpp>
 
-TEST_CASE("Integration Tests - install/update/uninstall") {  
+TEST_CASE("Integration Tests - install/update/uninstall") {
   // reference: https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
   fs::path installPath {fs::temp_directory_path() /= std::tmpnam(nullptr)};
   fs::create_directories(installPath);
@@ -42,6 +42,56 @@ TEST_CASE("Integration Tests - install/update/uninstall") {
   execCommand("uninstall", args, m);
 
   REQUIRE_FALSE(fs::exists(installPath / "TestPackage"));
+}
+
+TEST_CASE("Integration Tests - install/update/uninstall with dirs") {
+  // reference: https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
+  fs::path installPath {fs::temp_directory_path() /= std::tmpnam(nullptr)};
+  fs::create_directories(installPath);
+
+  std::string dataPath = "../data/packages.json";
+
+  ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
+  ApiVersion langVersion = ApiVersion("9.1");
+
+  Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
+
+  // install package
+
+  std::vector<std::string> args = {"TestPackageDir"};
+  execCommand("install", args, m);
+
+  REQUIRE(fs::exists(installPath / "TestPackageDir"));
+  REQUIRE(fs::exists(installPath / "TestPackageDir" / "hello.ck"));
+  REQUIRE(fs::exists(installPath / "TestPackageDir" / "version.json"));
+
+  // Update Package
+  ckVersion = ChuckVersion("1.5.2.6");
+  langVersion = ApiVersion("10.1");
+
+  m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
+
+  execCommand("update", args, m);
+
+  REQUIRE(fs::exists(installPath / "TestPackageDir"));
+  REQUIRE(fs::exists(installPath / "TestPackageDir" / "dir" ));
+  REQUIRE(fs::exists(installPath / "TestPackageDir" / "dir" / "hello.ck"));
+  CHECK(fs::exists(installPath / "TestPackageDir" / "version.json"));
+
+  // Add a file not associated with the package
+
+  // Create and open a text file
+  std::ofstream extraFile(installPath / "TestPackageDir" / "trespassing.txt");
+  // Write to the file
+  extraFile << "I'm not supposed to be here";
+  extraFile.close();
+
+  // Uninstall Package
+  execCommand("uninstall", args, m);
+
+  REQUIRE(fs::exists(installPath / "TestPackageDir"));
+  REQUIRE_FALSE(fs::exists(installPath / "TestPackageDir" / "dir"));
+  REQUIRE(fs::exists(installPath / "TestPackageDir" / "trespassing.txt"));
 }
 
 TEST_CASE("Integration Tests - install specific version") {

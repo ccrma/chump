@@ -89,11 +89,11 @@ TEST_CASE("Comparison operators for PackageVersion struct") {
 
 TEST_CASE("latest_version returns the highest compatible version", "[latest_version]") {
   // Mockup versions
-  PackageVersion v1("1.0.0", "1.5.2.1", "10.1", "linux", {"file1", "file2"});
-  PackageVersion v2("2.0.0", "1.5.2.1", "10.1", "linux", {"file1", "file2"});
-  PackageVersion v3("3.0.0", "1.5.2.1", "10.1", "linux", {"file1", "file2"});
-  PackageVersion v4("3.0.1", "1.5.2.1", "1.5.2.4", "10.1", "linux", {"file1", "file2"});
-  PackageVersion v5("3.0.2", "1.5.2.1", "1.5.2.4", "10.1", "any", {"file1", "file2"});
+  PackageVersion v1("1.0.0", "1.5.2.1", "10.1", "linux", {{"./","file1"}, {"./","file2"}});
+  PackageVersion v2("2.0.0", "1.5.2.1", "10.1", "linux", {{"./","file1"}, {"./","file2"}});
+  PackageVersion v3("3.0.0", "1.5.2.1", "10.1", "linux", {{"./","file1"}, {"./","file2"}});
+  PackageVersion v4("3.0.1", "1.5.2.1", "1.5.2.4", "10.1", "linux", {{"./","file1"}, {"./","file2"}});
+  PackageVersion v5("3.0.2", "1.5.2.1", "1.5.2.4", "10.1", "any", {{"./","file1"}, {"./","file2"}});
 
   // Mockup Package with versions
   Package package {"TestPackage", {"Author1", "Author2"}, "https://example.com", "https://github.com/example/test", "MIT", "Test package description", {"keyword1", "keyword2"}, {v1, v2, v3, v4}};
@@ -155,11 +155,11 @@ TEST_CASE("latest_version returns the highest compatible version", "[latest_vers
 
 TEST_CASE("version() test") {
   // Mockup versions
-  PackageVersion v1("1.0.0", "1.5.2.1", "10.1", "linux", {"file1", "file2"});
-  PackageVersion v2("2.0.0", "1.5.2.1", "10.1", "linux", {"file1", "file2"});
-  PackageVersion v3("3.0.0", "1.5.2.1", "10.1", "linux", {"file1", "file2"});
-  PackageVersion v4("3.0.1", "1.5.2.1", "1.5.2.4", "10.1", "linux", {"file1", "file2"});
-  PackageVersion v5("3.0.2", "1.5.2.1", "1.5.2.4", "10.1", "any", {"file1", "file2"});
+  PackageVersion v1("1.0.0", "1.5.2.1", "10.1", "linux", {{"./","file1"}, {"./","file2"}});
+  PackageVersion v2("2.0.0", "1.5.2.1", "10.1", "linux", {{"./","file1"}, {"./","file2"}});
+  PackageVersion v3("3.0.0", "1.5.2.1", "10.1", "linux", {{"./","file1"}, {"./","file2"}});
+  PackageVersion v4("3.0.1", "1.5.2.1", "1.5.2.4", "10.1", "linux", {{"./","file1"}, {"./","file2"}});
+  PackageVersion v5("3.0.2", "1.5.2.1", "1.5.2.4", "10.1", "any", {{"./","file1"}, {"./","file2"}});
 
   // Mockup Package with versions
   Package package {"TestPackage", {"Author1", "Author2"}, "https://example.com", "https://github.com/example/test", "MIT", "Test package description", {"keyword1", "keyword2"}, {v1, v2, v3, v4}};

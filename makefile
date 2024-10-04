@@ -22,7 +22,7 @@ win win32 win64: build-release-win
 
 # (mac/linux) remove system installed ChuGL and install local ChuGL
 test:
-	meson test -C builddir-release
+	meson test -C builddir-release -v chump:
 
 clean:
 ifneq ("$(wildcard builddir-release)","")

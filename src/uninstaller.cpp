@@ -19,12 +19,6 @@ bool Uninstaller::uninstall(std::string package_name) {
 
   fs::path package_dir = packagePath(package, chump_dir);
 
-  // validate that it's actually a directory
-  if (!fs::exists(package_dir) || !fs::is_directory(package_dir)) {
-    std::cerr << "Package " << package.name << " was not found." << std::endl;
-    return false;
-  }
-
   // Delete entire directory - you've been warned
   fs::remove_all(package_dir);
 

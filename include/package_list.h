@@ -33,6 +33,7 @@ class PackageList {
 
   // return specific version of package
   optional<PackageVersion> find_package_version(string name, string version);
+  optional<PackageVersion> find_package_version(string name, PackageVersion version);
   std::vector<Package> get_packages();
 
 

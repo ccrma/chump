@@ -19,6 +19,7 @@ using std::string;
 using std::map;
 using std::vector;
 using std::optional;
+using std::tuple;
 
 struct PackageVersion;
 
@@ -72,10 +73,10 @@ struct PackageVersion {
   PackageVersion(string version);
   PackageVersion(int major, int minor, int patch);
   PackageVersion(string version, string language_version_min,
-                 string api_version, string os, vector<string> files);
+                 string api_version, string os, vector<tuple<string,string>> files);
   PackageVersion(string version, string language_version_min,
                  string language_version_max, string api_version,
-                 string os, vector<string> files);
+                 string os, vector<tuple<string,string>> files);
 
   int major, minor, patch;
 
@@ -86,7 +87,7 @@ struct PackageVersion {
   // all versions >= language_version_min are compatible
   optional<string> language_version_max;
   string os;
-  vector<string> files;
+  vector<tuple<string,string>> files;
 
   // Equality operator overload
   bool operator==(const PackageVersion& other) const;
