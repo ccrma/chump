@@ -51,15 +51,14 @@ void execCommand(std::string cmd, std::vector<std::string> args, Manager* manage
   } else if (cmd == "help") {
     printLogo();
     std::cout << "usage: chump {help, info, list, install, uninstall, update} ..." << std::endl;
-    std::cout << std::endl << std::endl;
-    std::cout << "Commands:" << std::endl;
     std::cout << std::endl;
-    std::cout << "\thelp\t\t\t\t\t\t\tPrint help info" << std::endl;
-    std::cout << "\tinfo <package> \t\t\t\t\tDisplay information about <package>" << std::endl;
-    std::cout << "\tlist \t\t\t\t\t\t\tList all available package" << std::endl;
-    std::cout << "\tinstall <package> \t\t\t\tDownload and install <package>" << std::endl;
-    std::cout << "\tuninstall <package> \t\t\tUninstall <package>" << std::endl;
-    std::cout << "\tupdate <package> \t\t\t\tUpdate <package> to latest compatible verison" << std::endl;
+    std::cout << "commands:" << std::endl;
+    std::cout << "\thelp                 print help info" << std::endl;
+    std::cout << "\tinfo <package>       display information about <package>" << std::endl;
+    std::cout << "\tlist                 list all available package" << std::endl;
+    std::cout << "\tinstall <package>    download and install <package>" << std::endl;
+    std::cout << "\tuninstall <package>  uninstall <package>" << std::endl;
+    std::cout << "\tupdate <package>     update <package> to latest compatible verison" << std::endl;
   } else {
     std::cerr << "command " << cmd << " is not a valid command." << std::endl;
   }
@@ -104,11 +103,6 @@ void printLogo() {
   std::cout << "                        uljjjjjjjihpy                           znopoy                          " << std::endl;
   std::cout << "                                                                 vnfo                           " << std::endl;
   std::cout << "                                                                  vmr                           " << std::endl;
-  std::cout << "                                                                                                " << std::endl;
-  std::cout << "                                                                                                " << std::endl;
-  std::cout << "                                                                                                " << std::endl;
-  std::cout << "                                                                                                " << std::endl;
-  std::cout << "                                                                                                " << std::endl;
   std::cout << "                                                                                                " << std::endl;
   std::cout << "                                                                                zxwvx           " << std::endl;
   std::cout << "                                                                           zxxwwwy  ywwz        " << std::endl;
