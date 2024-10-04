@@ -32,6 +32,29 @@
                     "files": ["https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug"]
                 }
             ]
+        },
+        {
+            "name": "ButtFiles",
+            "authors": ["AuthorA", "AuthorB"],
+            "homepage": "http://example.com",
+            "repository": "http://repo.com",
+            "license": "MIT",
+            "description": "DescriptionA",
+            "keywords": ["KeywordA", "KeywordB"],
+            "versions": [
+                {
+                    "version": "1.0.0",
+                    "api_version": "9.0",
+                    "language_version_min": "1.5.2.7",
+                    "os": "linux",
+                    "files": [
+                        {
+                            "local_dir": "./boot",
+                            "url": "https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug"
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

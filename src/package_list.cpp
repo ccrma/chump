@@ -68,6 +68,19 @@ optional<PackageVersion> PackageList::find_package_version(string name, string v
   return {};
 }
 
+optional<PackageVersion> PackageList::find_package_version(string name, PackageVersion version) {
+  for (auto package: packages) {
+    if (package.name == name) {
+      for (auto package_version: package.versions) {
+        if (package_version == version) {
+          return package_version;
+        }
+      }
+    }
+  }
+  return {};
+}
+
 std::vector<Package> PackageList::get_packages() {
   return packages;
 }

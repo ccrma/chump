@@ -73,11 +73,14 @@ int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal
 // Download file to proper package directory.
 // Return true on success, False on failure.
 //*******************************************
-bool Fetch::fetch(std::string url, Package package, fs::path temp_dir) {
+bool Fetch::fetch(std::string url, std::string dir, Package package, fs::path temp_dir) {
   if (!isURL(url)) {
     std::cerr << "Not a URL!" << std::endl;
     return false;
   }
+
+  // If the file is in a directory, create it
+  fs::create_directory(temp_dir / dir);
 
   std::string package_name = package.name;
 
@@ -89,7 +92,7 @@ bool Fetch::fetch(std::string url, Package package, fs::path temp_dir) {
   fs::path filename = fs::path(url).filename();
 
   // Generate a unique temporary file name
-  fs::path tempFilePath = temp_dir / filename;
+  fs::path tempFilePath = temp_dir / dir / filename;
 
 #ifdef _MSC_VER
   fp = _wfopen(tempFilePath.c_str(), L"wb");
@@ -101,7 +104,7 @@ bool Fetch::fetch(std::string url, Package package, fs::path temp_dir) {
     std::cerr << "Error opening file for writing" << std::endl;
     return false;
   }
-  
+
   // Initialize libcurl
   curl = curl_easy_init();
 
@@ -123,7 +126,7 @@ bool Fetch::fetch(std::string url, Package package, fs::path temp_dir) {
 
     // We don't want to write the error to a file if the request fails
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
-    
+
     // Perform the request
     if (render) initscr();
     res = curl_easy_perform(curl);

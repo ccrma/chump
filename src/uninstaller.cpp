@@ -25,6 +25,16 @@ bool Uninstaller::uninstall(std::string package_name) {
     return false;
   }
 
+  for (auto file: installed_version.files) {
+    string dir = std::get<0>(file);
+    string url = std::get<1>(file);
+
+    fs::remove(install_dir / dir / path);
+    if (fs::is_empty(install_dir / dir)) {
+      fs::remove(install_dir / dir)
+    }
+  }
+
   // Delete entire directory - you've been warned
   fs::remove_all(package_dir);
 

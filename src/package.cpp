@@ -35,7 +35,7 @@ PackageVersion::PackageVersion(int _major, int _minor, int _patch) {
 }
 
 PackageVersion::PackageVersion(string version, string _language_ver_min, string _api_ver,
-                               string _os, vector<string> _files) {
+                               string _os, vector<tuple<string,string>> _files) {
   setVersionString(version);
 
   language_version_min = _language_ver_min;
@@ -46,7 +46,7 @@ PackageVersion::PackageVersion(string version, string _language_ver_min, string 
 
 PackageVersion::PackageVersion(string version, string _language_ver_min,
                                string _language_ver_max, string _api_ver,
-                               string _os, vector<string> _files) {
+                               string _os, vector<tuple<string,string>> _files) {
   setVersionString(version);
 
   language_version_min = _language_ver_min;
@@ -174,10 +174,10 @@ std::ostream& operator<<(std::ostream& os, const PackageVersion& ver) {
      << "Files: [";
 
   if (!ver.files.empty()) {
-    os << ver.files[0];
+    os << std::get<1>(ver.files[0]);
 
     for (size_t i = 1; i < ver.files.size(); ++i) {
-      os << ", " << ver.files[i];
+      os << ", " << std::get<1>(ver.files[i]);
     }
   }
   os << "]\n";
@@ -208,7 +208,16 @@ void from_json(const json& j, PackageVersion& p) {
     p.language_version_max = j.at("language_version_max");
 
   j.at("os").get_to(p.os);
-  j.at("files").get_to(p.files);
+
+
+  for (auto& file: j.at("files")) {
+    // std::cout << "files: " << file[0] << std::endl;
+    if (file.is_string()) {
+      p.files.push_back({"./", file});
+    } else if (file.is_object()) {
+      p.files.push_back({file["local_dir"], file["url"]});
+    }
+  }
 }
 
 void to_json(json& j, const Package& p) {
