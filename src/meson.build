@@ -26,7 +26,7 @@ chump_lib = static_library(
   sources: chump_lib_sources,
   include_directories : inc,
   dependencies : [nlohmann_json_dep, libcurl_dep, curses_dep],
-  install : true)
+)
 
 chump_lib_dep = declare_dependency(
   dependencies: [nlohmann_json_dep, libcurl_dep, curses_dep],

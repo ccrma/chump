@@ -16,7 +16,6 @@ catch2_dep = dependency('catch2-with-main')
 
 testexe = executable('testexe', test_sources,
                      include_directories : inc,
-                     install : true,
                      dependencies: [chump_lib_dep, catch2_dep],
                      link_with : chump_lib)
 
@@ -24,7 +23,6 @@ test('chump_test', testexe)
 
 integrationexe = executable('integrationexe', integration_sources,
                             include_directories : inc,
-                            install : true,
                             dependencies: [chump_lib_dep, catch2_dep],
                             link_with : chump_lib)
 

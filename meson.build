@@ -21,6 +21,16 @@ subdir('src')
 subdir('chump-cli')
 subdir('tests')
 
-# Expose data for tests at local level in build dir
 fs = import('fs')
+
+
+if build_machine.system() == 'windows'
+  package_dir = fs.expanduser('~/Documents/chuck/chugins/.chump')
+else
+  package_dir = fs.expanduser('~/.chuck/lib/.chump')
+endif
+
+install_data('data/packages.json', install_dir : package_dir)
+
+# Expose data for tests at local level in build dir
 fs.copyfile('tests/data/test-package-list.json')
