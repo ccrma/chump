@@ -31,7 +31,7 @@ bool Manager::install(string packageName) {
   // lookup package name (default to latest version)
   auto pkg = package_list->find_package(name);
 
-  if (!package_list->find_package(name)) {
+  if (!pkg) {
     std::cerr << "Package " << packageName << " not found." << std::endl;
     return false;
   }
@@ -90,7 +90,7 @@ bool Manager::install(string packageName) {
 
   // Copy temp files over to the install directory
   try {
-    fs::copy(temp_dir, install_dir, std::filesystem::copy_options::recursive);
+    fs::copy(temp_dir, install_dir, fs::copy_options::recursive | fs::copy_options::overwrite_existing);
   } catch (std::filesystem::filesystem_error& e) {
     std::cerr << e.what() << '\n';
     return false;
@@ -196,8 +196,8 @@ bool Manager::update(string packageName) {
 
   // Copy temp files over to the install directory
   try {
-    std::filesystem::copy(temp_dir, install_dir, std::filesystem::copy_options::recursive);
-  } catch (std::filesystem::filesystem_error& e) {
+    fs::copy(temp_dir, install_dir, fs::copy_options::recursive | fs::copy_options::overwrite_existing);
+  } catch (fs::filesystem_error& e) {
     std::cerr << e.what() << '\n';
     return false;
   }

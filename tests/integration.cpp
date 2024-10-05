@@ -18,8 +18,7 @@ TEST_CASE("Integration Tests - install/update/uninstall") {
 
   // install package
 
-  std::vector<std::string> args = {"TestPackage"};
-  execCommand("install", args, m);
+  m->install("TestPackage");
 
   REQUIRE(fs::exists(installPath / "TestPackage"));
   REQUIRE(fs::exists(installPath / "TestPackage" / "hello.ck"));
@@ -31,15 +30,14 @@ TEST_CASE("Integration Tests - install/update/uninstall") {
 
   m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
 
-  execCommand("update", args, m);
+  m->update("TestPackage");
 
   REQUIRE(fs::exists(installPath / "TestPackage"));
   REQUIRE(fs::exists(installPath / "TestPackage" / "hello.ck"));
   CHECK(fs::exists(installPath / "TestPackage" / "version.json"));
 
   // Uninstall Package
-
-  execCommand("uninstall", args, m);
+  m->uninstall("TestPackage");
 
   REQUIRE_FALSE(fs::exists(installPath / "TestPackage"));
 }
@@ -58,8 +56,7 @@ TEST_CASE("Integration Tests - install/update/uninstall with dirs") {
 
   // install package
 
-  std::vector<std::string> args = {"TestPackageDir"};
-  execCommand("install", args, m);
+  m->install("TestPackageDir");
 
   REQUIRE(fs::exists(installPath / "TestPackageDir"));
   REQUIRE(fs::exists(installPath / "TestPackageDir" / "hello.ck"));
@@ -71,7 +68,7 @@ TEST_CASE("Integration Tests - install/update/uninstall with dirs") {
 
   m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
 
-  execCommand("update", args, m);
+  m->update("TestPackageDir");
 
   REQUIRE(fs::exists(installPath / "TestPackageDir"));
   REQUIRE(fs::exists(installPath / "TestPackageDir" / "dir" ));
@@ -87,7 +84,7 @@ TEST_CASE("Integration Tests - install/update/uninstall with dirs") {
   extraFile.close();
 
   // Uninstall Package
-  execCommand("uninstall", args, m);
+  m->uninstall("TestPackageDir");
 
   REQUIRE(fs::exists(installPath / "TestPackageDir"));
   REQUIRE_FALSE(fs::exists(installPath / "TestPackageDir" / "dir"));
@@ -107,8 +104,7 @@ TEST_CASE("Integration Tests - install specific version") {
 
   Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
 
-  std::vector<std::string> args = {"TestPackage=1.0.0"};
-  execCommand("install", args, m);
+  m->install("TestPackage=1.0.0");
 
   REQUIRE(fs::exists(installPath / "TestPackage"));
   REQUIRE(fs::exists(installPath / "TestPackage" / "hello.ck"));
@@ -132,8 +128,7 @@ TEST_CASE("Integration Tests - package doesn't exist") {
   Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
 
   // install package
-  std::vector<std::string> args = {"DoesNotExist"};
-  execCommand("install", args, m);
+  m->install("DoesNotExist");
 
   REQUIRE_FALSE(fs::exists(installPath / "DoesNotExist"));
 }
@@ -156,10 +151,7 @@ TEST_CASE("Integration Tests - file doesn't exist") {
   Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
 
   // install specific version of package (with file that can't be found)
-  std::vector<std::string> args = {"TestPackage=0.9.0"}; // do this once I get the file thing working
-
-  // install
-  execCommand("install", args, m);
+  m->install("TestPackage=0.9.0");
 
   // Because there is a missing file, the package wasn't installed
   REQUIRE_FALSE(fs::exists(installPath / "TestPackage"));
@@ -179,8 +171,7 @@ TEST_CASE("Integration Tests - bad version input") {
   Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
 
   // This is incorrect
-  std::vector<std::string> args = {"TestPackage=vfjdklsaf1.0.0"};
-  execCommand("install", args, m);
+  m->install("TestPackage=vfjdklsaf1.0.0");
 
   REQUIRE_FALSE(fs::exists(installPath / "TestPackage"));
 }
