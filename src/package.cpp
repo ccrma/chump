@@ -1,8 +1,11 @@
 // package.cpp
 
 #include "package.h"
+#include "util.h"
 
+#include <filesystem>
 #include <sstream>
+namespace fs = std::filesystem;
 
 // Equality operator overload
 bool Package::operator==(const Package& other) const {
@@ -230,6 +233,14 @@ void from_json(const json& j, PackageVersion& p) {
     if (file.is_string()) {
       p.files.push_back({"./", file});
     } else if (file.is_object()) {
+
+      auto local_dir = fs::path(file["local_dir"]);
+      auto base = fs::path("./");
+
+      if (!is_subpath(local_dir, base)) {
+        throw std::invalid_argument("file location (" + local_dir.string() + ") can't be stored outside of package directory");
+      }
+
       p.files.push_back({file["local_dir"], file["url"]});
     }
   }

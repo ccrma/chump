@@ -19,4 +19,6 @@ fs::path chumpDir();
 
 tuple<string, optional<string>> parsePackageName(string packageName);
 
+bool is_subpath(const fs::path& path, const fs::path& base);
+
 #endif

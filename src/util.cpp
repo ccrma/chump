@@ -83,3 +83,10 @@ tuple<string, optional<string>> parsePackageName(string packageName) {
 
     return {name, version};
 }
+
+// https://stackoverflow.com/questions/62503197/check-if-path-contains-another-in-c
+bool is_subpath(const fs::path& path, const fs::path& base)
+{
+  auto rel = std::filesystem::relative(path, base);
+  return !rel.empty() && rel.native()[0] != '.';
+}
