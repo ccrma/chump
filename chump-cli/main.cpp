@@ -93,7 +93,7 @@ int main( int argc, const char ** argv ) {
 
     std::cout << pkg.value() << std::endl;
   } else if (app.got_subcommand(list)) {
-    printPackages(manager);
+    printPackages(manager, installed_flag);
   } else if (app.got_subcommand(install)) {
     manager->install(install_package_name);
   } else if (app.got_subcommand(uninstall)) {

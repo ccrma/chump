@@ -277,3 +277,9 @@ bool Manager::uninstall(string packageName) {
 std::vector<Package> Manager::listPackages() {
   return package_list->get_packages();
 }
+
+bool Manager::is_installed(Package pkg) {
+  fs::path install_dir = packagePath(pkg, chump_dir);
+
+  return fs::exists(install_dir / "version.json");
+}

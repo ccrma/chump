@@ -34,6 +34,7 @@ class Manager {
   bool uninstall(string packageName);
   bool update(string packageName); // TODO update install specific version
 
+  bool is_installed(Package pkg);
 
 public:
   // the fetcher implementation

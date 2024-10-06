@@ -12,12 +12,14 @@ void printPackage(Package pkg) {
   std::cout << pkg << std::endl;
 }
 
-void printPackages(Manager* mgr) {
+void printPackages(Manager* mgr, bool print_installed) {
   vector<Package> packages = mgr->listPackages();
 
   std::cout << "Name | Latest Ver. | Description" << std::endl;
 
   for (Package p: packages) {
+    if (print_installed && !mgr->is_installed(p)) continue;
+
     optional<PackageVersion> latest = mgr->latestPackageVersion(p.name);
 
     string latest_version = "N/A";
