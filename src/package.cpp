@@ -45,6 +45,15 @@ PackageVersion::PackageVersion(string version, string _language_ver_min, string 
 }
 
 PackageVersion::PackageVersion(string version, string _language_ver_min,
+                               string _os, vector<tuple<string,string>> _files) {
+  setVersionString(version);
+
+  language_version_min = _language_ver_min;
+  files = _files;
+  os = _os;
+}
+
+PackageVersion::PackageVersion(string version, string _language_ver_min,
                                string _language_ver_max, string _api_ver,
                                string _os, vector<tuple<string,string>> _files) {
   setVersionString(version);
@@ -163,9 +172,11 @@ std::ostream& operator<<(std::ostream& os, const Package& pkg) {
 }
 
 std::ostream& operator<<(std::ostream& os, const PackageVersion& ver) {
-  os << "Version: " << ver.major << "." << ver.minor << "." << ver.patch << "\n"
-     << "API Version: " << ver.api_version << "\n"
-     << "Language Version (min): " << ver.language_version_min << "\n";
+  os << "Version: " << ver.major << "." << ver.minor << "." << ver.patch << "\n";
+
+  if (ver.api_version)
+    os << "API Version: " << ver.api_version.value() << "\n";
+  os << "Language Version (min): " << ver.language_version_min << "\n";
 
   if (ver.language_version_max) {
     os << "Language Version (max): " << ver.language_version_max.value() << "\n";
@@ -189,22 +200,26 @@ void to_json(json& j, const PackageVersion& p) {
   string version = p.getVersionString();
   j = json{
         {"version", version},
-        {"api_version", p.api_version},
         {"language_version_min", p.language_version_min},
         {"os", p.os},
         {"files", p.files},
-    };
+          };
   if (p.language_version_max) {
     j["language_version_max"] = p.language_version_max.value();
+  }
+  if (p.api_version) {
+    j["api_version"] = p.api_version.value();
   }
 }
 
 void from_json(const json& j, PackageVersion& p) {
   p.setVersionString(j.at("version"));
-  j.at("api_version").get_to(p.api_version);
   j.at("language_version_min").get_to(p.language_version_min);
 
-  if (j.contains("language_version_max"))
+  if (j.contains("api_version") && !j["api_version"].is_null())
+    p.api_version = j.at("api_version");
+
+  if (j.contains("language_version_max") && !j["language_version_max"].is_null())
     p.language_version_max = j.at("language_version_max");
 
   j.at("os").get_to(p.os);
@@ -252,7 +267,11 @@ optional<PackageVersion> Package::latest_version(string os, ChuckVersion languag
 
   for (PackageVersion version : versions) {
     ChuckVersion ck_min(version.language_version_min);
-    ApiVersion api(version.api_version);
+
+    optional<ApiVersion> api;
+
+    if (version.api_version)
+      api = ApiVersion(version.api_version.value());
 
     // filter out bad candidates
     if (version.os != "any" && version.os != os) continue;
@@ -263,7 +282,7 @@ optional<PackageVersion> Package::latest_version(string os, ChuckVersion languag
       if (language_version > ck_max) continue;
     }
 
-    if (api != api_version) continue;
+    if (api && api != api_version) continue;
 
     if (version > latest_version) {
       latest_version = version;
@@ -278,7 +297,11 @@ optional<PackageVersion> Package::version(PackageVersion ver, string os, ChuckVe
 
   for (PackageVersion version : versions) {
     ChuckVersion ck_min(version.language_version_min);
-    ApiVersion api(version.api_version);
+
+    optional<ApiVersion> api;
+
+    if (version.api_version)
+      api = ApiVersion(version.api_version.value());
 
     // filter out bad candidates
     if (version.os != "any" && version.os != os) continue;
@@ -289,7 +312,7 @@ optional<PackageVersion> Package::version(PackageVersion ver, string os, ChuckVe
       if (language_ver > ck_max) continue;
     }
 
-    if (api != api_ver) continue;
+    if (api && api != api_ver) continue;
 
     if (version == ver) {
       returned_version = version;

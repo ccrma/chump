@@ -50,7 +50,6 @@
             "versions": [
                 {
                     "version": "1.0.0",
-                    "api_version": "10.1",
                     "language_version_min": "1.5.2.0",
                     "os": "any",
                     "files": [
@@ -122,7 +121,6 @@
             "versions": [
                 {
                     "version": "1.0.0",
-                    "api_version": "9.1",
                     "language_version_min": "1.5.2.0",
                     "os": "linux",
                     "files": [
@@ -131,7 +129,6 @@
                 },
                 {
                     "version": "2.0.0",
-                    "api_version": "10.1",
                     "language_version_min": "1.5.2.6",
                     "os": "linux",
                     "files": [

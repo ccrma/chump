@@ -207,4 +207,37 @@ TEST_CASE("version() test") {
     REQUIRE(latest.has_value());
     REQUIRE(*latest == v5);
   }
+
+  SECTION("Test no 'api_version'") {
+    // Mockup Package with versions
+    PackageVersion v1_no_api("1.0.0", "1.5.2.1", "linux", {{"./","file1"}, {"./","file2"}});
+    PackageVersion v2_no_api("2.0.0", "1.5.2.1", "linux", {{"./","file1"}, {"./","file2"}});
+
+    package = {
+      "TestPackage",
+      {"Author1", "Author2"},
+      "https://example.com", "https://github.com/example/test", "MIT",
+      "Test package description",
+      {"keyword1", "keyword2"},
+      {v1_no_api, v2_no_api}
+    };
+
+    ChuckVersion language_ver = ChuckVersion("1.5.2.4 (chai)"); // Mockup ChuckVersion
+    ApiVersion api_ver = ApiVersion("10.1"); // Mockup ApiVersion
+    PackageVersion version("2.0.0");
+    string os = "linux";
+
+    // Get the latest compatible version
+    auto latest = package.version(version, os, language_ver, api_ver);
+
+    // Assert that the latest version is v3
+    REQUIRE(latest.has_value());
+    REQUIRE(*latest == v2_no_api);
+
+    latest = package.latest_version(os, language_ver, api_ver);
+    REQUIRE(latest.has_value());
+    REQUIRE(*latest == v2_no_api);
+  }
+
+
 }

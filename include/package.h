@@ -75,12 +75,16 @@ struct PackageVersion {
   PackageVersion(string version, string language_version_min,
                  string api_version, string os, vector<tuple<string,string>> files);
   PackageVersion(string version, string language_version_min,
+                 string os, vector<tuple<string,string>> files);
+  PackageVersion(string version, string language_version_min,
                  string language_version_max, string api_version,
                  string os, vector<tuple<string,string>> files);
 
   int major, minor, patch;
 
-  string api_version;
+  // Compatible chugin api version. If this is None, then there are no
+  // chugins being used in this pacakge and this doesn't matter.
+  optional<string> api_version;
   // minimum compatible version of chuck
   string language_version_min;
   // Maximal compatible version of chuck. If this is None, then
