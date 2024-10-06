@@ -234,11 +234,10 @@ void from_json(const json& j, PackageVersion& p) {
       p.files.push_back({"./", file});
     } else if (file.is_object()) {
 
-      auto local_dir = fs::path(file["local_dir"]);
-      auto base = fs::path("./");
+      string local_dir = file["local_dir"];
 
-      if (!is_subpath(local_dir, base)) {
-        throw std::invalid_argument("file location (" + local_dir.string() + ") can't be stored outside of package directory");
+      if (!is_subpath(local_dir, "./")) {
+        throw std::invalid_argument("file location (" + local_dir + ") can't be stored outside of package directory");
       }
 
       p.files.push_back({file["local_dir"], file["url"]});
