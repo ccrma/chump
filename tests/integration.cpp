@@ -175,3 +175,30 @@ TEST_CASE("Integration Tests - bad version input") {
 
   REQUIRE_FALSE(fs::exists(installPath / "TestPackage"));
 }
+
+TEST_CASE("Integration Tests - install twice") {
+  // If a url points to a file that doesn't exist, the package installation should fail
+
+  // reference: https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
+  fs::path installPath {fs::temp_directory_path() /= std::tmpnam(nullptr)};
+  fs::create_directories(installPath);
+
+  std::string dataPath = "../data/packages.json";
+
+  ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
+  ApiVersion langVersion = ApiVersion("9.1");
+
+  Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
+
+  // install specific version of package (with file that can't be found)
+  m->install("TestPackage");
+
+  // Because there is a missing file, the package wasn't installed
+  REQUIRE(fs::exists(installPath / "TestPackage"));
+  REQUIRE(fs::exists(installPath / "TestPackage" / "hello.ck"));
+  REQUIRE(fs::exists(installPath / "TestPackage" / "version.json"));
+
+  // installing again won't work
+  bool result = m->install("TestPackage");
+  REQUIRE_FALSE(result);
+}

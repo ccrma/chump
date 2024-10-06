@@ -63,8 +63,8 @@ bool Manager::install(string packageName) {
   // if there is already a .chump/PACKAGE directory, error out and tell the user to call update
   fs::path install_dir = packagePath(package, chump_dir);
 
-  if (fs::exists(install_dir)) {
-    std::cerr << "The install directory '" << install_dir << "' already exists." << std::endl;
+  if (fs::exists(install_dir / "version.json")) {
+    std::cerr << "The package '" << package.name << "' already exists." << std::endl;
     std::cerr << "Use `chump update " << package.name << "' to update the existing package" << std::endl;
     std::cerr << "Or use `chump uninstall " << package.name << "` to remove the package" << std::endl;
     return false;
