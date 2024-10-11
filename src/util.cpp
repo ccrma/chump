@@ -95,6 +95,8 @@ tuple<string, optional<string>> parsePackageName(string packageName) {
 // https://stackoverflow.com/questions/62503197/check-if-path-contains-another-in-c
 bool is_subpath(const fs::path& path, const fs::path& base)
 {
+  if (path == base) return true; // edge case
+
   // Need to convert these paths to absolute or otherwise
   // there's inconsistencies between windows and unix.
   auto rel = fs::absolute(path).lexically_relative(fs::absolute(base));

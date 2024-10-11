@@ -14,6 +14,7 @@
 using json = nlohmann::json;
 
 using std::optional;
+using std::string;
 
 namespace fs = std::filesystem;
 
@@ -25,8 +26,8 @@ namespace fs = std::filesystem;
 class FetchBase {
 public:
   virtual ~FetchBase() = default;
-  virtual bool fetch(std::string data, std::string dir, Package package, fs::path temp_dir) = 0;
-  virtual bool fetch_manifest(std::string url, fs::path dir) = 0;
+  virtual bool fetch(string data, string dir, Package package, fs::path temp_dir, string checksum) = 0;
+  virtual bool fetch_manifest(string url, fs::path dir) = 0;
 };
 
 
@@ -35,15 +36,12 @@ public:
   Fetch();
   Fetch(bool render_tui);
   // download a package file from a remote host
-  bool fetch(std::string data, std::string dir, Package package, fs::path temp_dir);
+  bool fetch(string data, string dir, Package package, fs::path temp_dir, string checksum);
   // download the manifest from a remote host
-  bool fetch_manifest(std::string url, fs::path dir);
+  bool fetch_manifest(string url, fs::path dir);
 
 public:
-  // bool isJSONFile(std::string path);
-  // bool isDirectory(std::string path);
-  bool isURL(std::string path);
-  // bool isPackageName(std::string path);
+  bool isURL(string path);
 
 private:
   static size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream);

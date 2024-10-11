@@ -26,15 +26,17 @@ TEST_CASE("parsePackageName") {
 }
 
 TEST_CASE("is_subpath", "[path]") {
-    REQUIRE( is_subpath("a/b/c", "a/b") );
-    REQUIRE_FALSE( is_subpath("a/b/c", "b") );
-    REQUIRE_FALSE( is_subpath("a", "a/b/c") );
+  REQUIRE( is_subpath("./", "./") );
+  REQUIRE( is_subpath("a/b/c", "a/b") );
+  REQUIRE( is_subpath("a/b/c", "a/b/c") );
+  REQUIRE_FALSE( is_subpath("a/b/c", "b") );
+  REQUIRE_FALSE( is_subpath("a", "a/b/c") );
 
-    REQUIRE( is_subpath("a/b/c/..", "a/") );
-    REQUIRE_FALSE( is_subpath("./", "./../oops") );
+  REQUIRE( is_subpath("a/b/c/..", "a/") );
+  REQUIRE_FALSE( is_subpath("./", "./../oops") );
 
-    REQUIRE( is_subpath("./poop", "./") );
-    REQUIRE_FALSE( is_subpath("./..", "./") );
-    REQUIRE_FALSE( is_subpath("./../../../..", "./") );
+  REQUIRE( is_subpath("./poop", "./") );
+  REQUIRE_FALSE( is_subpath("./..", "./") );
+  REQUIRE_FALSE( is_subpath("./../../../..", "./") );
 
 }

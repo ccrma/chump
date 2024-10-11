@@ -38,7 +38,7 @@ PackageVersion::PackageVersion(int _major, int _minor, int _patch) {
 }
 
 PackageVersion::PackageVersion(string version, string _language_ver_min, string _api_ver,
-                               string _os, vector<tuple<string,string>> _files) {
+                               string _os, vector<File> _files) {
   setVersionString(version);
 
   language_version_min = _language_ver_min;
@@ -48,7 +48,7 @@ PackageVersion::PackageVersion(string version, string _language_ver_min, string 
 }
 
 PackageVersion::PackageVersion(string version, string _language_ver_min,
-                               string _os, vector<tuple<string,string>> _files) {
+                               string _os, vector<File> _files) {
   setVersionString(version);
 
   language_version_min = _language_ver_min;
@@ -58,7 +58,7 @@ PackageVersion::PackageVersion(string version, string _language_ver_min,
 
 PackageVersion::PackageVersion(string version, string _language_ver_min,
                                string _language_ver_max, string _api_ver,
-                               string _os, vector<tuple<string,string>> _files) {
+                               string _os, vector<File> _files) {
   setVersionString(version);
 
   language_version_min = _language_ver_min;
@@ -188,10 +188,10 @@ std::ostream& operator<<(std::ostream& os, const PackageVersion& ver) {
      << "Files: [";
 
   if (!ver.files.empty()) {
-    os << std::get<1>(ver.files[0]);
+    os << ver.files[0].url;
 
     for (size_t i = 1; i < ver.files.size(); ++i) {
-      os << ", " << std::get<1>(ver.files[i]);
+      os << ", " << ver.files[i].url;
     }
   }
   os << "]\n";
@@ -227,22 +227,7 @@ void from_json(const json& j, PackageVersion& p) {
 
   j.at("os").get_to(p.os);
 
-
-  for (auto& file: j.at("files")) {
-    // std::cout << "files: " << file[0] << std::endl;
-    if (file.is_string()) {
-      p.files.push_back({"./", file});
-    } else if (file.is_object()) {
-
-      string local_dir = file["local_dir"];
-
-      if (!is_subpath(local_dir, "./")) {
-        throw std::invalid_argument("file location (" + local_dir + ") can't be stored outside of package directory");
-      }
-
-      p.files.push_back({file["local_dir"], file["url"]});
-    }
-  }
+  j.at("files").get_to(p.files);
 }
 
 void to_json(json& j, const Package& p) {
@@ -332,4 +317,28 @@ optional<PackageVersion> Package::version(PackageVersion ver, string os, ChuckVe
   }
 
   return returned_version;
+}
+
+void to_json(json& j, const File& f) {
+  j = json{
+    {"url", f.url},
+    {"local_dir", f.local_dir},
+    {"checksum", f.checksum}
+    };
+}
+
+void from_json(const json& j, File& f) {
+    j.at("url").get_to(f.url);
+    j.at("checksum").get_to(f.checksum);
+
+    if (f.checksum == "") {
+      throw std::invalid_argument("checksum filed for " + f.url + " should not be be empty");
+    }
+
+    string local_dir = j["local_dir"];
+
+    if (!is_subpath(local_dir, "./")) {
+      throw std::invalid_argument("file location (" + local_dir + ") can't be stored outside of package directory");
+    }
+    j["local_dir"].get_to(f.local_dir);
 }

@@ -75,7 +75,8 @@ int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal
 // Download file to proper package directory.
 // Return true on success, False on failure.
 //*******************************************
-bool Fetch::fetch(std::string url, std::string dir, Package package, fs::path temp_dir) {
+bool Fetch::fetch(std::string url, std::string dir,
+                  Package package, fs::path temp_dir, string checksum) {
   if (!isURL(url)) {
     std::cerr << "Not a URL!" << std::endl;
     return false;
