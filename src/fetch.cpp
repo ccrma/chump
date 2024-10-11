@@ -149,8 +149,14 @@ bool Fetch::fetch(std::string url, std::string dir,
     return false;
   }
 
+  if (hash_file(tempFilePath) != checksum) {
+    std::cerr << "the downloaded file (" << url
+              << ") does not match expected hash - aborting" << std::endl;
+
+    return false;
+  }
+
   std::cout << "Successfully downloaded " << filename << "!" << std::endl;
-  // std::cout << "hash: " << hash_file(tempFilePath) << std::endl;
 
   return true;
 }
