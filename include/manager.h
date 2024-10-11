@@ -21,7 +21,7 @@ using std::tuple;
 class Manager {
  public:
   // constructor
-  Manager(std::string package_list_path, fs::path package_install_dir, ChuckVersion ck_ver, ApiVersion api_ver, std::string system_os, bool render_tui);
+  Manager(std::string package_list_path, fs::path package_install_dir, ChuckVersion ck_ver, ApiVersion api_ver, std::string system_os, std::string manifest_url, bool render_tui);
 
  public:
   // return a list of all packages (installed and available)
@@ -32,7 +32,8 @@ class Manager {
 
   bool install(string packageName);
   bool uninstall(string packageName);
-  bool update(string packageName); // TODO update install specific version
+  bool update(string packageName);
+  bool update_manifest(); // Download a new package manifest
 
   bool is_installed(Package pkg);
 
@@ -47,6 +48,7 @@ private:
   ApiVersion api_version;
   fs::path chump_dir;
   std::string os;
+  std::string manifest_url;
 };
 
 
