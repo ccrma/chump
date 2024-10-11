@@ -7,6 +7,8 @@
 #include "fetch.h"
 #include "util.h"
 
+#include <openssl/sha.h>
+
 
 Fetch::Fetch() {
   render = false;
@@ -147,6 +149,7 @@ bool Fetch::fetch(std::string url, std::string dir, Package package, fs::path te
   }
 
   std::cout << "Successfully downloaded " << filename << "!" << std::endl;
+  // std::cout << "hash: " << hash_file(tempFilePath) << std::endl;
 
   return true;
 }
@@ -229,6 +232,7 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
   }
 
   std::cout << "Successfully downloaded manifest.json!" << std::endl;
+  // std::cout << "hash: " << hash_file(tempFilePath) << std::endl;
 
   return true;
 }

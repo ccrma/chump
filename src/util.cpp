@@ -2,6 +2,14 @@
 
 #include <regex>
 
+#include <openssl/sha.h>
+
+#include <openssl/md5.h>
+#include <openssl/evp.h>
+#include <fstream>
+#include <iostream>
+
+
 #ifdef _WIN32
 #include <windows.h>
 #include <Shlobj.h>
@@ -87,8 +95,47 @@ tuple<string, optional<string>> parsePackageName(string packageName) {
 // https://stackoverflow.com/questions/62503197/check-if-path-contains-another-in-c
 bool is_subpath(const fs::path& path, const fs::path& base)
 {
-  // Need to convert these paths to absolute or otherwise 
+  // Need to convert these paths to absolute or otherwise
   // there's inconsistencies between windows and unix.
   auto rel = fs::absolute(path).lexically_relative(fs::absolute(base));
   return !rel.empty() && rel.native()[0] != '.';
+}
+
+
+// Convert a filename to a sha 256 hash.
+// https://docs.openssl.org/3.0/man3/EVP_DigestInit/#examples
+// Do I know what's really going on here? Sort of...
+std::string hash_file(fs::path filename) {
+    std::ifstream file(filename, std::ios::binary);
+    if (!file) {
+      throw std::runtime_error("Failed to open file: " + filename.string());
+    }
+
+    EVP_MD_CTX* md5Context = EVP_MD_CTX_new();
+    EVP_MD_CTX_init(md5Context);
+    EVP_DigestInit_ex(md5Context, EVP_sha256(), nullptr);
+
+    const size_t bufferSize = 4096;
+    char buffer[bufferSize];
+    while (!file.eof()) {
+        file.read(buffer, bufferSize);
+        EVP_DigestUpdate(md5Context, buffer, file.gcount());
+    }
+
+    unsigned char result[EVP_MAX_MD_SIZE];
+    unsigned int hash_len;
+
+    EVP_DigestFinal_ex(md5Context, result, &hash_len);
+    file.close();
+
+    EVP_MD_CTX_free(md5Context);
+
+    std::stringstream ss;
+    for(unsigned int i = 0; i < hash_len; ++i)
+    {
+        ss << std::hex << std::setw(2) << std::setfill('0') << (int)result[i];
+    }
+
+    string hashed = ss.str();
+    return hashed;
 }
