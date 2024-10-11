@@ -304,12 +304,26 @@ bool Manager::update_manifest() {
 
   // Compare the two files. If they're different, copy over the newly-fetched
   // manifest.
-  std::istreambuf_iterator<char> temp_manifest_begin(temp_manifest);
-  std::istreambuf_iterator<char> curr_manifest_begin(curr_manifest);
+  // https://stackoverflow.com/questions/15118661/whats-the-fastest-way-to-tell-whether-two-strings-or-binary-files-are-different
+  std::istreambuf_iterator<char> temp_manifest_iter(temp_manifest);
+  std::istreambuf_iterator<char> curr_manifest_iter(curr_manifest);
 
-  //Second argument is end-of-range iterator
-  bool are_equal = std::equal(temp_manifest_begin, std::istreambuf_iterator<char>(),
-                              curr_manifest_begin);
+  bool are_equal = true;
+
+  std::istreambuf_iterator<char> end;
+
+  while(temp_manifest_iter != end && curr_manifest_iter != end) {
+    if(*temp_manifest_iter != *curr_manifest_iter) {
+      are_equal = false;
+      break;
+    }
+    ++temp_manifest_iter;
+    ++curr_manifest_iter;
+  }
+
+  if ((temp_manifest_iter != end) || (curr_manifest_iter == end)) {
+    are_equal = false;
+  }
 
   if (are_equal) {
     std::cerr << "current manifest is up-to-date, doing nothing" << std::endl;
