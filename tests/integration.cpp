@@ -4,17 +4,20 @@
 #include <filesystem>
 #include <catch2/catch_test_macros.hpp>
 
+std::string manifest_url = "https://ccrma.stanford.edu/~nshaheed/chump/manifest.json";
+
 TEST_CASE("Integration Tests - install/update/uninstall") {
   // reference: https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
   fs::path installPath {fs::temp_directory_path() /= std::tmpnam(nullptr)};
   fs::create_directories(installPath);
 
-  std::string dataPath = "../data/packages.json";
+  std::string dataPath = "../data/manifest.json";
 
   ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
   ApiVersion langVersion = ApiVersion("9.1");
 
-  Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
+  Manager* m = new Manager(dataPath, installPath, ckVersion,
+                           langVersion, "linux", manifest_url, false);
 
   // install package
 
@@ -28,7 +31,7 @@ TEST_CASE("Integration Tests - install/update/uninstall") {
   ckVersion = ChuckVersion("1.5.2.6");
   langVersion = ApiVersion("10.1");
 
-  m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
+  m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", manifest_url, false);
 
   m->update("TestPackage");
 
@@ -47,12 +50,13 @@ TEST_CASE("Integration Tests - install/update/uninstall with dirs") {
   fs::path installPath {fs::temp_directory_path() /= std::tmpnam(nullptr)};
   fs::create_directories(installPath);
 
-  std::string dataPath = "../data/packages.json";
+  std::string dataPath = "../data/manifest.json";
 
   ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
   ApiVersion langVersion = ApiVersion("9.1");
 
-  Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
+  Manager* m = new Manager(dataPath, installPath, ckVersion,
+                           langVersion, "linux", manifest_url, false);
 
   // install package
 
@@ -66,7 +70,7 @@ TEST_CASE("Integration Tests - install/update/uninstall with dirs") {
   ckVersion = ChuckVersion("1.5.2.6");
   langVersion = ApiVersion("10.1");
 
-  m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
+  m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", manifest_url, false);
 
   m->update("TestPackageDir");
 
@@ -97,12 +101,13 @@ TEST_CASE("Integration Tests - install specific version") {
   fs::path installPath {fs::temp_directory_path() /= std::tmpnam(nullptr)};
   fs::create_directories(installPath);
 
-  std::string dataPath = "../data/packages.json";
+  std::string dataPath = "../data/manifest.json";
 
   ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
   ApiVersion langVersion = ApiVersion("9.1");
 
-  Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
+  Manager* m = new Manager(dataPath, installPath, ckVersion,
+                           langVersion, "linux", manifest_url, false);
 
   m->install("TestPackage=1.0.0");
 
@@ -120,12 +125,13 @@ TEST_CASE("Integration Tests - package doesn't exist") {
   fs::path installPath {fs::temp_directory_path() /= std::tmpnam(nullptr)};
   fs::create_directories(installPath);
 
-  std::string dataPath = "../data/packages.json";
+  std::string dataPath = "../data/manifest.json";
 
   ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
   ApiVersion langVersion = ApiVersion("9.1");
 
-  Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
+  Manager* m = new Manager(dataPath, installPath, ckVersion,
+                           langVersion, "linux", manifest_url, false);
 
   // install package
   m->install("DoesNotExist");
@@ -143,12 +149,13 @@ TEST_CASE("Integration Tests - file doesn't exist") {
 
   std::cout << "install path: " << installPath << std::endl;
 
-  std::string dataPath = "../data/packages.json";
+  std::string dataPath = "../data/manifest.json";
 
   ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
   ApiVersion langVersion = ApiVersion("9.1");
 
-  Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
+  Manager* m = new Manager(dataPath, installPath, ckVersion,
+                           langVersion, "linux", manifest_url, false);
 
   // install specific version of package (with file that can't be found)
   m->install("TestPackage=0.9.0");
@@ -163,12 +170,13 @@ TEST_CASE("Integration Tests - bad version input") {
   fs::path installPath {fs::temp_directory_path() /= std::tmpnam(nullptr)};
   fs::create_directories(installPath);
 
-  std::string dataPath = "../data/packages.json";
+  std::string dataPath = "../data/manifest.json";
 
   ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
   ApiVersion langVersion = ApiVersion("9.1");
 
-  Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
+  Manager* m = new Manager(dataPath, installPath, ckVersion,
+                           langVersion, "linux", manifest_url, false);
 
   // This is incorrect
   m->install("TestPackage=vfjdklsaf1.0.0");
@@ -183,12 +191,13 @@ TEST_CASE("Integration Tests - install twice") {
   fs::path installPath {fs::temp_directory_path() /= std::tmpnam(nullptr)};
   fs::create_directories(installPath);
 
-  std::string dataPath = "../data/packages.json";
+  std::string dataPath = "../data/manifest.json";
 
   ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
   ApiVersion langVersion = ApiVersion("9.1");
 
-  Manager* m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", false);
+  Manager* m = new Manager(dataPath, installPath, ckVersion,
+                           langVersion, "linux", manifest_url, false);
 
   // install specific version of package (with file that can't be found)
   m->install("TestPackage");
@@ -201,4 +210,19 @@ TEST_CASE("Integration Tests - install twice") {
   // installing again won't work
   bool result = m->install("TestPackage");
   REQUIRE_FALSE(result);
+}
+
+TEST_CASE("Integration Tests - update manifest") {
+  fs::path installPath {fs::temp_directory_path() /= std::tmpnam(nullptr)};
+  fs::create_directories(installPath);
+
+  std::string dataPath = "../data/manifest.json";
+
+  ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
+  ApiVersion langVersion = ApiVersion("9.1");
+
+  Manager* m = new Manager(dataPath, installPath, ckVersion,
+                           langVersion, "linux", manifest_url, false);
+
+  REQUIRE(m->update_manifest());
 }

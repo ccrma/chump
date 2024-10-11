@@ -164,6 +164,71 @@ bool Fetch::isURL(std::string path) {
   return regex_match(path, pattern);
 }
 
-// bool Fetch::isPackageName(std::string path) {
-//   return path != "" && std::all_of(path.begin(), path.end(), ::isalnum);
-// }
+bool Fetch::fetch_manifest(std::string url, fs::path dir) {
+  if (!isURL(url)) {
+    std::cerr << "Not a URL!" << std::endl;
+    return false;
+  }
+
+    // struct progress data;
+  CURL *curl;
+  FILE *fp;
+  CURLcode res;
+
+  fs::path tempFilePath = dir / "manifest.json";
+
+  #ifdef _MSC_VER
+  fp = _wfopen(tempFilePath.c_str(), L"wb");
+#else
+  fp = fopen(tempFilePath.string().c_str(), "wb");
+#endif
+
+  if (!fp) {
+    std::cerr << "Error opening file for writing" << std::endl;
+    return false;
+  }
+
+  // Initialize libcurl
+  curl = curl_easy_init();
+
+  if (curl) {
+    // Set URL
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+
+    // Set callback function to write data
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+
+    // Set file to write to
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+
+    // Set the progress callback function
+    if (render)
+      curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progressCallback);
+    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+
+    // We don't want to write the error to a file if the request fails
+    curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
+
+    // Perform the request
+    if (render) initscr();
+    res = curl_easy_perform(curl);
+    if (render) endwin();
+
+    // Clean up
+    curl_easy_cleanup(curl);
+    fclose(fp);
+
+    if (res != CURLE_OK) {
+      std::cerr << "Failed to download: " << curl_easy_strerror(res) << std::endl;
+      return false;
+    }
+
+  } else {
+    std::cerr << "Failed to initialize libcurl" << std::endl;
+    return false;
+  }
+
+  std::cout << "Successfully downloaded manifest.json!" << std::endl;
+
+  return true;
+}

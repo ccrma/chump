@@ -30,7 +30,10 @@ else
   package_dir = fs.expanduser('~/.chuck/lib/.chump')
 endif
 
-install_data('data/packages.json', install_dir : package_dir)
+install_data('data/manifest.json',
+             install_dir : package_dir,
+             install_mode: 'rwxrwxrwx',
+            )
 
 # Expose data for tests at local level in build dir
 fs.copyfile('tests/data/test-package-list.json')

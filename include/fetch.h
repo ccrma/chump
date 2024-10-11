@@ -26,6 +26,7 @@ class FetchBase {
 public:
   virtual ~FetchBase() = default;
   virtual bool fetch(std::string data, std::string dir, Package package, fs::path temp_dir) = 0;
+  virtual bool fetch_manifest(std::string url, fs::path dir) = 0;
 };
 
 
@@ -33,7 +34,10 @@ class Fetch : public FetchBase {
 public:
   Fetch();
   Fetch(bool render_tui);
+  // download a package file from a remote host
   bool fetch(std::string data, std::string dir, Package package, fs::path temp_dir);
+  // download the manifest from a remote host
+  bool fetch_manifest(std::string url, fs::path dir);
 
 public:
   // bool isJSONFile(std::string path);

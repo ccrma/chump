@@ -4,9 +4,10 @@
 
 #include <regex>
 
-Manager::Manager(string package_list_path, fs::path package_install_dir, ChuckVersion ck_ver, ApiVersion api_ver, string system_os, bool render_tui) {
+Manager::Manager(string package_list_path, fs::path package_install_dir, ChuckVersion ck_ver, ApiVersion api_ver, string system_os, string _manifest_url, bool render_tui) {
   chump_dir = package_install_dir;
   os = system_os;
+  manifest_url = _manifest_url;
 
   fetch = new Fetch(render_tui);
   package_list = new PackageList(package_list_path, os, ck_ver, api_ver);
@@ -282,4 +283,49 @@ bool Manager::is_installed(Package pkg) {
   fs::path install_dir = packagePath(pkg, chump_dir);
 
   return fs::exists(install_dir / "version.json");
+}
+
+bool Manager::update_manifest() {
+  // Create a temporary directory to download our manifest to
+  fs::path temp_dir = {fs::temp_directory_path() /= std::tmpnam(nullptr)};
+  fs::create_directory(temp_dir);
+
+  // load both tmp file and current file as strings
+  bool result = fetch->fetch_manifest(manifest_url, temp_dir);
+
+  if (!result) {
+    std::cerr << "Failed to fetch manifest.json, exiting." << std::endl;
+    return false;
+  }
+
+  // check if different (.compare). If they are, copy over the new file
+  std::ifstream temp_manifest(temp_dir / "manifest.json");
+  std::ifstream curr_manifest(chump_dir / "manifest.json");
+
+  // Compare the two files. If they're different, copy over the newly-fetched
+  // manifest.
+  std::istreambuf_iterator<char> temp_manifest_begin(temp_manifest);
+  std::istreambuf_iterator<char> curr_manifest_begin(curr_manifest);
+
+  //Second argument is end-of-range iterator
+  bool are_equal = std::equal(temp_manifest_begin, std::istreambuf_iterator<char>(),
+                              curr_manifest_begin);
+
+  if (are_equal) {
+    std::cerr << "current manifest is up-to-date, doing nothing" << std::endl;
+    return false;
+  }
+
+  // Copy temp files over to the install directory
+  try {
+    fs::remove(chump_dir / "manifest.json");
+    fs::copy(temp_dir / "manifest.json", chump_dir / "manifest.json",
+             fs::copy_options::overwrite_existing);
+  } catch (std::filesystem::filesystem_error& e) {
+    std::cerr << e.what() << '\n';
+    return false;
+  }
+
+  std::cerr << "manifest.json was successfully updated!" << std::endl;
+  return true;
 }

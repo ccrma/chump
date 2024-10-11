@@ -21,7 +21,7 @@ int main( int argc, const char ** argv ) {
 
   /****************************************************************
    * CLI Args Setup
-  /****************************************************************/
+   ****************************************************************/
   CLI::App app;
 
   string usage = printLogo() + "\n" + "Usage: chump [OPTIONS] [SUBCOMMAND]";
@@ -54,17 +54,21 @@ int main( int argc, const char ** argv ) {
 
   CLI::App* update = app.add_subcommand("update", "update <package> to latest compatible version");
   string update_package_name;
-  update
-    ->add_option("package", update_package_name, "package to update (case sensitive)")
-    ->required();
+  auto pkg_opt = update
+    ->add_option("package", update_package_name, "package to update (case sensitive)");
+    // ->required();
+  bool update_package_list = false;
+  auto update_list_flag = update->add_flag("-u, --update-list", update_package_list, "update list of available packages");
+
+  update_list_flag->excludes(pkg_opt);
 
   app.require_subcommand(1); // only want a single command here
 
-  CLI11_PARSE(app, argc, argv);
-
+  CLI11_PARSE(app, argc, argv)
+;
   /****************************************************************
    * Chump setup
-  /****************************************************************/
+   ****************************************************************/
 
   fs::path path = chumpDir();
 
@@ -73,9 +77,17 @@ int main( int argc, const char ** argv ) {
   Manager* manager;
 
   // Build manager and run command
-  fs::path pkg_path = chumpDir() / "packages.json";
+  fs::path pkg_path = chumpDir() / "manifest.json";
+
+  if (!fs::exists(pkg_path)) {
+    std::cerr << "Unable to find manifest.json. try reinstalling chump" << std::endl;
+    return 1;
+  }
+
   try {
-    manager = new Manager(pkg_path.string(), path, ChuckVersion::makeSystemVersion(), ApiVersion::makeSystemVersion(), whichOS(), true);
+    std::string manifest_url = "https://ccrma.stanford.edu/~nshaheed/chump/manifest.json";
+    manager = new Manager(pkg_path.string(), path, ChuckVersion::makeSystemVersion(),
+                          ApiVersion::makeSystemVersion(), whichOS(), manifest_url, true);
   } catch (const std::exception &e) {
     std::cerr << e.what() << std::endl;
     return 1;
@@ -99,7 +111,11 @@ int main( int argc, const char ** argv ) {
   } else if (app.got_subcommand(uninstall)) {
     manager->uninstall(uninstall_package_name);
   } else if (app.got_subcommand(update)) {
-    manager->update(update_package_name);
+    if (update_package_list) {
+      manager->update_manifest();
+    } else {
+      manager->update(update_package_name);
+    }
   }
 
   return 0;
