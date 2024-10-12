@@ -19,9 +19,11 @@ using std::string;
 using std::map;
 using std::vector;
 using std::optional;
-using std::tuple;
+
+namespace fs = std::filesystem;
 
 struct PackageVersion;
+struct File;
 
 // Function declarations for JSON serialization/deserialization
 void to_json(json& j, const PackageVersion& p);
@@ -73,12 +75,12 @@ struct PackageVersion {
   PackageVersion(string version);
   PackageVersion(int major, int minor, int patch);
   PackageVersion(string version, string language_version_min,
-                 string api_version, string os, vector<tuple<string,string>> files);
+                 string api_version, string os, vector<File> files);
   PackageVersion(string version, string language_version_min,
-                 string os, vector<tuple<string,string>> files);
+                 string os, vector<File> files);
   PackageVersion(string version, string language_version_min,
                  string language_version_max, string api_version,
-                 string os, vector<tuple<string,string>> files);
+                 string os, vector<File> files);
 
   int major, minor, patch;
 
@@ -91,7 +93,7 @@ struct PackageVersion {
   // all versions >= language_version_min are compatible
   optional<string> language_version_max;
   string os;
-  vector<tuple<string,string>> files;
+  vector<File> files;
 
   // Equality operator overload
   bool operator==(const PackageVersion& other) const;
@@ -107,5 +109,19 @@ struct PackageVersion {
   void setVersionString(string version);
   string getVersionString() const;
 };
+
+//-----------------------------------------------------------------------------
+// File provides metadata needed to download and install a file for chump:
+// url, install path, and checksum
+// -----------------------------------------------------------------------------
+struct File {
+  string url;
+  fs::path local_dir;
+  string checksum;
+};
+
+// Function declarations for JSON serialization/deserialization
+void to_json(json& j, const File& f);
+void from_json(const json& j, File& f);
 
 #endif

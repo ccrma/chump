@@ -1,5 +1,7 @@
 #include "manager.h"
 #include "exec.h"
+#include "fetch.h"
+#include "package.h"
 
 #include <filesystem>
 #include <catch2/catch_test_macros.hpp>
@@ -225,4 +227,17 @@ TEST_CASE("Integration Tests - update manifest") {
                            langVersion, "linux", manifest_url, false);
 
   REQUIRE(m->update_manifest());
+}
+
+TEST_CASE("Integration Test - wrong checksum") {
+  Fetch f;
+  Package p;
+
+  fs::path tmpPath {fs::temp_directory_path() /= std::tmpnam(nullptr)};
+  fs::create_directories(tmpPath);
+
+  // This will fail due to an incorrect checksum being provided
+  bool result = f.fetch("https://ccrma.stanford.edu/~nshaheed/chugins/test_package/1.0.0/hello.ck",
+                        "./", p, tmpPath, "1234");
+  REQUIRE_FALSE(result);
 }

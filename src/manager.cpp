@@ -77,9 +77,11 @@ bool Manager::install(string packageName) {
 
   // fetch
   for (auto file: version.files) {
-    string dir = std::get<0>(file);
-    string url = std::get<1>(file);
-    bool result = fetch->fetch(url, dir, package, temp_dir);
+    fs::path dir = file.local_dir;
+    string url = file.url;
+    string checksum = file.checksum;
+
+    bool result = fetch->fetch(url, dir, package, temp_dir, checksum);
     if (!result) {
       std::cerr << "Failed to fetch " << url << ", exiting." << std::endl;
       return false;
@@ -166,8 +168,8 @@ bool Manager::update(string packageName) {
   }
 
   for (auto file: installed_version.files) {
-    string dir = std::get<0>(file);
-    string url = std::get<1>(file);
+    fs::path dir = file.local_dir;
+    string url = file.url;
     fs::path filename = fs::path(url).filename();
 
     fs::remove(install_dir / dir / filename);
@@ -183,9 +185,11 @@ bool Manager::update(string packageName) {
 
   // fetch
   for (auto file: latest_version.files) {
-    string dir = std::get<0>(file);
-    string url = std::get<1>(file);
-    bool result = fetch->fetch(url, dir, package, temp_dir);
+    fs::path dir = file.local_dir;
+    string url = file.url;
+    string checksum = file.checksum;
+
+    bool result = fetch->fetch(url, dir, package, temp_dir, checksum);
     if (!result) {
       std::cerr << "Failed to fetch " << url << ", exiting." << std::endl;
       return false;
@@ -253,8 +257,9 @@ bool Manager::uninstall(string packageName) {
 
   // Remove all files associated with package
   for (auto file: installed_version.value().files) {
-    string dir = std::get<0>(file);
-    string url = std::get<1>(file);
+    fs::path dir = file.local_dir;
+    string url = file.url;
+
     fs::path filename = fs::path(url).filename();
 
     fs::remove(install_dir / dir / filename);

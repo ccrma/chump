@@ -1,11 +1,14 @@
 #include <filesystem>
 #include <iostream>
 #include <chrono>
+#include <sstream>
 
 #include "curses.h"
 
 #include "fetch.h"
 #include "util.h"
+
+#include <openssl/sha.h>
 
 
 Fetch::Fetch() {
@@ -73,7 +76,8 @@ int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal
 // Download file to proper package directory.
 // Return true on success, False on failure.
 //*******************************************
-bool Fetch::fetch(std::string url, std::string dir, Package package, fs::path temp_dir) {
+bool Fetch::fetch(std::string url, fs::path dir,
+                  Package package, fs::path temp_dir, string checksum) {
   if (!isURL(url)) {
     std::cerr << "Not a URL!" << std::endl;
     return false;
@@ -143,6 +147,13 @@ bool Fetch::fetch(std::string url, std::string dir, Package package, fs::path te
 
   } else {
     std::cerr << "Failed to initialize libcurl" << std::endl;
+    return false;
+  }
+
+  if (hash_file(tempFilePath) != checksum) {
+    std::cerr << "the downloaded file (" << url
+              << ") does not match expected hash - aborting" << std::endl;
+
     return false;
   }
 
@@ -229,6 +240,7 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
   }
 
   std::cout << "Successfully downloaded manifest.json!" << std::endl;
+  // std::cout << "hash: " << hash_file(tempFilePath) << std::endl;
 
   return true;
 }

@@ -14,14 +14,26 @@
                     "api_version": "9.0",
                     "language_version_min": "1.5.2.7",
                     "os": "linux",
-                    "files": ["https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug"]
+                    "files": [
+                        {
+                            "url": "https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug",
+                            "local_dir": "./",
+                            "checksum": "1234"
+                        }
+                    ]
                 },
                 {
                     "version": "1.0.0",
                     "api_version": "9.0",
                     "language_version_min": "1.5.2.1",
                     "os": "linux",
-                    "files": ["https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug"]
+                    "files": [
+                        {
+                            "url": "https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug",
+                            "local_dir": "./",
+                            "checksum": "1234"
+                        }
+                    ]
                 },
                 {
                     "version": "0.9.1",
@@ -29,7 +41,13 @@
                     "language_version_min": "1.5.0.1",
                     "language_version_max": "1.5.2.1",
                     "os": "linux",
-                    "files": ["https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug"]
+                    "files": [
+                        {
+                            "url": "https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug",
+                            "local_dir": "./",
+                            "checksum": "1234"
+                        }
+                    ]
                 }
             ]
         },
@@ -49,7 +67,8 @@
                     "files": [
                         {
                             "local_dir": "./boot",
-                            "url": "https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug"
+                            "url": "https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug",
+                            "checksum": "1234"
                         }
                     ]
                 }

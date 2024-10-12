@@ -23,6 +23,6 @@ TEST_CASE("Fetch::fetch() tests") {
   Fetch f;
   Package p;
   SECTION("Invalid URL") {
-    REQUIRE_FALSE(f.fetch("badurl", "./", p, "/tmp/"));
+    REQUIRE_FALSE(f.fetch("badurl", "./", p, "/tmp/", ""));
   }
 }
