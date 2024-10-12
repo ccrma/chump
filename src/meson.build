@@ -17,7 +17,7 @@ openssl_dep = subproject('openssl', required: true).get_variable('openssl_dep')
 if build_machine.system() == 'windows'
   curses_dep = pdcurses_lib_dep
 else
-  curses_dep = dependency('curses')
+  curses_dep = dependency('curses', static: true)
 endif
 
 # zlib = dependency('zlib', version : '1.2.11')
