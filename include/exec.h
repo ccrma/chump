@@ -15,7 +15,7 @@ void printPackage(Package pkg) {
 void printPackages(Manager* mgr, bool print_installed) {
   vector<Package> packages = mgr->listPackages();
 
-  std::cout << "Name | Latest Ver. | Description" << std::endl;
+  std::cout << "Name | Latest Ver. | Installed? | Description " << std::endl;
 
   for (Package p: packages) {
     if (print_installed && !mgr->is_installed(p)) continue;
@@ -26,10 +26,14 @@ void printPackages(Manager* mgr, bool print_installed) {
     if (latest)
       latest_version = latest.value().getVersionString();
 
+    string installed = mgr->is_installed(p) ? "yes" : "no";
+
     std::cout
       << p.name << " | "
       << latest_version << " | "
-      << p.description << std::endl;
+      << installed << " | "
+      << p.description
+      << std::endl;
   }
 }
 

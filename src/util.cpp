@@ -3,8 +3,6 @@
 #include <regex>
 
 #include <openssl/sha.h>
-
-#include <openssl/md5.h>
 #include <openssl/evp.h>
 #include <fstream>
 #include <iostream>
