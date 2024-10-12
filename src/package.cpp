@@ -163,14 +163,13 @@ std::ostream& operator<<(std::ostream& os, const Package& pkg) {
     }
   }
 
-  os << "]\nVersions: [";
+  os << "]\nVersions:\n";
   if (!pkg.versions.empty()) {
 
     for (const auto& ver : pkg.versions) {
       os << ver << "\n";
     }
   }
-  os << "]\n";
   return os;
 }
 
