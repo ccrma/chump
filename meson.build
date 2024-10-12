@@ -7,6 +7,12 @@ project('chump', ['c', 'cpp'],
 
 add_global_arguments(language : ['c', 'cpp'])
 
+if host_machine.system() == 'darwin'
+  # Set minimum macOS version only for macOS
+  add_project_arguments('-mmacosx-version-min=12', language : 'c')
+  add_project_arguments('-mmacosx-version-min=12', language : 'cpp')
+endif
+
 inc = [include_directories('include')]
 
 subdir('include')
