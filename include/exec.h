@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <tuple>
 #include <vector>
 
@@ -12,10 +13,37 @@ void printPackage(Package pkg) {
   std::cout << pkg << std::endl;
 }
 
+// https://stackoverflow.com/questions/19580877/how-to-truncate-a-string-formating-c
+std::string truncate(std::string str, size_t width, bool show_ellipsis=true) {
+    if (str.length() > width) {
+        if (show_ellipsis) {
+            str.resize(width);
+            return str + "...";
+        }
+        else {
+            str.resize(width);
+            return str;
+        }
+    }
+    return str;
+}
+
 void printPackages(Manager* mgr, bool print_installed) {
   vector<Package> packages = mgr->listPackages();
 
-  std::cout << "Name | Latest Ver. | Installed? | Description " << std::endl;
+  std::cout << std::left << std::setw(20) << "Name" << "| "
+            << std::setw(12) << "Latest Ver." << "| "
+            << std::setw(12) << "Installed?" << "| "
+            << std::setw(12) << "Description" << std::endl;
+
+  std::cout << std::setfill('-'); // in-between line from header to table
+
+  std::cout << std::right << std::setw(21) << "|"
+            << std::setw(14) << "|"
+            << std::setw(14) << "|"
+            << std::setw(14) << "" << std::endl;
+
+  std::cout << std::setfill(' ');
 
   for (Package p: packages) {
     if (print_installed && !mgr->is_installed(p)) continue;
@@ -28,12 +56,11 @@ void printPackages(Manager* mgr, bool print_installed) {
 
     string installed = mgr->is_installed(p) ? "yes" : "no";
 
-    std::cout
-      << p.name << " | "
-      << latest_version << " | "
-      << installed << " | "
-      << p.description
-      << std::endl;
+    std::cout << std::left << std::setw(20) << truncate(p.name, 17, true) << "| "
+              << std::setw(12) << latest_version << "| "
+              << std::setw(12) << installed << "| "
+              << std::setw(12) << p.description
+              << std::endl;
   }
 }
 
