@@ -71,6 +71,48 @@
             ]
         },
         {
+            "name": "Patch",
+            "authors": [
+                "Nick Shaheed"
+            ],
+            "homepage": "https://github.com/ccrma/chugins/tree/main/Patch",
+            "repository": "https://github.com/ccrma/chugins",
+            "license": "MIT",
+            "description": "Pipe UGen signals into UGen methods directly! The primary use of this is easily and efficiently control UGen parameters with tick-level LFOs.",
+            "keywords": [
+                "LFO",
+                "parameters"
+            ],
+            "versions": [
+                {
+                    "version": "1.0.0",
+                    "api_version": "10.2",
+                    "language_version_min": "1.5.2.5",
+                    "os": "linux",
+                    "files": [
+                        {
+                            "url": "https://ccrma.stanford.edu/~nshaheed/chump/Patch/1.0.0/linux/Patch.chug",
+                            "local_dir": "./",
+                            "checksum": "405ef75384206684b20de3a64456afbd221b316a69b1203c3e629ceb23914496"
+                        }
+                    ]
+                },
+                {
+                    "version": "1.0.0",
+                    "api_version": "10.2",
+                    "language_version_min": "1.5.2.5",
+                    "os": "windows",
+                    "files": [
+                        {
+                            "url": "https://ccrma.stanford.edu/~nshaheed/chump/Patch/1.0.0/win/Patch.chug",
+                            "local_dir": "./",
+                            "checksum": "76b28015e6383e31f28d1ac6acda4974e1e1fcd744212b28e158aa3fc3c98096"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "name": "TestPackage",
             "authors": [
                 "Nick Shaheed"

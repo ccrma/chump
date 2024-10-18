@@ -9,6 +9,9 @@ current:
 build-release:
 	meson setup builddir-release
 
+build-debug:
+	meson setup --buildtype=debug --debug builddir-debug
+
 build-release-win:
 	meson setup builddir-release --backend vs
 
@@ -30,6 +33,9 @@ install:
 .PHONY: mac osx linux linux-oss linux-jack linux-alsa linux-all
 mac osx linux linux-oss linux-jack linux-alsa linux-all: build-release
 	meson compile -C builddir-release
+
+linux-debug: build-debug
+	meson compile -C builddir-debug
 
 mac-universal: build-mac-x86_64 build-mac-arm64
 	lipo -create -output chump builddir-x86-64/chump-cli/chump builddir-arm64/chump-cli/chump

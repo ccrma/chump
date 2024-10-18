@@ -33,6 +33,10 @@ PackageList::PackageList(string filepath, string operating_system,
   // Get language and api version
 }
 
+PackageList::PackageList(std::vector<Package> _package) {
+  packages = _package;
+}
+
 optional<Package> PackageList::find_package(string name) {
   for (auto package: packages) {
     if (package.name == name) {

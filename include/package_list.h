@@ -25,6 +25,8 @@ class PackageList {
                                              ) {};
   // set OS explicitly for unit tests
   PackageList(string filepath, string operating_system, ChuckVersion ck_ver, ApiVersion api_ver);
+  // For scripts - construct a packagelist given a vector of packages;
+  PackageList(std::vector<Package> _packages);
 
  public:
   optional<Package> find_package(string name);

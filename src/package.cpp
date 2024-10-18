@@ -250,7 +250,10 @@ void from_json(const json& j, Package& p) {
     j.at("license").get_to(p.license);
     j.at("description").get_to(p.description);
     j.at("keywords").get_to(p.keywords);
-    j.at("versions").get_to(p.versions);
+
+    if (j.contains("versions")) {
+      j.at("versions").get_to(p.versions);
+    }
 }
 
 // find the latest compatible version

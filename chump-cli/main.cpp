@@ -64,8 +64,7 @@ int main( int argc, const char ** argv ) {
 
   app.require_subcommand(1); // only want a single command here
 
-  CLI11_PARSE(app, argc, argv)
-;
+  CLI11_PARSE(app, argc, argv);
   /****************************************************************
    * Chump setup
    ****************************************************************/

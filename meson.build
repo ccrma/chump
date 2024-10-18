@@ -26,6 +26,7 @@ endif
 subdir('src')
 subdir('chump-cli')
 subdir('tests')
+subdir('scripts')
 
 fs = import('fs')
 
