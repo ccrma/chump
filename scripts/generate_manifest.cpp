@@ -45,7 +45,7 @@ int main( int argc, const char ** argv ) {
 
   for (auto const& path : fs::directory_iterator{packages_subdir}) {
     if (!fs::is_directory(path)) continue;
-    
+
     // Each directory corresponds to a package
 
     // grab the package.json
@@ -57,7 +57,7 @@ int main( int argc, const char ** argv ) {
       std::cerr << "Package definition " << pkg_path << "not found, are you in the chump-packages/packages directory?" << std::endl;
       continue;
     }
-    
+
     Package pkg = read_package(pkg_path);
 
     populate_versions(&pkg, path);
@@ -77,7 +77,7 @@ int main( int argc, const char ** argv ) {
 void populate_versions(Package* p, fs::path pkg_path) {
   for (auto const& path : fs::directory_iterator{pkg_path}) {
     // std::cout << path << std::endl;
-    
+
     if (fs::is_directory(path)) {
       populate_versions(p, path);
     } else if (path.path().extension() == ".json" && path.path().filename() != "package.json") {
