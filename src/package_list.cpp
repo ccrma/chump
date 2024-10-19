@@ -6,12 +6,7 @@ PackageList::PackageList() {
   // throw std::runtime_error("not implemented");
 }
 
-PackageList::PackageList(string filepath, string operating_system,
-                         ChuckVersion ck_ver, ApiVersion api_ver) {
-  os = operating_system;
-  language_version = ck_ver;
-  api_version = api_ver;
-
+PackageList::PackageList(string filepath) {
   std::ifstream f(filepath);
 
   // TODO better error checks
@@ -29,8 +24,6 @@ PackageList::PackageList(string filepath, string operating_system,
 
     packages.push_back(p);
   }
-
-  // Get language and api version
 }
 
 PackageList::PackageList(std::vector<Package> _package) {
@@ -47,11 +40,14 @@ optional<Package> PackageList::find_package(string name) {
   return {};
 }
 
-optional<PackageVersion> PackageList::find_latest_package_version(string name) {
+optional<PackageVersion> PackageList::find_latest_package_version(string name,
+                                                                  string os,
+                                                                  ChuckVersion ck_ver,
+                                                                  ApiVersion api_ver) {
   // TODO get highest version (how do I do that?)
   for (auto package: packages) {
     if (package.name == name) {
-      return package.latest_version(os, language_version, api_version);
+      return package.latest_version(os, ck_ver, api_ver);
     }
   }
   return {};

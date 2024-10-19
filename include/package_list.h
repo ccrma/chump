@@ -19,19 +19,17 @@ using std::optional;
 class PackageList {
  public:
   PackageList();
-  PackageList(string filepath) : PackageList(filepath, whichOS(),
-                                             ChuckVersion::makeSystemVersion(),
-                                             ApiVersion::makeSystemVersion()
-                                             ) {};
-  // set OS explicitly for unit tests
-  PackageList(string filepath, string operating_system, ChuckVersion ck_ver, ApiVersion api_ver);
+  PackageList(string filepath);
   // For scripts - construct a packagelist given a vector of packages;
   PackageList(std::vector<Package> _packages);
 
  public:
   optional<Package> find_package(string name);
   // return latest (maybe latest && most compatible?) version of package
-  optional<PackageVersion> find_latest_package_version(string name);
+  optional<PackageVersion> find_latest_package_version(string name,
+                                                       string operating_system,
+                                                       ChuckVersion ck_ver,
+                                                       ApiVersion api_ver);
 
   // return specific version of package
   optional<PackageVersion> find_package_version(string name, string version);
@@ -44,12 +42,6 @@ class PackageList {
  private:
   // TODO could be a more efficient lookup implementation
   std::vector<Package> packages;
-
-  ChuckVersion language_version;
-  ApiVersion api_version;
-
-  // set OS at initialization time
-  string os;
 };
 
 #endif

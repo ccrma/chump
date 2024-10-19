@@ -10,7 +10,11 @@ Manager::Manager(string package_list_path, fs::path package_install_dir, ChuckVe
   manifest_url = _manifest_url;
 
   fetch = new Fetch(render_tui);
-  package_list = new PackageList(package_list_path, os, ck_ver, api_ver);
+
+  // really only used to update manifest without needed to properly
+  // parse the existing manifest.
+  if (package_list_path == "") package_list = new PackageList();
+  else package_list = new PackageList(package_list_path);
   uninstaller = new Uninstaller(package_list, chump_dir);
 
   language_version = ck_ver;
@@ -22,7 +26,7 @@ optional<Package> Manager::getPackage(string packageName) {
 }
 
 optional<PackageVersion> Manager::latestPackageVersion(string name) {
-  return package_list->find_latest_package_version(name);
+  return package_list->find_latest_package_version(name, os, language_version, api_version);
 }
 
 bool Manager::install(string packageName) {

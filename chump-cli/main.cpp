@@ -78,13 +78,24 @@ int main( int argc, const char ** argv ) {
   // Build manager and run command
   fs::path pkg_path = chumpDir() / "manifest.json";
 
-  if (!fs::exists(pkg_path)) {
-    std::cerr << "Unable to find manifest.json. try reinstalling chump" << std::endl;
+  std::string manifest_url = "https://ccrma.stanford.edu/~nshaheed/chump/manifest.json";
+
+  // if the manifesto isn't loading properly, only allow `chump update -u`.
+  // This is an escape hatch, because failing to parse manifest.json will
+  // result in an exception and the program won't continue.
+  if (!validate_manifest(pkg_path)) {
+    if (!update_package_list) return -1; // exit if we're not updating the manifest
+
+    manager = new Manager("", path, ChuckVersion::makeSystemVersion(),
+                          ApiVersion::makeSystemVersion(), whichOS(), manifest_url, true);
+
+    manager->update_manifest();
+
     return 1;
   }
 
+
   try {
-    std::string manifest_url = "https://ccrma.stanford.edu/~nshaheed/chump/manifest.json";
     manager = new Manager(pkg_path.string(), path, ChuckVersion::makeSystemVersion(),
                           ApiVersion::makeSystemVersion(), whichOS(), manifest_url, true);
   } catch (const std::exception &e) {

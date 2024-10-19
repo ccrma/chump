@@ -1,5 +1,7 @@
 #include "util.h"
 
+#include "package_list.h"
+
 #include <regex>
 
 #include <openssl/sha.h>
@@ -139,4 +141,21 @@ std::string hash_file(fs::path filename) {
 
     string hashed = ss.str();
     return hashed;
+}
+
+bool validate_manifest(fs::path manifest_path) {
+  if (!fs::exists(manifest_path)) {
+    std::cerr << "Unable to find manifest.json. try update the chump package list (`chump update -u`)" << std::endl;
+    return false;
+  }
+
+  try {
+    PackageList p(manifest_path);
+  } catch (const std::exception &e) {
+    std::cerr << "failed to validate manifest.json with the error: " << e.what() << std::endl;
+    std::cerr << "try updating the manifest with `chump update -u`" << std::endl;
+    return false;
+  }
+
+  return true;
 }

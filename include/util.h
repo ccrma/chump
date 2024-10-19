@@ -23,4 +23,7 @@ bool is_subpath(const fs::path& path, const fs::path& base);
 
 std::string hash_file(fs::path filename);
 
+// validate that the manifest.json is able to be loaded correctly
+bool validate_manifest(fs::path manifest_path);
+
 #endif

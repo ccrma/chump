@@ -67,7 +67,8 @@ int main( int argc, const char ** argv ) {
 
   PackageList package_list(packages);
 
-  json output = packages;
+  json output;
+  output["packages"] = packages;
   std::cout << output.dump(4) << std::endl;
 
   return 0;
