@@ -6,12 +6,12 @@ PackageList::PackageList() {
   // throw std::runtime_error("not implemented");
 }
 
-PackageList::PackageList(string filepath) {
+PackageList::PackageList(fs::path filepath) {
   std::ifstream f(filepath);
 
   // TODO better error checks
   if (!f.good()) {
-    throw std::invalid_argument("Unable to open Package List \"" + filepath + "\"");
+    throw std::invalid_argument("Unable to open Package List \"" + filepath.string() + "\"");
   }
 
   json data = json::parse(f);

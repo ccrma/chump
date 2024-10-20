@@ -13,13 +13,15 @@ using json = nlohmann::json;
 using std::string;
 using std::optional;
 
+namespace fs = std::filesystem;
+
 
 // A PackageList is a database of available packages, including names,
 // download urls, description, and other metadata.
 class PackageList {
  public:
   PackageList();
-  PackageList(string filepath);
+  PackageList(fs::path filepath);
   // For scripts - construct a packagelist given a vector of packages;
   PackageList(std::vector<Package> _packages);
 
