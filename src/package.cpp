@@ -141,15 +141,21 @@ bool PackageVersion::operator>=(const PackageVersion& other) const {
 // Output stream operator overload
 std::ostream& operator<<(std::ostream& os, const Package& pkg) {
   os << "Name: " << pkg.name << "\n"
-     << "Authors: [";
-  if (!pkg.authors.empty()) {
-    os << pkg.authors[0];
+     << "Authors: ";
+
+  if (pkg.authors.size() == 1) {
+    os << pkg.authors[0] << "\n";
+  }
+  else if (pkg.authors.size() > 1) {
+    os << "[" << pkg.authors[0];
 
     for (size_t i = 1; i < pkg.authors.size(); ++i) {
       os << ", " << pkg.authors[i];
     }
+    os << "]\n";
   }
-  os << "]\nHomepage: " << pkg.homepage << "\n"
+
+  os << "Homepage: " << pkg.homepage << "\n"
      << "Repository: " << pkg.repository << "\n"
      << "License: " << pkg.license << "\n"
      << "Description: " << pkg.description << "\n"
@@ -167,7 +173,26 @@ std::ostream& operator<<(std::ostream& os, const Package& pkg) {
   if (!pkg.versions.empty()) {
 
     for (const auto& ver : pkg.versions) {
-      os << ver << "\n";
+      os << "    " << "Version: " << ver.major << "." << ver.minor << "." << ver.patch << "\n";
+
+      if (ver.api_version)
+        os << "    " << "API Version: " << ver.api_version.value() << "\n";
+      os << "    " << "Language Version (min): " << ver.language_version_min << "\n";
+
+      if (ver.language_version_max) {
+        os << "    " << "Language Version (max): " << ver.language_version_max.value() << "\n";
+      }
+      os << "    " << "Operating System: " << ver.os << "\n"
+         << "    " << "Files: [";
+
+      if (!ver.files.empty()) {
+        os << ver.files[0].url;
+
+        for (size_t i = 1; i < ver.files.size(); ++i) {
+          os << "    " << ", " << ver.files[i].url;
+        }
+      }
+      os << "]\n\n";
     }
   }
   return os;

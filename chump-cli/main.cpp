@@ -104,8 +104,6 @@ int main( int argc, const char ** argv ) {
   }
 
   if (app.got_subcommand(info)) {
-    std::cout << info_package_name << std::endl;
-
     optional<Package> pkg = manager->getPackage(info_package_name);
 
     if (!pkg) {
