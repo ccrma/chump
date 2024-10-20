@@ -59,7 +59,7 @@ void printPackages(Manager* mgr, bool print_installed) {
     std::cout << std::left << std::setw(20) << truncate(p.name, 17, true) << "| "
               << std::setw(12) << latest_version << "| "
               << std::setw(12) << installed << "| "
-              << std::setw(12) << p.description
+              << std::setw(12) << truncate(p.description, 100, true)
               << std::endl;
   }
 }
