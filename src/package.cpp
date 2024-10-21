@@ -314,6 +314,20 @@ optional<PackageVersion> Package::latest_version(string os, ChuckVersion languag
   return latest_version;
 }
 
+// find latest version available in OS
+optional<PackageVersion> Package::latest_version(string os) {
+  optional<PackageVersion> latest_version;
+
+  for (PackageVersion version : versions) {
+
+    if (version > latest_version) {
+      latest_version = version;
+    }
+
+  }
+  return latest_version;
+}
+
 optional<PackageVersion> Package::version(PackageVersion ver, string os, ChuckVersion language_ver, ApiVersion api_ver) {
   optional<PackageVersion> returned_version;
 

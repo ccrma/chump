@@ -54,6 +54,7 @@ struct Package {
 
   // Automatically find highest version package compatible with your system.
   optional<PackageVersion> latest_version(string os, ChuckVersion language_ver, ApiVersion api_ver);
+  optional<PackageVersion> latest_version(string os);
 
   optional<PackageVersion> version(PackageVersion ver, string os, ChuckVersion language_ver, ApiVersion api_ver);
 };
