@@ -1,6 +1,9 @@
 ![CI/CD Badge](https://github.com/ccrma/chump/actions/workflows/build-unit-tests.yml/badge.svg)
 
 # chump
+
+![chump_logo](https://github.com/user-attachments/assets/6e0b9c20-de6b-4854-9e41-2285f1c24ca1)
+
 ## [As in sucker](https://www.merriam-webster.com/thesaurus/chump)
 
 The ChucK Manager of Packages
