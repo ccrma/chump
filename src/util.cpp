@@ -162,15 +162,22 @@ bool validate_manifest(fs::path manifest_path) {
   return true;
 }
 
+// Convert a FileType enum to the appropriate dir to store it in inside a package dir
 fs::path fileTypeToDir(FileType f) {
   fs::path empty;
-  map<FileType, string> dir_map = {
-    {PACKAGE_FILE, empty},
-    {DATA_FILE, "_data"},
-    {EXAMPLE_FILE, "_examples"},
-    {DOCS_FILE, "_docs"},
-    {DEPS_FILE, "_deps"}
-  };
 
-  return dir_map[f];
+  switch (f) {
+    case PACKAGE_FILE:
+      return empty;
+    case DATA_FILE:
+      return fs::path("_data");
+    case EXAMPLE_FILE:
+      return fs::path("_examples");
+    case DOCS_FILE:
+      return fs::path("_docs");
+    case DEPS_FILE:
+      return fs::path("_deps");
+    default:
+      return empty;
+  }
 }
