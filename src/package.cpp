@@ -363,6 +363,7 @@ optional<PackageVersion> Package::version(PackageVersion ver, string os, ChuckVe
 void to_json(json& j, const File& f) {
   j = json{
     {"url", f.url},
+    {"file_type", filetypeToString.at(f.file_type)},
     {"local_dir", f.local_dir},
     {"checksum", f.checksum}
     };
@@ -375,6 +376,8 @@ void from_json(const json& j, File& f) {
     if (f.checksum == "") {
       throw std::invalid_argument("checksum filed for " + f.url + " should not be be empty");
     }
+
+    f.file_type = stringToFiletype.at(j["file_type"]);
 
     string local_dir = j["local_dir"];
 

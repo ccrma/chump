@@ -26,4 +26,6 @@ std::string hash_file(fs::path filename);
 // validate that the manifest.json is able to be loaded correctly
 bool validate_manifest(fs::path manifest_path);
 
+fs::path fileTypeToDir(FileType f);
+
 #endif

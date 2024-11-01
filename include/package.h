@@ -135,6 +135,31 @@ struct InstalledVersion {
 void to_json(json& j, const InstalledVersion& p);
 void from_json(const json& j, InstalledVersion& p);
 
+// What kind of file is this? Package file, dep, example, etc...
+enum FileType {
+  PACKAGE_FILE,
+  DATA_FILE,
+  EXAMPLE_FILE,
+  DOCS_FILE,
+  DEPS_FILE
+};
+
+static const map<string, FileType> stringToFiletype = {
+  {"package", PACKAGE_FILE},
+  {"data", DATA_FILE},
+  {"example", EXAMPLE_FILE},
+  {"docs", DOCS_FILE},
+  {"deps", DEPS_FILE}
+};
+
+static const map<FileType, string> filetypeToString = {
+  {PACKAGE_FILE, "package"},
+  {DATA_FILE, "data"},
+  {EXAMPLE_FILE, "example"},
+  {DOCS_FILE, "docs"},
+  {DEPS_FILE, "deps"}
+};
+
 //-----------------------------------------------------------------------------
 // File provides metadata needed to download and install a file for chump:
 // url, install path, and checksum
@@ -142,6 +167,7 @@ void from_json(const json& j, InstalledVersion& p);
 struct File {
   string url;
   fs::path local_dir;
+  FileType file_type;
   string checksum;
 };
 

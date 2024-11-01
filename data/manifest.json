@@ -23,6 +23,7 @@
                         {
                             "url": "https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/Hydra.chug",
                             "local_dir": "./",
+                            "file_type": "package",
                             "checksum": "a7fe1ae9b40e8fd37044ffa763693ec8b8f4d8a64c7c770c7577c2454fdd48b6"
                         }
                     ]
@@ -36,6 +37,7 @@
                         {
                             "url": "https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/Hydra.chug",
                             "local_dir": "./",
+                            "file_type": "package",
                             "checksum": "2556254f48ab7ec1a10301b055153f3b5b571f2e515bc824c36062f3dd3c1ba3"
                         }
                     ]
@@ -64,6 +66,7 @@
                         {
                             "url": "https://github.com/nshaheed/helper-ck/raw/7a0a9be47a89c4d91ff2ea4b6ea02dc740ec8278/Rec.ck",
                             "local_dir": "./",
+                            "file_type": "package",
                             "checksum": "6d9390db73045c997f7535ee56c404f976cc724caabb301ad5693eb1bd53ff33"
                         }
                     ]
@@ -93,6 +96,7 @@
                         {
                             "url": "https://ccrma.stanford.edu/~nshaheed/chump/Patch/1.0.0/linux/Patch.chug",
                             "local_dir": "./",
+                            "file_type": "package",
                             "checksum": "405ef75384206684b20de3a64456afbd221b316a69b1203c3e629ceb23914496"
                         }
                     ]
@@ -106,6 +110,7 @@
                         {
                             "url": "https://ccrma.stanford.edu/~nshaheed/chump/Patch/1.0.0/win/Patch.chug",
                             "local_dir": "./",
+                            "file_type": "package",
                             "checksum": "76b28015e6383e31f28d1ac6acda4974e1e1fcd744212b28e158aa3fc3c98096"
                         }
                     ]
@@ -137,6 +142,7 @@
                         {
                             "url": "https://ccrma.stanford.edu/~nshaheed/chugins/test_package/1.0.0/doesnotexist.ck",
                             "local_dir": "./",
+                            "file_type": "package",
                             "checksum": "3333"
                         }
                     ]
@@ -150,6 +156,7 @@
                         {
                             "url": "https://ccrma.stanford.edu/~nshaheed/chugins/test_package/1.0.0/hello.ck",
                             "local_dir": "./",
+                            "file_type": "package",
                             "checksum": "d9865523a214fbdc00eadcf4e07a2c23746fbcb0af4bdbfb4e700fcf33894ce2"
                         }
                     ]
@@ -163,6 +170,13 @@
                         {
                             "url": "https://ccrma.stanford.edu/~nshaheed/chugins/test_package/2.0.0/hello.ck",
                             "local_dir": "./",
+                            "file_type": "package",
+                            "checksum": "729cca447b587fe2abff90c9b2f2a5b8313a19f4e564b9894a657784ec7027de"
+                        },
+                        {
+                            "url": "https://ccrma.stanford.edu/~nshaheed/chugins/test_package/2.0.0/hello.ck",
+                            "local_dir": "./",
+                            "file_type": "data",
                             "checksum": "729cca447b587fe2abff90c9b2f2a5b8313a19f4e564b9894a657784ec7027de"
                         }
                     ]
@@ -193,6 +207,7 @@
                         {
                             "url": "https://ccrma.stanford.edu/~nshaheed/chugins/test_package/1.0.0/hello.ck",
                             "local_dir": "./",
+                            "file_type": "package",
                             "checksum": "d9865523a214fbdc00eadcf4e07a2c23746fbcb0af4bdbfb4e700fcf33894ce2"
                         }
                     ]
@@ -205,6 +220,7 @@
                         {
                             "url": "https://ccrma.stanford.edu/~nshaheed/chugins/test_package/2.0.0/hello.ck",
                             "local_dir": "./dir",
+                            "file_type": "package",
                             "checksum": "729cca447b587fe2abff90c9b2f2a5b8313a19f4e564b9894a657784ec7027de"
                         }
                     ]

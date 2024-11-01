@@ -16,6 +16,8 @@
 #include <Shlobj.h>
 #endif
 
+using std::map;
+
 
 // Returns the path to the directory where a package will be installed
 // TODO expand to other OS
@@ -158,4 +160,17 @@ bool validate_manifest(fs::path manifest_path) {
   }
 
   return true;
+}
+
+fs::path fileTypeToDir(FileType f) {
+  fs::path empty;
+  map<FileType, string> dir_map = {
+    {PACKAGE_FILE, empty},
+    {DATA_FILE, "_data"},
+    {EXAMPLE_FILE, "_examples"},
+    {DOCS_FILE, "_docs"},
+    {DEPS_FILE, "_deps"}
+  };
+
+  return dir_map[f];
 }

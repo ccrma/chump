@@ -77,14 +77,18 @@ int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal
 // Return true on success, False on failure.
 //*******************************************
 bool Fetch::fetch(std::string url, fs::path dir,
-                  Package package, fs::path temp_dir, string checksum) {
+                  Package package, fs::path temp_dir,
+                  FileType file_type, string checksum) {
   if (!isURL(url)) {
     std::cerr << "Not a URL!" << std::endl;
     return false;
   }
 
+  fs::path ft_dir = fileTypeToDir(file_type);
+
   // If the file is in a directory, create it
   fs::create_directory(temp_dir / dir);
+  fs::create_directory(temp_dir / dir / ft_dir);
 
   std::string package_name = package.name;
 
@@ -96,7 +100,7 @@ bool Fetch::fetch(std::string url, fs::path dir,
   fs::path filename = fs::path(url).filename();
 
   // Generate a unique temporary file name
-  fs::path tempFilePath = temp_dir / dir / filename;
+  fs::path tempFilePath = temp_dir / dir / ft_dir / filename;
 
 #ifdef _MSC_VER
   fp = _wfopen(tempFilePath.c_str(), L"wb");

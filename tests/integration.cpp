@@ -39,7 +39,8 @@ TEST_CASE("Integration Tests - install/update/uninstall") {
 
   REQUIRE(fs::exists(installPath / "TestPackage"));
   REQUIRE(fs::exists(installPath / "TestPackage" / "hello.ck"));
-  CHECK(fs::exists(installPath / "TestPackage" / "version.json"));
+  REQUIRE(fs::exists(installPath / "TestPackage" / "_data" / "hello.ck"));
+  REQUIRE(fs::exists(installPath / "TestPackage" / "version.json"));
 
   // Uninstall Package
   m->uninstall("TestPackage");
@@ -238,6 +239,6 @@ TEST_CASE("Integration Test - wrong checksum") {
 
   // This will fail due to an incorrect checksum being provided
   bool result = f.fetch("https://ccrma.stanford.edu/~nshaheed/chugins/test_package/1.0.0/hello.ck",
-                        "./", p, tmpPath, "1234");
+                        "./", p, tmpPath, PACKAGE_FILE, "1234");
   REQUIRE_FALSE(result);
 }

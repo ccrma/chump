@@ -18,6 +18,7 @@
                         {
                             "url": "https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug",
                             "local_dir": "./",
+                            "file_type": "package",
                             "checksum": "1234"
                         }
                     ]
@@ -31,6 +32,7 @@
                         {
                             "url": "https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug",
                             "local_dir": "./",
+                            "file_type": "package",
                             "checksum": "1234"
                         }
                     ]
@@ -45,6 +47,7 @@
                         {
                             "url": "https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug",
                             "local_dir": "./",
+                            "file_type": "package",
                             "checksum": "1234"
                         }
                     ]
@@ -68,6 +71,7 @@
                         {
                             "local_dir": "./boot",
                             "url": "https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug",
+                            "file_type": "package",
                             "checksum": "1234"
                         }
                     ]

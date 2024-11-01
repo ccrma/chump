@@ -84,8 +84,9 @@ bool Manager::install(string packageName) {
     fs::path dir = file.local_dir;
     string url = file.url;
     string checksum = file.checksum;
+    FileType file_type = file.file_type;
 
-    bool result = fetch->fetch(url, dir, package, temp_dir, checksum);
+    bool result = fetch->fetch(url, dir, package, temp_dir, file_type, checksum);
     if (!result) {
       std::cerr << "Failed to fetch " << url << ", exiting." << std::endl;
       return false;
@@ -174,11 +175,14 @@ bool Manager::update(string packageName) {
   for (auto file: curr_version.files) {
     fs::path dir = file.local_dir;
     string url = file.url;
+    fs::path ft_dir = fileTypeToDir(file.file_type);
     fs::path filename = fs::path(url).filename();
 
-    fs::remove(install_dir / dir / filename);
-    if (fs::is_empty(install_dir / dir)) {
-      fs::remove(install_dir / dir);
+    fs::path curr_dir = install_dir / dir / ft_dir;
+
+    fs::remove(curr_dir / filename);
+    if (fs::is_empty(curr_dir)) {
+      fs::remove(curr_dir.lexically_normal());
     }
   }
 
@@ -192,8 +196,9 @@ bool Manager::update(string packageName) {
     fs::path dir = file.local_dir;
     string url = file.url;
     string checksum = file.checksum;
+    FileType file_type = file.file_type;
 
-    bool result = fetch->fetch(url, dir, package, temp_dir, checksum);
+    bool result = fetch->fetch(url, dir, package, temp_dir, file_type, checksum);
     if (!result) {
       std::cerr << "Failed to fetch " << url << ", exiting." << std::endl;
       return false;
@@ -264,12 +269,15 @@ bool Manager::uninstall(string packageName) {
   for (auto file: installed_version.value().files) {
     fs::path dir = file.local_dir;
     string url = file.url;
+    fs::path ft_dir = fileTypeToDir(file.file_type);
 
     fs::path filename = fs::path(url).filename();
 
-    fs::remove(install_dir / dir / filename);
-    if (fs::is_empty(install_dir / dir)) {
-      fs::remove(install_dir / dir);
+    fs::path curr_dir = install_dir / dir / ft_dir;
+
+    fs::remove(curr_dir / filename);
+    if (fs::is_empty(curr_dir)) {
+      fs::remove(curr_dir.lexically_normal());
     }
   }
 
@@ -279,7 +287,7 @@ bool Manager::uninstall(string packageName) {
   // was added not by the installer, treat that as not-touched so that
   // if you reinstall the package your files will still be there.
   if (fs::is_empty(install_dir)) {
-    fs::remove(install_dir);
+    fs::remove(install_dir.lexically_normal());
   }
 
   return true;
