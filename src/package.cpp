@@ -383,3 +383,43 @@ void from_json(const json& j, File& f) {
     }
     j["local_dir"].get_to(f.local_dir);
 }
+
+InstalledVersion::InstalledVersion(Package pkg, PackageVersion v) {
+  version = v;
+
+  name = pkg.name;
+  authors = pkg.authors;
+  homepage = pkg.homepage;
+  repository = pkg.repository;
+  license = pkg.license;
+  description = pkg.description;
+  keywords = pkg.keywords;
+}
+
+InstalledVersion::InstalledVersion() {
+}
+
+void to_json(json& j, const InstalledVersion& p) {
+  j = json{
+    {"name", p.name},
+    {"homepage", p.homepage},
+    {"repository", p.repository},
+    {"authors", p.authors},
+    {"license", p.license},
+    {"description", p.description},
+    {"keywords", p.keywords},
+    {"version", p.version}
+    };
+}
+
+void from_json(const json& j, InstalledVersion& p) {
+    j.at("name").get_to(p.name);
+    j.at("homepage").get_to(p.homepage);
+    j.at("repository").get_to(p.repository);
+    j.at("authors").get_to(p.authors);
+    j.at("license").get_to(p.license);
+    j.at("description").get_to(p.description);
+    j.at("keywords").get_to(p.keywords);
+
+    j.at("version").get_to(p.version);
+}

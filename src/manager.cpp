@@ -107,14 +107,13 @@ bool Manager::install(string packageName) {
   fs::remove_all(temp_dir);
 
   // Write version.json to file.
-  json version_json = version;
+  json version_json = InstalledVersion(package, version);
 
   std::ofstream o(install_dir / "version.json");
   o << std::setw(4) << version_json << std::endl;
   o.close();
 
-  // return true (maybe find better return value)
-
+  // We succeeded
   return true;
 }
 
@@ -148,7 +147,8 @@ bool Manager::update(string packageName) {
 
   json pkg_ver = json::parse(f);
   f.close();
-  PackageVersion installed_version = pkg_ver.template get<PackageVersion>();
+  InstalledVersion installed_version = pkg_ver.template get<InstalledVersion>();
+  PackageVersion curr_version = installed_version.version;
 
   optional<PackageVersion> ver = package.latest_version(os, language_version, api_version);
 
@@ -161,17 +161,17 @@ bool Manager::update(string packageName) {
 
   PackageVersion latest_version = ver.value();
 
-  if (installed_version == latest_version) {
+  if (curr_version == latest_version) {
     std::cout << package.name << " is already up-to-date." << std::endl;
     return true;
   }
 
-  if (installed_version > latest_version) {
+  if (curr_version > latest_version) {
     std::cout << package.name << " is installed already with a newer version." << std::endl;
     return true;
   }
 
-  for (auto file: installed_version.files) {
+  for (auto file: curr_version.files) {
     fs::path dir = file.local_dir;
     string url = file.url;
     fs::path filename = fs::path(url).filename();
@@ -212,7 +212,7 @@ bool Manager::update(string packageName) {
   }
 
   // Write version.json to file.
-  json latest_version_json = latest_version;
+  json latest_version_json = InstalledVersion(package, latest_version);
 
   std::ofstream o(install_dir / "version.json");
   o << std::setw(4) << latest_version_json << std::endl;
@@ -250,7 +250,8 @@ bool Manager::uninstall(string packageName) {
 
   json pkg_ver = json::parse(f);
   f.close();
-  PackageVersion curr_ver = pkg_ver.template get<PackageVersion>();
+  InstalledVersion installed_ver = pkg_ver.template get<InstalledVersion>();
+  PackageVersion curr_ver = installed_ver.version;
 
   optional<PackageVersion> installed_version = package_list->find_package_version(packageName, curr_ver);
 

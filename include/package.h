@@ -112,6 +112,30 @@ struct PackageVersion {
 };
 
 //-----------------------------------------------------------------------------
+// InstalledVersion is a description of a package that gets stored as a json
+//   file inside an installed package. It includes metadata, and a version
+//   definition that allows chump to properly update packages.
+// -----------------------------------------------------------------------------
+struct InstalledVersion {
+  InstalledVersion();
+  InstalledVersion(Package pkg, PackageVersion v);
+  string name;
+
+  vector<string> authors;
+  string homepage;
+  string repository;
+  string license;
+  string description;
+  vector<string> keywords;
+
+  PackageVersion version; // the installed version
+};
+
+// Function declarations for JSON serialization/deserialization
+void to_json(json& j, const InstalledVersion& p);
+void from_json(const json& j, InstalledVersion& p);
+
+//-----------------------------------------------------------------------------
 // File provides metadata needed to download and install a file for chump:
 // url, install path, and checksum
 // -----------------------------------------------------------------------------
