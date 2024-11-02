@@ -19,8 +19,17 @@ Fetch::Fetch(bool render_tui) {
   render = render_tui;
 }
 
+// struct to pass progress data to libcurl progress callback
+struct curl_progress {
+  string packageName;
+  string fileName;
+};
+
 // Callback function to update progress
 int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow) {
+    // metadata for the progress bar
+    struct curl_progress *memory = static_cast<struct curl_progress*>(clientp);
+
     // Calculate progress percentage
     double progress = (dlnow > 0) ? ((double)dlnow / (double)dltotal) : 0.0;
 
@@ -44,7 +53,7 @@ int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal
 
     // Draw the progress bar
     // mvprintw(0, 0, "DownChucKing: [");
-    mvprintw(0, 0, "DownChucKing ");
+    mvprintw(0, 0, "DownChucKing Package %s (%s)\n", memory->packageName.c_str(), memory->fileName.c_str());
 
     if (milliseconds_count < 250) {
       printw("=>");
@@ -67,6 +76,8 @@ int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal
           printw(" ");
     }
     printw("] %3d%% ", (int)(progress * 100));
+
+    // mvprintw(1, 0, memory->fileName.c_str());
     refresh();
 
     return 0;
@@ -127,9 +138,15 @@ bool Fetch::fetch(std::string url, fs::path dir,
     // Set file to write to
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
 
+    struct curl_progress data;
+    data.packageName = package.name;
+    data.fileName = filename.string();
+
     // Set the progress callback function
-    if (render)
+    if (render) {
+      curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &data);
       curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progressCallback);
+    }
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 
     // We don't want to write the error to a file if the request fails
