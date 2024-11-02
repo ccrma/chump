@@ -20,6 +20,7 @@ void populate_versions(Package* p, fs::path pkg_path) {
 }
 
 Package read_package(fs::path filepath) {
+  std::cerr << "Reading " << filepath << std::endl;
   std::ifstream f(filepath);
 
   if (!f.good()) {
@@ -34,6 +35,7 @@ Package read_package(fs::path filepath) {
 }
 
 PackageVersion read_package_version(fs::path filepath) {
+  std::cerr << "Reading " << filepath << std::endl;
   std::ifstream f(filepath);
 
   if (!f.good()) {

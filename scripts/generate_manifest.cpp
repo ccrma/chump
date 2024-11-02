@@ -47,7 +47,7 @@ int main( int argc, const char ** argv ) {
     // grab the package.json
     fs::path pkg_path = path.path() / "package.json";
 
-    // std::cout << pkg_path << std::endl;
+    std::cerr << "Reading " << pkg_path << std::endl;
 
     if (!fs::exists(pkg_path)) {
       std::cerr << "Package definition " << pkg_path << "not found, are you in the chump-packages/packages directory?" << std::endl;

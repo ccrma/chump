@@ -32,9 +32,9 @@ fs = import('fs')
 
 
 if build_machine.system() == 'windows'
-  package_dir = fs.expanduser('~/Documents/chuck/chugins/.chump')
+  package_dir = fs.expanduser('~/Documents/ChucK/packages')
 else
-  package_dir = fs.expanduser('~/.chuck/lib/.chump')
+  package_dir = fs.expanduser('~/.chuck/packages')
 endif
 
 install_data('data/manifest.json',

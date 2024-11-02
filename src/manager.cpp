@@ -65,7 +65,7 @@ bool Manager::install(string packageName) {
 
   PackageVersion version = ver.value();
 
-  // if there is already a .chump/PACKAGE directory, error out and tell the user to call update
+  // if there is already a packages/PACKAGE directory, error out and tell the user to call update
   fs::path install_dir = packagePath(package, chump_dir);
 
   if (fs::exists(install_dir / "version.json")) {

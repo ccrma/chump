@@ -29,9 +29,9 @@ fs::path packagePath(Package p, fs::path install_dir) {
 fs::path chumpDir() {
   fs::path home = getHomeDirectory();
 #ifdef _WIN32
-  fs::path chump_dir = home / "Documents" / "chuck" / "chugins" / ".chump";
+  fs::path chump_dir = home / "Documents" / "ChucK" / "packages";
 #else
-  fs::path chump_dir = home / ".chuck" / "lib" / ".chump";
+  fs::path chump_dir = home / ".chuck" / "packages";
 #endif
 
   return chump_dir;
