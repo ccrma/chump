@@ -103,7 +103,7 @@ bool Manager::install(string packageName) {
     fs::path dir = temp_dir / file.local_dir;
 
     // Extract the file
-    if (!unzipFile(dir / filename, dir)) return false;
+    if (!unzipFile((dir / filename).string(), dir.string())) return false;
 
     fs::remove(dir / filename);
   }
@@ -235,7 +235,7 @@ bool Manager::update(string packageName) {
     fs::path dir = temp_dir / file.local_dir;
 
     // Extract the file
-    if (!unzipFile(dir / filename, dir)) return false;
+    if (!unzipFile((dir / filename).string(), dir.string())) return false;
 
     fs::remove(dir / filename);
   }

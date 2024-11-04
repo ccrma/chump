@@ -244,11 +244,15 @@ void from_json(const json& j, PackageVersion& p) {
   p.setVersionString(j.at("version"));
   j.at("language_version_min").get_to(p.language_version_min);
 
-  if (j.contains("api_version") && !j["api_version"].is_null())
-    p.api_version = j.at("api_version");
+  if (j.contains("api_version") && !j["api_version"].is_null()) {
+    ApiVersion api_ver = j.at("api_version");
+    p.api_version = api_ver;
+  }
 
-  if (j.contains("language_version_max") && !j["language_version_max"].is_null())
-    p.language_version_max = j.at("language_version_max");
+  if (j.contains("language_version_max") && !j["language_version_max"].is_null()) {
+    ChuckVersion language_version_max = j.at("language_version_max");
+    p.language_version_max = language_version_max;
+  }
 
   j.at("os").get_to(p.os);
 
@@ -464,11 +468,15 @@ void from_json(const json& j, InstalledVersion& p) {
 
     j.at("language_version_min").get_to(p.language_version_min);
 
-    if (j.contains("api_version") && !j["api_version"].is_null())
-      p.api_version = j.at("api_version");
+    if (j.contains("api_version") && !j["api_version"].is_null()) {
+      ApiVersion api_ver = j.at("api_version");
+      p.api_version = api_ver;
+    }
 
-    if (j.contains("language_version_max") && !j["language_version_max"].is_null())
-      p.language_version_max = j.at("language_version_max");
+    if (j.contains("language_version_max") && !j["language_version_max"].is_null()) {
+      ChuckVersion language_version_max = j.at("language_version_max");
+      p.language_version_max = language_version_max;
+    }
 
     j.at("os").get_to(p.os);
 
