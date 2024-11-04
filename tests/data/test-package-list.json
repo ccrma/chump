@@ -11,8 +11,16 @@
             "versions": [
                 {
                     "version": "1.0.0",
-                    "api_version": "9.0",
-                    "language_version_min": "1.5.2.7",
+                    "api_version": {
+                        "major": 9,
+                        "minor": 0
+                    },
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 7
+                    },
                     "os": "linux",
                     "files": [
                         {
@@ -25,8 +33,16 @@
                 },
                 {
                     "version": "1.0.0",
-                    "api_version": "9.0",
-                    "language_version_min": "1.5.2.1",
+                    "api_version": {
+                        "major": 9,
+                        "minor": 0
+                    },
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 1
+                    },
                     "os": "linux",
                     "files": [
                         {
@@ -39,9 +55,22 @@
                 },
                 {
                     "version": "0.9.1",
-                    "api_version": "8.8",
-                    "language_version_min": "1.5.0.1",
-                    "language_version_max": "1.5.2.1",
+                    "api_version": {
+                        "major": 8,
+                        "minor": 8
+                    },
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 0,
+                        "patch": 1
+                    },
+                    "language_version_max": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 1
+                    },
                     "os": "linux",
                     "files": [
                         {
@@ -65,7 +94,12 @@
             "versions": [
                 {
                     "version": "1.0.0",
-                    "language_version_min": "1.5.2.7",
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 7
+                    },
                     "os": "linux",
                     "files": [
                         {

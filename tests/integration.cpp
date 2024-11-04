@@ -242,3 +242,40 @@ TEST_CASE("Integration Test - wrong checksum") {
                         "./", p, tmpPath, PACKAGE_FILE, "1234");
   REQUIRE_FALSE(result);
 }
+
+TEST_CASE("Integration Test - zip files") {
+  // reference: https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
+  fs::path installPath {fs::temp_directory_path() /= std::tmpnam(nullptr)};
+  fs::create_directories(installPath);
+
+  std::string dataPath = "../data/manifest.json";
+
+  ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
+  ApiVersion langVersion = ApiVersion("9.1");
+
+  Manager* m = new Manager(dataPath, installPath, ckVersion,
+                           langVersion, "linux", manifest_url, false);
+
+  // install package
+
+  m->install("TestPackageZip");
+
+  REQUIRE(fs::exists(installPath / "TestPackageZip"));
+  REQUIRE(fs::exists(installPath / "TestPackageZip" / "hello.ck"));
+  REQUIRE(fs::exists(installPath / "TestPackageZip" / "version.json"));
+  REQUIRE_FALSE(fs::exists(installPath / "TestPackageZip" / "test_package_zip.zip"));
+
+  // Update Package
+  ckVersion = ChuckVersion("1.5.2.6");
+  langVersion = ApiVersion("10.1");
+
+  m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", manifest_url, false);
+
+  m->update("TestPackageZip");
+
+  REQUIRE(fs::exists(installPath / "TestPackageZip"));
+  REQUIRE(fs::exists(installPath / "TestPackageZip" / "hello.ck"));
+  REQUIRE(fs::exists(installPath / "TestPackageZip" / "_data" / "hello.ck"));
+  REQUIRE(fs::exists(installPath / "TestPackageZip" / "version.json"));
+  REQUIRE_FALSE(fs::exists(installPath / "TestPackageZip" / "test_package_zip.zip"));
+}

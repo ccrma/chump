@@ -230,7 +230,8 @@ void to_json(json& j, const PackageVersion& p) {
         {"language_version_min", p.language_version_min},
         {"os", p.os},
         {"files", p.files},
-          };
+  };
+
   if (p.language_version_max) {
     j["language_version_max"] = p.language_version_max.value();
   }
@@ -282,7 +283,6 @@ void from_json(const json& j, Package& p) {
 }
 
 // find the latest compatible version
-// TODO expand filtering criteria beyond OS
 optional<PackageVersion> Package::latest_version(string os, ChuckVersion language_version,
                                                  ApiVersion api_version) {
   optional<PackageVersion> latest_version;
@@ -388,8 +388,6 @@ void from_json(const json& j, File& f) {
 }
 
 InstalledVersion::InstalledVersion(Package pkg, PackageVersion v) {
-  version = v;
-
   name = pkg.name;
   authors = pkg.authors;
   homepage = pkg.homepage;
@@ -397,9 +395,30 @@ InstalledVersion::InstalledVersion(Package pkg, PackageVersion v) {
   license = pkg.license;
   description = pkg.description;
   keywords = pkg.keywords;
+
+  major = v.major;
+  minor = v.minor;
+  patch = v.patch;
+
+  api_version = v.api_version;
+  language_version_min = v.language_version_min;
+  language_version_max = v.language_version_max;
+  os = v.os;
 }
 
 InstalledVersion::InstalledVersion() {
+}
+
+// Export a PackageVersion. This is used for metadata and comparisons
+// so we won't include files.
+PackageVersion InstalledVersion::version() {
+  PackageVersion v(major, minor, patch);
+  v.api_version = api_version;
+  v.language_version_min = language_version_min;
+  v.language_version_max = language_version_max;
+  v.os = os;
+
+  return v;
 }
 
 void to_json(json& j, const InstalledVersion& p) {
@@ -411,8 +430,23 @@ void to_json(json& j, const InstalledVersion& p) {
     {"license", p.license},
     {"description", p.description},
     {"keywords", p.keywords},
-    {"version", p.version}
+    {"version", {
+        {"major", p.major},
+        {"minor", p.minor},
+        {"patch", p.patch}
+      }
+    },
+    {"language_version_min", p.language_version_min},
+    {"os", p.os},
+    {"files", p.files}
     };
+
+  if (p.language_version_max) {
+    j["language_version_max"] = p.language_version_max.value();
+  }
+  if (p.api_version) {
+    j["api_version"] = p.api_version.value();
+  }
 }
 
 void from_json(const json& j, InstalledVersion& p) {
@@ -424,5 +458,19 @@ void from_json(const json& j, InstalledVersion& p) {
     j.at("description").get_to(p.description);
     j.at("keywords").get_to(p.keywords);
 
-    j.at("version").get_to(p.version);
+    j.at("version").at("major").get_to(p.major);
+    j.at("version").at("minor").get_to(p.minor);
+    j.at("version").at("patch").get_to(p.patch);
+
+    j.at("language_version_min").get_to(p.language_version_min);
+
+    if (j.contains("api_version") && !j["api_version"].is_null())
+      p.api_version = j.at("api_version");
+
+    if (j.contains("language_version_max") && !j["language_version_max"].is_null())
+      p.language_version_max = j.at("language_version_max");
+
+    j.at("os").get_to(p.os);
+
+    j.at("files").get_to(p.files);
 }

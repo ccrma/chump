@@ -16,8 +16,16 @@
             "versions": [
                 {
                     "version": "1.0.0",
-                    "api_version": "10.2",
-                    "language_version_min": "1.5.2.5",
+                    "api_version": {
+                        "major": 10,
+                        "minor": 2
+                    },
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 5
+                    },
                     "os": "linux",
                     "files": [
                         {
@@ -30,8 +38,16 @@
                 },
                 {
                     "version": "1.0.0",
-                    "api_version": "10.1",
-                    "language_version_min": "1.5.2.5",
+                    "api_version": {
+                        "major": 10,
+                        "minor": 1
+                    },
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 5
+                    },
                     "os": "windows",
                     "files": [
                         {
@@ -60,7 +76,12 @@
             "versions": [
                 {
                     "version": "1.0.0",
-                    "language_version_min": "1.5.2.0",
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 0
+                    },
                     "os": "any",
                     "files": [
                         {
@@ -89,8 +110,16 @@
             "versions": [
                 {
                     "version": "1.0.0",
-                    "api_version": "10.2",
-                    "language_version_min": "1.5.2.5",
+                    "api_version": {
+                        "major": 10,
+                        "minor": 2
+                    },
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 5
+                    },
                     "os": "linux",
                     "files": [
                         {
@@ -103,8 +132,16 @@
                 },
                 {
                     "version": "1.0.0",
-                    "api_version": "10.2",
-                    "language_version_min": "1.5.2.5",
+                    "api_version": {
+                        "major": 10,
+                        "minor": 2
+                    },
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 5
+                    },
                     "os": "windows",
                     "files": [
                         {
@@ -135,8 +172,16 @@
             "versions": [
                 {
                     "version": "0.9.0",
-                    "api_version": "9.1",
-                    "language_version_min": "1.5.2.0",
+                    "api_version": {
+                        "major": 9,
+                        "minor": 1
+                    },
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 0
+                    },
                     "os": "linux",
                     "files": [
                         {
@@ -149,8 +194,16 @@
                 },
                 {
                     "version": "1.0.0",
-                    "api_version": "9.1",
-                    "language_version_min": "1.5.2.0",
+                    "api_version": {
+                        "major": 9,
+                        "minor": 1
+                    },
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 0
+                    },
                     "os": "linux",
                     "files": [
                         {
@@ -163,8 +216,16 @@
                 },
                 {
                     "version": "2.0.0",
-                    "api_version": "10.1",
-                    "language_version_min": "1.5.2.6",
+                    "api_version": {
+                        "major": 10,
+                        "minor": 1
+                    },
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 6
+                    },
                     "os": "linux",
                     "files": [
                         {
@@ -201,7 +262,12 @@
             "versions": [
                 {
                     "version": "1.0.0",
-                    "language_version_min": "1.5.2.0",
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 0
+                    },
                     "os": "linux",
                     "files": [
                         {
@@ -214,7 +280,12 @@
                 },
                 {
                     "version": "2.0.0",
-                    "language_version_min": "1.5.2.6",
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 6
+                    },
                     "os": "linux",
                     "files": [
                         {
@@ -222,6 +293,60 @@
                             "local_dir": "./dir",
                             "file_type": "package",
                             "checksum": "729cca447b587fe2abff90c9b2f2a5b8313a19f4e564b9894a657784ec7027de"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "TestPackageZip",
+            "authors": [
+                "Nick Shaheed"
+            ],
+            "homepage": "",
+            "repository": "",
+            "license": "gpl3",
+            "description": "This is a test package for running integration tests with zip files.",
+            "keywords": [
+                "tests",
+                "useless",
+                "do no use",
+                "seriously"
+            ],
+            "versions": [
+                {
+                    "version": "1.0.0",
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 0
+                    },
+                    "os": "linux",
+                    "files": [
+                        {
+                            "url": "https://ccrma.stanford.edu/~nshaheed/chugins/test_package_zip/1.0.0/test_package_zip.zip",
+                            "local_dir": "./",
+                            "file_type": "zip",
+                            "checksum": "e7bfeea1efce61fef4cf783e9e2bd87bf70e2f0239f4310a4bf5b243df04b5e9"
+                        }
+                    ]
+                },
+                {
+                    "version": "2.0.0",
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 6
+                    },
+                    "os": "linux",
+                    "files": [
+                        {
+                            "url": "https://ccrma.stanford.edu/~nshaheed/chugins/test_package_zip/2.0.0/test_package_zip.zip",
+                            "local_dir": "./",
+                            "file_type": "zip",
+                            "checksum": "d673e74610902fb53647f117ba7ba970662eab7190db4945c43cbf90623bbf43"
                         }
                     ]
                 }

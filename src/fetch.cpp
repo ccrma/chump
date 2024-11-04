@@ -98,8 +98,8 @@ bool Fetch::fetch(std::string url, fs::path dir,
   fs::path ft_dir = fileTypeToDir(file_type);
 
   // If the file is in a directory, create it
-  fs::create_directory(temp_dir / dir);
-  fs::create_directory(temp_dir / dir / ft_dir);
+  fs::create_directory(temp_dir / ft_dir );
+  fs::create_directory(temp_dir / ft_dir / dir);
 
   std::string package_name = package.name;
 

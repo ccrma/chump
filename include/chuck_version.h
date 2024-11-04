@@ -2,8 +2,10 @@
 #define __CHUCKVERSION_H__
 
 #include <string>
+#include <nlohmann/json.hpp>
 
 using std::string;
+using json = nlohmann::json;
 
 struct ChuckVersion {
   ChuckVersion();
@@ -30,6 +32,9 @@ struct ChuckVersion {
   friend std::ostream& operator<<(std::ostream& os, const ChuckVersion& pkg);
 };
 
+void to_json(json& j, const ChuckVersion& v);
+void from_json(const json& j, ChuckVersion& v);
+
 
 struct ApiVersion {
   ApiVersion();
@@ -54,5 +59,8 @@ struct ApiVersion {
 
   friend std::ostream& operator<<(std::ostream& os, const ApiVersion& pkg);
 };
+
+void to_json(json& j, const ApiVersion& v);
+void from_json(const json& j, ApiVersion& v);
 
 #endif
