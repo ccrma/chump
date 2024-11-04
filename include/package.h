@@ -87,12 +87,12 @@ struct PackageVersion {
 
   // Compatible chugin api version. If this is None, then there are no
   // chugins being used in this pacakge and this doesn't matter.
-  optional<string> api_version;
+  optional<ApiVersion> api_version;
   // minimum compatible version of chuck
-  string language_version_min;
+  ChuckVersion language_version_min;
   // Maximal compatible version of chuck. If this is None, then
   // all versions >= language_version_min are compatible
-  optional<string> language_version_max;
+  optional<ChuckVersion> language_version_max;
   string os;
   vector<File> files;
 
@@ -118,7 +118,11 @@ struct PackageVersion {
 // -----------------------------------------------------------------------------
 struct InstalledVersion {
   InstalledVersion();
+  // files will need to be added separately
   InstalledVersion(Package pkg, PackageVersion v);
+
+  // Export a PackageVersion
+  PackageVersion version();
   string name;
 
   vector<string> authors;
@@ -128,7 +132,18 @@ struct InstalledVersion {
   string description;
   vector<string> keywords;
 
-  PackageVersion version; // the installed version
+  int major, minor, patch;
+
+  // Compatible chugin api version. If this is None, then there are no
+  // chugins being used in this pacakge and this doesn't matter.
+  optional<ApiVersion> api_version;
+  // minimum compatible version of chuck
+  ChuckVersion language_version_min;
+  // Maximal compatible version of chuck. If this is None, then
+  // all versions >= language_version_min are compatible
+  optional<ChuckVersion> language_version_max;
+  string os;
+  vector<fs::path> files;
 };
 
 // Function declarations for JSON serialization/deserialization
@@ -141,7 +156,8 @@ enum FileType {
   DATA_FILE,
   EXAMPLE_FILE,
   DOCS_FILE,
-  DEPS_FILE
+  DEPS_FILE,
+  ZIP_FILE // Typically the entire package will be zipped and this will be the only file
 };
 
 static const map<string, FileType> stringToFiletype = {
@@ -149,7 +165,8 @@ static const map<string, FileType> stringToFiletype = {
   {"data", DATA_FILE},
   {"example", EXAMPLE_FILE},
   {"docs", DOCS_FILE},
-  {"deps", DEPS_FILE}
+  {"deps", DEPS_FILE},
+  {"zip", ZIP_FILE}
 };
 
 static const map<FileType, string> filetypeToString = {
@@ -157,7 +174,8 @@ static const map<FileType, string> filetypeToString = {
   {DATA_FILE, "data"},
   {EXAMPLE_FILE, "example"},
   {DOCS_FILE, "docs"},
-  {DEPS_FILE, "deps"}
+  {DEPS_FILE, "deps"},
+  {ZIP_FILE, "zip"}
 };
 
 //-----------------------------------------------------------------------------

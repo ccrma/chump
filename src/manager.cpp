@@ -93,6 +93,30 @@ bool Manager::install(string packageName) {
     }
   }
 
+  // If any of our fetched files are zip files, unzip them and then
+  // delete the original zip file so it won't be copied over to the
+  // packages dir.
+  for (auto file: version.files) {
+    if (file.file_type != ZIP_FILE) continue;
+
+    fs::path filename = fs::path(file.url).filename();
+    fs::path dir = temp_dir / file.local_dir;
+
+    // Extract the file
+    if (!unzipFile((dir / filename).string(), dir.string())) return false;
+
+    fs::remove(dir / filename);
+  }
+
+  // Add all files to the InstalledVersion file list
+  InstalledVersion installed_ver = InstalledVersion(package, version);
+  for (auto const& dir_entry : fs::recursive_directory_iterator(temp_dir)) {
+    if (fs::is_regular_file(dir_entry)) {
+      installed_ver.files.push_back(fs::relative(dir_entry, temp_dir));
+    }
+  }
+
+
   // create install dir if needed
   fs::create_directory(install_dir);
 
@@ -108,7 +132,7 @@ bool Manager::install(string packageName) {
   fs::remove_all(temp_dir);
 
   // Write version.json to file.
-  json version_json = InstalledVersion(package, version);
+  json version_json = installed_ver;
 
   std::ofstream o(install_dir / "version.json");
   o << std::setw(4) << version_json << std::endl;
@@ -149,7 +173,7 @@ bool Manager::update(string packageName) {
   json pkg_ver = json::parse(f);
   f.close();
   InstalledVersion installed_version = pkg_ver.template get<InstalledVersion>();
-  PackageVersion curr_version = installed_version.version;
+  PackageVersion curr_version = installed_version.version();
 
   optional<PackageVersion> ver = package.latest_version(os, language_version, api_version);
 
@@ -172,17 +196,13 @@ bool Manager::update(string packageName) {
     return true;
   }
 
-  for (auto file: curr_version.files) {
-    fs::path dir = file.local_dir;
-    string url = file.url;
-    fs::path ft_dir = fileTypeToDir(file.file_type);
-    fs::path filename = fs::path(url).filename();
+  for (auto file: installed_version.files) {
+    fs::path curr_dir = (install_dir / file.parent_path()).lexically_normal();
+    fs::path curr_file = (install_dir / file).lexically_normal();
 
-    fs::path curr_dir = install_dir / dir / ft_dir;
-
-    fs::remove(curr_dir / filename);
+    fs::remove(curr_file);
     if (fs::is_empty(curr_dir)) {
-      fs::remove(curr_dir.lexically_normal());
+      fs::remove(curr_dir);
     }
   }
 
@@ -203,6 +223,21 @@ bool Manager::update(string packageName) {
       std::cerr << "Failed to fetch " << url << ", exiting." << std::endl;
       return false;
     }
+  }
+
+  // If any of our fetched files are zip files, unzip them and then
+  // delete the original zip file so it won't be copied over to the
+  // packages dir.
+  for (auto file: latest_version.files) {
+    if (file.file_type != ZIP_FILE) continue;
+
+    fs::path filename = fs::path(file.url).filename();
+    fs::path dir = temp_dir / file.local_dir;
+
+    // Extract the file
+    if (!unzipFile((dir / filename).string(), dir.string())) return false;
+
+    fs::remove(dir / filename);
   }
 
   // create install dir if needed
@@ -256,7 +291,7 @@ bool Manager::uninstall(string packageName) {
   json pkg_ver = json::parse(f);
   f.close();
   InstalledVersion installed_ver = pkg_ver.template get<InstalledVersion>();
-  PackageVersion curr_ver = installed_ver.version;
+  PackageVersion curr_ver = installed_ver.version();
 
   optional<PackageVersion> installed_version = package_list->find_package_version(packageName, curr_ver);
 

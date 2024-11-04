@@ -28,4 +28,6 @@ bool validate_manifest(fs::path manifest_path);
 
 fs::path fileTypeToDir(FileType f);
 
+bool unzipFile(const string& zipPath, const string& outputDir);
+
 #endif

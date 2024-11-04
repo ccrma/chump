@@ -65,6 +65,22 @@ void ChuckVersion::set_version(string version_string) {
   }
 }
 
+void to_json(json& j, const ChuckVersion& v) {
+  j = json{
+    {"mega", v.mega},
+    {"major", v.major},
+    {"minor", v.minor},
+    {"patch", v.patch},
+  };
+}
+
+void from_json(const json& j, ChuckVersion& v) {
+  j.at("mega").get_to(v.mega);
+  j.at("major").get_to(v.major);
+  j.at("minor").get_to(v.minor);
+  j.at("patch").get_to(v.patch);
+}
+
 bool operator==(const ChuckVersion& lhs, const ChuckVersion& rhs) {
   return std::tie(lhs.mega, lhs.major, lhs.minor, lhs.patch) == std::tie(rhs.mega, rhs.major, rhs.minor, rhs.patch);
 }
@@ -150,6 +166,18 @@ void ApiVersion::set_version(string version_string) {
   } else {
     throw std::runtime_error("unable to construct version string from " + version_string);
   }
+}
+
+void to_json(json& j, const ApiVersion& v) {
+  j = json{
+    {"major", v.major},
+    {"minor", v.minor},
+  };
+}
+
+void from_json(const json& j, ApiVersion& v) {
+  j.at("major").get_to(v.major);
+  j.at("minor").get_to(v.minor);
 }
 
 bool operator==(const ApiVersion& lhs, const ApiVersion& rhs) {

@@ -10,6 +10,8 @@
 #include <iostream>
 #include <sstream>
 
+#include <mz.h>
+#include <unzip.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -167,17 +169,81 @@ fs::path fileTypeToDir(FileType f) {
   fs::path empty;
 
   switch (f) {
-    case PACKAGE_FILE:
-      return empty;
-    case DATA_FILE:
-      return fs::path("_data");
-    case EXAMPLE_FILE:
-      return fs::path("_examples");
-    case DOCS_FILE:
-      return fs::path("_docs");
-    case DEPS_FILE:
-      return fs::path("_deps");
-    default:
-      return empty;
+  case PACKAGE_FILE:
+    return empty;
+  case DATA_FILE:
+    return fs::path("_data");
+  case EXAMPLE_FILE:
+    return fs::path("_examples");
+  case DOCS_FILE:
+    return fs::path("_docs");
+  case DEPS_FILE:
+    return fs::path("_deps");
+  case ZIP_FILE:
+    return empty;
+  default:
+    return empty;
   }
+}
+
+
+bool unzipFile(const std::string& zipPath, const std::string& outputDir) {
+    unzFile zipFile = unzOpen(zipPath.c_str());
+    if (zipFile == nullptr) {
+        std::cerr << "Error opening ZIP file: " << zipPath << std::endl;
+        return false;
+    }
+
+    // Iterate through each file in the ZIP archive
+    int result = unzGoToFirstFile(zipFile);
+    while (result == UNZ_OK) {
+        // Get file info
+        unz_file_info64 fileInfo;
+        char filename[256];
+        unzGetCurrentFileInfo64(zipFile, &fileInfo, filename, sizeof(filename), nullptr, 0, nullptr, 0);
+
+        std::string fullPath = outputDir + "/" + filename;
+
+        // Check if it's a directory and create it if necessary
+        if (filename[strlen(filename) - 1] == '/') {
+            std::filesystem::create_directories(fullPath);
+        } else {
+            // Extract file
+            unzOpenCurrentFile(zipFile);
+
+            fs::path dirs = fs::path(fullPath).parent_path();
+            fs::create_directories(dirs);
+
+            FILE* outFile = fopen(fullPath.c_str(), "wb");
+            if (outFile == nullptr) {
+                std::cerr << "Error opening output file: " << fullPath << std::endl;
+                unzCloseCurrentFile(zipFile);
+                unzClose(zipFile);
+                return false;
+            }
+
+            char buffer[8192];
+            int bytesRead;
+            while ((bytesRead = unzReadCurrentFile(zipFile, buffer, sizeof(buffer))) > 0) {
+                fwrite(buffer, 1, bytesRead, outFile);
+            }
+
+            fclose(outFile);
+            unzCloseCurrentFile(zipFile);
+
+            if (bytesRead < 0) {
+                std::cerr << "Error reading ZIP file: " << filename << std::endl;
+                unzClose(zipFile);
+                return false;
+            }
+        }
+
+        // Move to the next file in the ZIP
+        result = unzGoToNextFile(zipFile);
+    }
+
+    // Close the ZIP file
+    unzClose(zipFile);
+
+    return true;
 }
