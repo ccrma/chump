@@ -44,3 +44,7 @@ install_data('data/manifest.json',
 
 # Expose data for tests at local level in build dir
 fs.copyfile('tests/data/test-package-list.json')
+
+# Chumpinate options
+subdir('chumpinate')
+
