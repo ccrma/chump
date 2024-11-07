@@ -10,6 +10,7 @@ using json = nlohmann::json;
 struct ChuckVersion {
   ChuckVersion();
   ChuckVersion(string version_string);
+  ChuckVersion(int mega, int major, int minor, int patch);
 
   static ChuckVersion makeSystemVersion();
   static ChuckVersion makeVersion(string version_string);
@@ -28,6 +29,7 @@ struct ChuckVersion {
   friend bool operator>=(const ChuckVersion& lhs, const ChuckVersion& rhs);
 
   void set_version(string version_string);
+  string getVersionString();
 
   friend std::ostream& operator<<(std::ostream& os, const ChuckVersion& pkg);
 };
@@ -39,6 +41,7 @@ void from_json(const json& j, ChuckVersion& v);
 struct ApiVersion {
   ApiVersion();
   ApiVersion(string version_string);
+  ApiVersion(int major, int minor);
 
   static ApiVersion makeSystemVersion();
   static ApiVersion makeVersion(string version_string);
@@ -56,6 +59,7 @@ struct ApiVersion {
   friend bool operator>=(const ApiVersion& lhs, const ApiVersion& rhs);
 
   void set_version(string version_string);
+  string getVersionString();
 
   friend std::ostream& operator<<(std::ostream& os, const ApiVersion& pkg);
 };

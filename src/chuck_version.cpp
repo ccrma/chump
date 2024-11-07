@@ -15,6 +15,13 @@ ChuckVersion::ChuckVersion(string version_string) {
   set_version(version_string);
 }
 
+ChuckVersion::ChuckVersion(int _mega, int _major, int _minor, int _patch) {
+  mega = _mega;
+  major = _major;
+  minor = _minor;
+  patch = _patch;
+}
+
 ChuckVersion ChuckVersion::makeSystemVersion() {
   // Query chuck to get verison string
 #ifdef _WIN32
@@ -63,6 +70,13 @@ void ChuckVersion::set_version(string version_string) {
   } else {
     throw std::runtime_error("unable to construct version string from " + version_string);
   }
+}
+
+string ChuckVersion::getVersionString() {
+  std::ostringstream stringStream;
+  stringStream << mega << "." << major << "." << minor << "." << patch;
+
+  return stringStream.str();
 }
 
 void to_json(json& j, const ChuckVersion& v) {
@@ -121,6 +135,11 @@ ApiVersion::ApiVersion(string version_string) {
   set_version(version_string);
 }
 
+ApiVersion::ApiVersion(int _major, int _minor) {
+  major = _major;
+  minor = _minor;
+}
+
 ApiVersion ApiVersion::makeSystemVersion() {
   // Query chuck to get api version string
 #ifdef _WIN32
@@ -161,11 +180,20 @@ void ApiVersion::set_version(string version_string) {
   std::smatch match;
 
   if (std::regex_search(version_string, match, version_regex)) {
+    std::cout << match[1] << std::endl;
+    std::cout << match[2] << std::endl;
     major = std::stoi(match[1]);
     minor = std::stoi(match[2]);
   } else {
     throw std::runtime_error("unable to construct version string from " + version_string);
   }
+}
+
+string ApiVersion::getVersionString() {
+  std::ostringstream stringStream;
+  stringStream << major << "." << minor;
+
+  return stringStream.str();
 }
 
 void to_json(json& j, const ApiVersion& v) {

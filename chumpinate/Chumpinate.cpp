@@ -37,6 +37,8 @@
 
 // include chugin header
 #include "chugin.h"
+#include "package.h"
+#include "chuck_version.h"
 
 // general includes
 #include <filesystem>
@@ -46,6 +48,8 @@
 #include <string>
 #include <vector>
 #include <nlohmann/json.hpp>
+#include <mz.h>
+#include <zip.h>
 
 using std::optional;
 using std::string;
@@ -61,9 +65,6 @@ CK_DLL_CTOR( package_ctor_name );
 // declaration of chugin desctructor
 CK_DLL_DTOR( package_dtor );
 
-// example of getter/setter
-CK_DLL_MFUN( package_setParam );
-CK_DLL_MFUN( package_getParam );
 
 CK_DLL_MFUN( package_setName );
 CK_DLL_MFUN( package_getName );
@@ -93,20 +94,71 @@ CK_DLL_MFUN( package_generatePackageDefinition );
 // this is a special offset reserved for chugin internal data
 t_CKINT package_data_offset = 0;
 
+// declaration of chugin constructor
+CK_DLL_CTOR( package_version_ctor );
+CK_DLL_CTOR( package_version_ctor_string );
+CK_DLL_CTOR( package_version_ctor_ints );
+// declaration of chugin desctructor
+CK_DLL_DTOR( package_version_dtor );
+
+// example of getter/setter
+CK_DLL_MFUN( package_version_setParam );
+CK_DLL_MFUN( package_version_getParam );
+
+CK_DLL_MFUN( package_version_setVersion_string );
+CK_DLL_MFUN( package_version_setVersion_ints );
+CK_DLL_MFUN( package_version_getVersion );
+
+CK_DLL_MFUN( package_version_setApi_string );
+CK_DLL_MFUN( package_version_setApi_ints );
+CK_DLL_MFUN( package_version_getApi );
+
+CK_DLL_MFUN( package_version_setCkVerMin_string );
+CK_DLL_MFUN( package_version_setCkVerMin_ints );
+CK_DLL_MFUN( package_version_getCkVerMin );
+
+CK_DLL_MFUN( package_version_setCkVerMax_string );
+CK_DLL_MFUN( package_version_setCkVerMax_ints );
+CK_DLL_MFUN( package_version_getCkVerMax );
+
+CK_DLL_MFUN( package_version_setOS );
+CK_DLL_MFUN( package_version_getOS );
+
+CK_DLL_MFUN( package_version_addFile );
+CK_DLL_MFUN( package_version_addFile_dir );
+
+CK_DLL_MFUN( package_version_addDataFile );
+CK_DLL_MFUN( package_version_addDataFile_dir );
+
+CK_DLL_MFUN( package_version_addExampleFile );
+CK_DLL_MFUN( package_version_addExampleFile_dir );
+
+CK_DLL_MFUN( package_version_addDocsFile );
+CK_DLL_MFUN( package_version_addDocsFile_dir );
+
+CK_DLL_MFUN( package_version_addDepsFile );
+CK_DLL_MFUN( package_version_addDepsFile_dir );
+
+CK_DLL_MFUN( package_version_createZip );
+CK_DLL_MFUN( package_version_generateVersionDefinition );
+
+// this is a special offset reserved for chugin internal data
+t_CKINT package_version_data_offset = 0;
+
 
 //-----------------------------------------------------------------------------
 // class definition for internal chugin data
 // (NOTE this isn't strictly necessary, but is one example of a recommended approach)
 //-----------------------------------------------------------------------------
-class Package
+class PackageChuginate
 {
 public:
   // constructor
-  Package( )
+  PackageChuginate( )
   {
   }
 
-  Package( string _name )
+  PackageChuginate( string _name )
   {
     name = _name;
   }
@@ -117,16 +169,6 @@ public:
     // default: this passes whatever input is patched into chugin
     return in;
   }
-
-  // set parameter example
-  t_CKFLOAT setParam( t_CKFLOAT p )
-  {
-    m_param = p;
-    return p;
-  }
-
-  // get parameter example
-  t_CKFLOAT getParam() { return m_param; }
 
   string setName( string _name ) {
     name = _name;
@@ -208,7 +250,13 @@ public:
     if (description) j["description"] = description.value();
     if (keywords.size() > 0) j["keywords"] = keywords;
 
-    std::ofstream o(json_path);
+    if (fs::exists(json_path) && !fs::is_directory(json_path)) {
+      std::cerr << "Path " << json_path << " exists, but is not a directory" << std::endl;
+      return false;
+    }
+
+    fs::create_directory(json_path / name);
+    std::ofstream o(json_path / name / "package.json");
     o << std::setw(4) << j << std::endl;
     o.close();
 
@@ -234,16 +282,16 @@ private:
 // NOTE: please customize these info fields below; they will be used for
 // chugins loading, probing, and package management and documentation
 //-----------------------------------------------------------------------------
-CK_DLL_INFO( Package )
+CK_DLL_INFO( Chumpinate )
 {
     // the version string of this chugin, e.g., "v1.2.1"
     QUERY->setinfo( QUERY, CHUGIN_INFO_CHUGIN_VERSION, "v0.1.0" );
     // the author(s) of this chugin, e.g., "Alice Baker & Carl Donut"
     QUERY->setinfo( QUERY, CHUGIN_INFO_AUTHORS, "Nick Shaheed" );
     // text description of this chugin; what is it? what does it do? who is it for?
-    QUERY->setinfo( QUERY, CHUGIN_INFO_DESCRIPTION, "Construct a package for chump" );
+    QUERY->setinfo( QUERY, CHUGIN_INFO_DESCRIPTION, "Classes for constructing packages for chump" );
     // (optional) URL of the homepage for this chugin
-    QUERY->setinfo( QUERY, CHUGIN_INFO_URL, "" );
+    QUERY->setinfo( QUERY, CHUGIN_INFO_URL, "https://github.com/ccrma/chump" );
     // (optional) contact email
     QUERY->setinfo( QUERY, CHUGIN_INFO_EMAIL, "nshaheed@ccrma.stanford.edu" );
 }
@@ -253,10 +301,10 @@ CK_DLL_INFO( Package )
 // query function: ChucK calls this when loading the chugin
 // modify this function to define this chugin's API and language extensions
 //-----------------------------------------------------------------------------
-CK_DLL_QUERY( Package )
+CK_DLL_QUERY( Chumpinate )
 {
     // generally, don't change this...
-    QUERY->setname( QUERY, "Package" );
+    QUERY->setname( QUERY, "Chumpinate" );
 
     // ------------------------------------------------------------------------
     // begin class definition(s); will be compiled, verified,
@@ -276,14 +324,6 @@ CK_DLL_QUERY( Package )
 
     // register the destructor (probably no need to change)
     QUERY->add_dtor( QUERY, package_dtor );
-
-    // example of adding setter method
-    QUERY->add_mfun( QUERY, package_setParam, "float", "param" );
-    // example of adding argument to the above method
-    QUERY->add_arg( QUERY, "float", "arg" );
-
-    // example of adding getter method
-    QUERY->add_mfun( QUERY, package_getParam, "float", "param" );
 
     QUERY->add_mfun( QUERY, package_setName, "string", "name" );
     QUERY->add_arg( QUERY, "string", "name" );
@@ -330,6 +370,138 @@ CK_DLL_QUERY( Package )
     // ------------------------------------------------------------------------
     QUERY->end_class( QUERY );
 
+    // ------------------------------------------------------------------------
+    // begin class definition(s); will be compiled, verified,
+    // and added to the chuck host type system for use
+    // ------------------------------------------------------------------------
+    // NOTE to create a non-UGen class, change the second argument
+    // to extend a different ChucK class (e.g., "Object")
+    QUERY->begin_class( QUERY, "PackageVersion", "Object" );
+
+    // register default constructor
+    QUERY->add_ctor( QUERY, package_version_ctor );
+    // NOTE constructors can be overloaded like any other functions,
+    // each overloaded constructor begins with `QUERY->add_ctor()`
+    // followed by a sequence of `QUERY->add_arg()`
+    QUERY->add_ctor( QUERY, package_version_ctor_string );
+    QUERY->add_arg( QUERY, "string", "version" );
+    QUERY->add_ctor( QUERY, package_version_ctor_ints );
+    QUERY->add_arg( QUERY, "int", "mega" );
+    QUERY->add_arg( QUERY, "int", "major" );
+    QUERY->add_arg( QUERY, "int", "minor" );
+    QUERY->add_arg( QUERY, "int", "patch" );
+
+    // register the destructor (probably no need to change)
+    QUERY->add_dtor( QUERY, package_version_dtor );
+
+    // example of adding setter method
+    QUERY->add_mfun( QUERY, package_version_setParam, "float", "param" );
+    // example of adding argument to the above method
+    QUERY->add_arg( QUERY, "float", "arg" );
+
+    // example of adding getter method
+    QUERY->add_mfun( QUERY, package_version_getParam, "float", "param" );
+
+    QUERY->add_mfun( QUERY, package_version_setVersion_string, "string", "version" );
+    QUERY->add_arg( QUERY, "string", "version" );
+
+    QUERY->add_mfun( QUERY, package_version_setVersion_ints, "string", "version" );
+    QUERY->add_arg( QUERY, "int", "mega" );
+    QUERY->add_arg( QUERY, "int", "major" );
+    QUERY->add_arg( QUERY, "int", "minor" );
+    QUERY->add_arg( QUERY, "int", "patch" );
+    QUERY->add_mfun( QUERY, package_version_getVersion, "string", "version" );
+
+    QUERY->add_mfun( QUERY, package_version_setApi_ints, "string", "apiVersion" );
+    QUERY->add_arg( QUERY, "int", "major" );
+    QUERY->add_arg( QUERY, "int", "minor" );
+
+    QUERY->add_mfun( QUERY, package_version_setApi_string, "string", "apiVersion" );
+    QUERY->add_arg( QUERY, "string", "version" );
+
+    QUERY->add_mfun( QUERY, package_version_getApi, "string", "apiVersion" );
+
+    QUERY->add_mfun( QUERY, package_version_setCkVerMin_string, "string", "languageVersionMin" );
+    QUERY->add_arg( QUERY, "string", "version" );
+
+    QUERY->add_mfun( QUERY, package_version_setCkVerMin_ints, "string", "languageVersionMin");
+    QUERY->add_arg( QUERY, "int", "mega" );
+    QUERY->add_arg( QUERY, "int", "major" );
+    QUERY->add_arg( QUERY, "int", "minor" );
+    QUERY->add_arg( QUERY, "int", "patch" );
+
+    QUERY->add_mfun( QUERY, package_version_getCkVerMin, "string", "languageVersionMin" );
+
+
+    QUERY->add_mfun( QUERY, package_version_setCkVerMax_string, "string", "languageVersionMax" );
+    QUERY->add_arg( QUERY, "string", "version" );
+
+    QUERY->add_mfun( QUERY, package_version_setCkVerMax_ints, "string", "languageVersionMax" );
+    QUERY->add_arg( QUERY, "int", "mega" );
+    QUERY->add_arg( QUERY, "int", "major" );
+    QUERY->add_arg( QUERY, "int", "minor" );
+    QUERY->add_arg( QUERY, "int", "patch" );
+
+    QUERY->add_mfun( QUERY, package_version_getCkVerMax, "string", "languageVersionMax" );
+
+    QUERY->add_mfun( QUERY, package_version_setOS, "string", "os" );
+    QUERY->add_arg( QUERY, "string", "os" );
+
+    QUERY->add_mfun( QUERY, package_version_getOS, "string", "os" );
+
+    QUERY->add_mfun( QUERY, package_version_addFile, "string", "addFile" );
+    QUERY->add_arg( QUERY, "string", "filepath");
+
+    QUERY->add_mfun( QUERY, package_version_addFile_dir, "void", "addFile" );
+    QUERY->add_arg( QUERY, "string", "filepath");
+    QUERY->add_arg( QUERY, "string", "pkg_dir");
+
+    QUERY->add_mfun( QUERY, package_version_addDataFile, "void", "addDataFile" );
+    QUERY->add_arg( QUERY, "string", "filepath");
+
+    QUERY->add_mfun( QUERY, package_version_addDataFile_dir, "void", "addDataFile" );
+    QUERY->add_arg( QUERY, "string", "filepath");
+    QUERY->add_arg( QUERY, "string", "pkg_dir");
+
+    QUERY->add_mfun( QUERY, package_version_addExampleFile, "void", "addExampleFile" );
+    QUERY->add_arg( QUERY, "string", "filepath");
+
+    QUERY->add_mfun( QUERY, package_version_addExampleFile_dir, "void", "addExampleFile" );
+    QUERY->add_arg( QUERY, "string", "filepath");
+    QUERY->add_arg( QUERY, "string", "pkg_dir");
+
+    QUERY->add_mfun( QUERY, package_version_addDocsFile, "void", "addDocsFile" );
+    QUERY->add_arg( QUERY, "string", "filepath");
+
+    QUERY->add_mfun( QUERY, package_version_addDocsFile_dir, "void", "addDocsFile" );
+    QUERY->add_arg( QUERY, "string", "filepath");
+    QUERY->add_arg( QUERY, "string", "pkg_dir");
+
+    QUERY->add_mfun( QUERY, package_version_addDepsFile, "void", "addDepsFile" );
+    QUERY->add_arg( QUERY, "string", "filepath");
+
+    QUERY->add_mfun( QUERY, package_version_addDepsFile_dir, "void", "addDepsFile" );
+    QUERY->add_arg( QUERY, "string", "filepath");
+    QUERY->add_arg( QUERY, "string", "pkg_dir");
+
+    QUERY->add_mfun( QUERY, package_version_createZip, "int", "generateVersion" );
+    QUERY->add_arg( QUERY, "string", "dir");
+    QUERY->add_arg( QUERY, "string", "filename");
+    QUERY->add_arg( QUERY, "string", "url");
+
+    QUERY->add_mfun( QUERY, package_version_generateVersionDefinition, "int", "generateVersionDefinition" );
+    QUERY->add_arg( QUERY, "string", "pkg_dir");
+
+    // this reserves a variable in the ChucK internal class to store
+    // referene to the c++ class we defined above
+    package_version_data_offset = QUERY->add_mvar( QUERY, "int", "@c_data", false );
+
+    // ------------------------------------------------------------------------
+    // end the class definition
+    // IMPORTANT: this MUST be called to each class definition!
+    // ------------------------------------------------------------------------
+    QUERY->end_class( QUERY );
+
     // wasn't that a breeze?
     return TRUE;
 }
@@ -342,7 +514,7 @@ CK_DLL_CTOR( package_ctor )
     OBJ_MEMBER_INT( SELF, package_data_offset ) = 0;
 
     // instantiate our internal c++ class representation
-    Package * c_obj = new Package( );
+    PackageChuginate * c_obj = new PackageChuginate( );
 
     // store the pointer in the ChucK object member
     OBJ_MEMBER_INT( SELF, package_data_offset ) = (t_CKINT)c_obj;
@@ -358,7 +530,7 @@ CK_DLL_CTOR(package_ctor_name )
   std::string name = GET_NEXT_STRING_SAFE(ARGS);
 
   // instantiate our internal c++ class representation
-  Package * c_obj = new Package( name  );
+  PackageChuginate * c_obj = new PackageChuginate( name  );
 
   // store the pointer in the ChucK object member
   OBJ_MEMBER_INT( SELF, package_data_offset ) = (t_CKINT)c_obj;
@@ -371,7 +543,7 @@ CK_DLL_CTOR(package_ctor_name )
 CK_DLL_DTOR( package_dtor )
 {
     // get our c++ class pointer
-    Package * c_obj = (Package *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageChuginate * c_obj = (PackageChuginate *)OBJ_MEMBER_INT( SELF, package_data_offset );
     // clean up (this macro tests for NULL, deletes, and zeros out the variable)
     CK_SAFE_DELETE( c_obj );
     // set the data field to 0
@@ -380,34 +552,8 @@ CK_DLL_DTOR( package_dtor )
 
 
 
-// example implementation for setter
-CK_DLL_MFUN( package_setParam )
-{
-    // get our c++ class pointer
-    Package * c_obj = (Package *)OBJ_MEMBER_INT( SELF, package_data_offset );
-
-    // get next argument
-    // NOTE argument type must match what is specified above in CK_DLL_QUERY
-    // NOTE this advances the ARGS pointer, so save in variable for re-use
-    t_CKFLOAT arg1 = GET_NEXT_FLOAT( ARGS );
-
-    // call setParam() and set the return value
-    RETURN->v_float = c_obj->setParam( arg1 );
-}
-
-
-// example implementation for getter
-CK_DLL_MFUN(package_getParam)
-{
-    // get our c++ class pointer
-    Package * c_obj = (Package *)OBJ_MEMBER_INT( SELF, package_data_offset );
-
-    // call getParam() and set the return value
-    RETURN->v_float = c_obj->getParam();
-}
-
 CK_DLL_MFUN( package_setName ){
-    Package * c_obj = (Package *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageChuginate * c_obj = (PackageChuginate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
     string arg1 = GET_NEXT_STRING_SAFE( ARGS );
 
@@ -418,7 +564,7 @@ CK_DLL_MFUN( package_setName ){
 
 
 CK_DLL_MFUN( package_getName ){
-    Package * c_obj = (Package *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageChuginate * c_obj = (PackageChuginate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
     string val = c_obj->getName();
 
@@ -426,7 +572,7 @@ CK_DLL_MFUN( package_getName ){
 }
 
 CK_DLL_MFUN( package_setAuthor ){
-    Package * c_obj = (Package *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageChuginate * c_obj = (PackageChuginate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
     string arg1 = GET_NEXT_STRING_SAFE( ARGS );
 
@@ -436,7 +582,7 @@ CK_DLL_MFUN( package_setAuthor ){
 }
 
 CK_DLL_MFUN( package_setAuthors ){
-    Package * c_obj = (Package *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageChuginate * c_obj = (PackageChuginate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
     Chuck_ArrayInt * args = (Chuck_ArrayInt *) GET_NEXT_OBJECT(ARGS);
 
@@ -463,7 +609,7 @@ CK_DLL_MFUN( package_setAuthors ){
 }
 
 CK_DLL_MFUN( package_getAuthors ){
-    Package * c_obj = (Package *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageChuginate * c_obj = (PackageChuginate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
     // create array to be returned
     Chuck_ArrayInt* arr = (Chuck_ArrayInt*)API->object->create(SHRED, API->type->lookup(VM, "string[]"), false);
@@ -484,7 +630,7 @@ CK_DLL_MFUN( package_getAuthors ){
 }
 
 CK_DLL_MFUN( package_setHomepage ){
-    Package * c_obj = (Package *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageChuginate * c_obj = (PackageChuginate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
     string arg1 = GET_NEXT_STRING_SAFE( ARGS );
 
@@ -495,7 +641,7 @@ CK_DLL_MFUN( package_setHomepage ){
 
 
 CK_DLL_MFUN( package_getHomepage ){
-    Package * c_obj = (Package *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageChuginate * c_obj = (PackageChuginate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
     string val = c_obj->getHomepage();
 
@@ -503,7 +649,7 @@ CK_DLL_MFUN( package_getHomepage ){
 }
 
 CK_DLL_MFUN( package_setRepository ){
-    Package * c_obj = (Package *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageChuginate * c_obj = (PackageChuginate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
     string arg1 = GET_NEXT_STRING_SAFE( ARGS );
 
@@ -512,7 +658,7 @@ CK_DLL_MFUN( package_setRepository ){
     RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
 }
 CK_DLL_MFUN( package_getRepository ){
-    Package * c_obj = (Package *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageChuginate * c_obj = (PackageChuginate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
     string val = c_obj->getRepository();
 
@@ -520,7 +666,7 @@ CK_DLL_MFUN( package_getRepository ){
 }
 
 CK_DLL_MFUN( package_setLicense ){
-    Package * c_obj = (Package *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageChuginate * c_obj = (PackageChuginate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
     string arg1 = GET_NEXT_STRING_SAFE( ARGS );
 
@@ -529,7 +675,7 @@ CK_DLL_MFUN( package_setLicense ){
     RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
 }
 CK_DLL_MFUN( package_getLicense ){
-    Package * c_obj = (Package *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageChuginate * c_obj = (PackageChuginate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
     string val = c_obj->getLicense();
 
@@ -537,7 +683,7 @@ CK_DLL_MFUN( package_getLicense ){
 }
 
 CK_DLL_MFUN( package_setDescription ){
-    Package * c_obj = (Package *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageChuginate * c_obj = (PackageChuginate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
     string arg1 = GET_NEXT_STRING_SAFE( ARGS );
 
@@ -546,7 +692,7 @@ CK_DLL_MFUN( package_setDescription ){
     RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
 }
 CK_DLL_MFUN( package_getDescription ){
-    Package * c_obj = (Package *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageChuginate * c_obj = (PackageChuginate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
     string val = c_obj->getDescription();
 
@@ -554,7 +700,7 @@ CK_DLL_MFUN( package_getDescription ){
 }
 
 CK_DLL_MFUN( package_setKeywords ){
-    Package * c_obj = (Package *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageChuginate * c_obj = (PackageChuginate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
     Chuck_ArrayInt * args = (Chuck_ArrayInt *) GET_NEXT_OBJECT(ARGS);
 
@@ -580,7 +726,7 @@ CK_DLL_MFUN( package_setKeywords ){
     RETURN->v_object = (Chuck_Object*) args;
 }
 CK_DLL_MFUN( package_getKeywords ){
-    Package * c_obj = (Package *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageChuginate * c_obj = (PackageChuginate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
     // create array to be returned
     Chuck_ArrayInt* arr = (Chuck_ArrayInt*)API->object->create(SHRED, API->type->lookup(VM, "string[]"), false);
@@ -601,7 +747,7 @@ CK_DLL_MFUN( package_getKeywords ){
 }
 
 CK_DLL_MFUN( package_generatePackageDefinition ){
-  Package * c_obj = (Package *)OBJ_MEMBER_INT( SELF, package_data_offset );
+  PackageChuginate * c_obj = (PackageChuginate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
   string arg1 = GET_NEXT_STRING_SAFE( ARGS );
 
@@ -615,186 +761,560 @@ CK_DLL_MFUN( package_generatePackageDefinition ){
  * PackageVersion Defintion
  **************************/
 
-// declaration of chugin constructor
-CK_DLL_CTOR( package_version_ctor );
-// declaration of chugin desctructor
-CK_DLL_DTOR( package_version_dtor );
-
-// example of getter/setter
-CK_DLL_MFUN( package_version_setParam );
-CK_DLL_MFUN( package_version_getParam );
-
-// this is a special offset reserved for chugin internal data
-t_CKINT package_version_data_offset = 0;
-
 
 //-----------------------------------------------------------------------------
 // class definition for internal chugin data
 // (NOTE this isn't strictly necessary, but is one example of a recommended approach)
 //-----------------------------------------------------------------------------
-class PackageVersion
+class PackageVersionChumpinate
 {
 public:
-    // constructor
-    PackageVersion( t_CKFLOAT fs )
-    {
-        m_param = 0;
+  // constructor
+  PackageVersionChumpinate( )
+  {
+  }
+
+  PackageVersionChumpinate( string _ver )
+  {
+    PackageVersion p(_ver);
+    ver = p;
+
+    api_ver = {};
+  }
+
+  PackageVersionChumpinate( int major, int minor, int patch )
+  {
+    PackageVersion p(major, minor, patch);
+    ver = p;
+  }
+
+  // set parameter example
+  t_CKFLOAT setParam( t_CKFLOAT p )
+  {
+    m_param = p;
+    return p;
+  }
+
+  // get parameter example
+  t_CKFLOAT getParam() { return m_param; }
+
+  string setVersion( string _ver ) {
+    PackageVersion p(_ver);
+    ver = p;
+    return p.getVersionString();
+  }
+
+  string setVersion( int major, int minor, int patch ) {
+    PackageVersion p(major, minor, patch);
+    ver = p;
+    return p.getVersionString();
+  }
+
+  string getVersion() {
+    return ver.getVersionString();
+  }
+
+  string setApiVersion( string _ver ) {
+    ApiVersion p(_ver);
+    api_ver = p;
+    return p.getVersionString();
+  }
+
+  string setApiVersion( int major, int minor ) {
+    ApiVersion p(major, minor);
+    api_ver = p;
+    return p.getVersionString();
+  }
+
+  string getApiVersion() {
+    return api_ver.value().getVersionString();
+  }
+
+  string setMinCkVersion( string _ver) {
+    ChuckVersion min_ver(_ver);
+
+    language_version_min = min_ver;
+    return min_ver.getVersionString();
+  }
+
+  string setMinCkVersion( int mega, int major, int minor, int patch) {
+    ChuckVersion min_ver(mega, major, minor, patch);
+
+    language_version_min = min_ver;
+    return min_ver.getVersionString();
+  }
+
+  string getMinCkVersion() {
+    return language_version_min.value().getVersionString();
+  }
+
+  string setMaxCkVersion( string _ver) {
+    ChuckVersion max_ver(_ver);
+
+    language_version_max = max_ver;
+    return max_ver.getVersionString();
+  }
+
+  string setMaxCkVersion( int mega, int major, int minor, int patch) {
+    ChuckVersion max_ver(mega, major, minor, patch);
+
+    language_version_max = max_ver;
+    return max_ver.getVersionString();
+  }
+
+  string getMaxCkVersion() {
+    return language_version_max.value().getVersionString();
+  }
+
+  string setOS( string _os ) {
+    os = _os;
+    return _os;
+  }
+
+  string getOS() {
+    return os.value();
+  }
+
+  void addFile(fs::path file, fs::path dir, FileType file_type) {
+    fs::path destination;
+
+    switch (file_type) {
+    case PACKAGE_FILE:
+      destination = dir / file.filename();
+      break;
+    case DATA_FILE:
+      destination = "./_data" / dir / file.filename();
+      break;
+    case EXAMPLE_FILE:
+      destination = "./_examples" / dir / file.filename();
+      break;
+    case DOCS_FILE:
+      destination = "./_docs" / dir / file.filename();
+      break;
+    case DEPS_FILE:
+      destination = "./_deps" / dir / file.filename();
+      break;
+    case ZIP_FILE:
+      return;
+    default:
+      return;
     }
 
-    // set parameter example
-    t_CKFLOAT setParam( t_CKFLOAT p )
-    {
-        m_param = p;
-        return p;
+    files.push_back(file);
+    file_destinations.push_back(destination.lexically_normal());
+  }
+
+  t_CKINT createZip(fs::path package_dir, fs::path filename, fs::path url) {
+    // TODO validate that it's a url
+    url_zip = url;
+
+    // if (fs::exists(json_path) && !fs::is_directory(json_path)) {
+    //   std::cerr << "Path " << json_path << " exists, but is not a directory" << std::endl;
+    //   return false;
+    // }
+
+    // create directory
+    fs::create_directory(package_dir);
+
+    // TODO zip up file list
+    fs::path zip_filepath = package_dir / filename;
+
+    zip_filepath.replace_extension("zip");
+
+    zipFile zf = zipOpen(zip_filepath.c_str(), APPEND_STATUS_CREATE);
+
+    if (zf == NULL)
+      return false;
+
+    // TODO rename "success"
+    bool _return = true;
+
+    // iterate through all files in different file directories and add them to the .zip file
+    // for (auto file: files) {
+    for (std::size_t i = 0; i < files.size(); i++) {
+      addFileToZip(zf, files[i], file_destinations[i]);
     }
 
-    // get parameter example
-    t_CKFLOAT getParam() { return m_param; }
+    if (zipClose(zf, NULL))
+      return false;
+
+    if (!_return)
+      return false;
+
+    // TODO generate chucksum
+
+
+    return true;
+  }
+
+  t_CKINT addFileToZip( zipFile zf, fs::path filepath, fs::path destination) {
+    std::fstream file(filepath.c_str(), std::ios::binary | std::ios::in);
+
+    t_CKINT _return = true;
+
+    if (file.is_open()) {
+      file.seekg(0, std::ios::end);
+      long size = file.tellg();
+      file.seekg(0, std::ios::beg);
+
+      std::vector<char> buffer(size);
+      if (size == 0 || file.read(&buffer[0], size))
+        {
+          zip_fileinfo zfi = { 0 };
+          // fs::path zipPath = destination.lexically_normal();
+
+          if (ZIP_OK == zipOpenNewFileInZip(zf, destination.c_str(), &zfi, NULL, 0, NULL, 0, NULL, Z_DEFLATED, MZ_COMPRESS_LEVEL_DEFAULT))
+            {
+              if (zipWriteInFileInZip(zf, size == 0 ? "" : &buffer[0], size))
+                _return = false;
+
+              if (zipCloseFileInZip(zf))
+                _return = false;
+            }
+        }
+      file.close();
+    }
+
+    return _return;
+  }
 
 private:
-    // instance data
-    t_CKFLOAT m_param;
+  // instance data
+  t_CKFLOAT m_param;
+
+  PackageVersion ver;
+  optional<ApiVersion> api_ver;
+  optional<int> testp;
+  optional<ChuckVersion> language_version_min;
+  optional<ChuckVersion> language_version_max;
+  optional<string> os;
+
+  vector<fs::path> files; // the actual paths of the files to be zipped
+  vector<fs::path> file_destinations; // the package-relative paths of the files to be zipped
+
+  // path to the url where the zipped package can be downloaded
+  fs::path url_zip;
+  string zip_checksum;
 };
 
 
-// //-----------------------------------------------------------------------------
-// // info function: ChucK calls this when loading/probing the chugin
-// // NOTE: please customize these info fields below; they will be used for
-// // chugins loading, probing, and package management and documentation
-// //-----------------------------------------------------------------------------
-// CK_DLL_INFO( PackageVersion )
-// {
-//     // the version string of this chugin, e.g., "v1.2.1"
-//     QUERY->setinfo( QUERY, CHUGIN_INFO_CHUGIN_VERSION, "" );
-//     // the author(s) of this chugin, e.g., "Alice Baker & Carl Donut"
-//     QUERY->setinfo( QUERY, CHUGIN_INFO_AUTHORS, "" );
-//     // text description of this chugin; what is it? what does it do? who is it for?
-//     QUERY->setinfo( QUERY, CHUGIN_INFO_DESCRIPTION, "" );
-//     // (optional) URL of the homepage for this chugin
-//     QUERY->setinfo( QUERY, CHUGIN_INFO_URL, "" );
-//     // (optional) contact email
-//     QUERY->setinfo( QUERY, CHUGIN_INFO_EMAIL, "" );
-// }
 
 
-// //-----------------------------------------------------------------------------
-// // query function: ChucK calls this when loading the chugin
-// // modify this function to define this chugin's API and language extensions
-// //-----------------------------------------------------------------------------
-// CK_DLL_QUERY( PackageVersion )
-// {
-//     // generally, don't change this...
-//     QUERY->setname( QUERY, "PackageVersion" );
+// implementation for the default constructor
+CK_DLL_CTOR( package_version_ctor )
+{
+    // get the offset where we'll store our internal c++ class pointer
+    OBJ_MEMBER_INT( SELF, package_version_data_offset ) = 0;
 
-//     // ------------------------------------------------------------------------
-//     // begin class definition(s); will be compiled, verified,
-//     // and added to the chuck host type system for use
-//     // ------------------------------------------------------------------------
-//     // NOTE to create a non-UGen class, change the second argument
-//     // to extend a different ChucK class (e.g., "Object")
-//     QUERY->begin_class( QUERY, "PackageVersion", "UGen" );
+    // instantiate our internal c++ class representation
+    PackageVersionChumpinate * c_obj = new PackageVersionChumpinate( );
 
-//     // register default constructor
-//     QUERY->add_ctor( QUERY, package_version_ctor );
-//     // NOTE constructors can be overloaded like any other functions,
-//     // each overloaded constructor begins with `QUERY->add_ctor()`
-//     // followed by a sequence of `QUERY->add_arg()`
-
-//     // register the destructor (probably no need to change)
-//     QUERY->add_dtor( QUERY, package_version_dtor );
-
-//     // for UGens only: add tick function
-//     // NOTE a non-UGen class should remove or comment out this next line
-//     QUERY->add_ugen_func( QUERY, package_version_tick, NULL, 1, 1 );
-//     // NOTE: if this is to be a UGen with more than 1 channel,
-//     // e.g., a multichannel UGen -- will need to use add_ugen_funcf()
-//     // and declare a tickf function using CK_DLL_TICKF
-
-//     // example of adding setter method
-//     QUERY->add_mfun( QUERY, package_version_setParam, "float", "param" );
-//     // example of adding argument to the above method
-//     QUERY->add_arg( QUERY, "float", "arg" );
-
-//     // example of adding getter method
-//     QUERY->add_mfun( QUERY, package_version_getParam, "float", "param" );
-
-//     // this reserves a variable in the ChucK internal class to store
-//     // referene to the c++ class we defined above
-//     package_version_data_offset = QUERY->add_mvar( QUERY, "int", "@c_data", false );
-
-//     // ------------------------------------------------------------------------
-//     // end the class definition
-//     // IMPORTANT: this MUST be called to each class definition!
-//     // ------------------------------------------------------------------------
-//     QUERY->end_class( QUERY );
-
-//     // wasn't that a breeze?
-//     return TRUE;
-// }
+    // store the pointer in the ChucK object member
+    OBJ_MEMBER_INT( SELF, package_version_data_offset ) = (t_CKINT)c_obj;
+}
 
 
-// // implementation for the default constructor
-// CK_DLL_CTOR( package_version_ctor )
-// {
-//     // get the offset where we'll store our internal c++ class pointer
-//     OBJ_MEMBER_INT( SELF, package_version_data_offset ) = 0;
+CK_DLL_CTOR( package_version_ctor_string ) {
+  // get the offset where we'll store our internal c++ class pointer
+  OBJ_MEMBER_INT( SELF, package_version_data_offset ) = 0;
 
-//     // instantiate our internal c++ class representation
-//     PackageVersion * c_obj = new PackageVersion( API->vm->srate(VM) );
+  std::string ver_arg = GET_NEXT_STRING_SAFE(ARGS);
 
-//     // store the pointer in the ChucK object member
-//     OBJ_MEMBER_INT( SELF, package_version_data_offset ) = (t_CKINT)c_obj;
-// }
+  // instantiate our internal c++ class representation
+  PackageVersionChumpinate * c_obj = new PackageVersionChumpinate( ver_arg );
 
+  // store the pointer in the ChucK object member
+  OBJ_MEMBER_INT( SELF, package_version_data_offset ) = (t_CKINT)c_obj;
+}
 
-// // implementation for the destructor
-// CK_DLL_DTOR( package_version_dtor )
-// {
-//     // get our c++ class pointer
-//     PackageVersion * c_obj = (PackageVersion *)OBJ_MEMBER_INT( SELF, package_version_data_offset );
-//     // clean up (this macro tests for NULL, deletes, and zeros out the variable)
-//     CK_SAFE_DELETE( c_obj );
-//     // set the data field to 0
-//     OBJ_MEMBER_INT( SELF, package_version_data_offset ) = 0;
-// }
+CK_DLL_CTOR( package_version_ctor_ints ) {
+  // get the offset where we'll store our internal c++ class pointer
+  OBJ_MEMBER_INT( SELF, package_version_data_offset ) = 0;
 
+  t_CKINT ver_major = GET_NEXT_INT(ARGS);
+  t_CKINT ver_minor = GET_NEXT_INT(ARGS);
+  t_CKINT ver_patch = GET_NEXT_INT(ARGS);
 
-// // implementation for tick function (relevant only for UGens)
-// CK_DLL_TICK( package_version_tick )
-// {
-//     // get our c++ class pointer
-//     PackageVersion * c_obj = (PackageVersion *)OBJ_MEMBER_INT(SELF, package_version_data_offset);
+  // instantiate our internal c++ class representation
+  PackageVersionChumpinate * c_obj = new PackageVersionChumpinate( ver_major, ver_minor, ver_patch );
 
-//     // invoke our tick function; store in the magical out variable
-//     if( c_obj ) *out = c_obj->tick( in );
-
-//     // yes
-//     return TRUE;
-// }
+  // store the pointer in the ChucK object member
+  OBJ_MEMBER_INT( SELF, package_version_data_offset ) = (t_CKINT)c_obj;
+}
 
 
-// // example implementation for setter
-// CK_DLL_MFUN( package_version_setParam )
-// {
-//     // get our c++ class pointer
-//     PackageVersion * c_obj = (PackageVersion *)OBJ_MEMBER_INT( SELF, package_version_data_offset );
-
-//     // get next argument
-//     // NOTE argument type must match what is specified above in CK_DLL_QUERY
-//     // NOTE this advances the ARGS pointer, so save in variable for re-use
-//     t_CKFLOAT arg1 = GET_NEXT_FLOAT( ARGS );
-
-//     // call setParam() and set the return value
-//     RETURN->v_float = c_obj->setParam( arg1 );
-// }
+// implementation for the destructor
+CK_DLL_DTOR( package_version_dtor )
+{
+    // get our c++ class pointer
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_version_data_offset );
+    // clean up (this macro tests for NULL, deletes, and zeros out the variable)
+    CK_SAFE_DELETE( c_obj );
+    // set the data field to 0
+    OBJ_MEMBER_INT( SELF, package_version_data_offset ) = 0;
+}
 
 
-// // example implementation for getter
-// CK_DLL_MFUN(package_version_getParam)
-// {
-//     // get our c++ class pointer
-//     PackageVersion * c_obj = (PackageVersion *)OBJ_MEMBER_INT( SELF, package_version_data_offset );
 
-//     // call getParam() and set the return value
-//     RETURN->v_float = c_obj->getParam();
-// }
+// example implementation for setter
+CK_DLL_MFUN( package_version_setParam )
+{
+    // get our c++ class pointer
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_version_data_offset );
+
+    // get next argument
+    // NOTE argument type must match what is specified above in CK_DLL_QUERY
+    // NOTE this advances the ARGS pointer, so save in variable for re-use
+    t_CKFLOAT arg1 = GET_NEXT_FLOAT( ARGS );
+
+    // call setParam() and set the return value
+    RETURN->v_float = c_obj->setParam( arg1 );
+}
+
+
+// example implementation for getter
+CK_DLL_MFUN(package_version_getParam)
+{
+    // get our c++ class pointer
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_version_data_offset );
+
+    // call getParam() and set the return value
+    RETURN->v_float = c_obj->getParam();
+}
+
+
+CK_DLL_MFUN( package_version_setVersion_string ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  string version = GET_NEXT_STRING_SAFE( ARGS );
+
+  string val = c_obj->setVersion(version);
+
+  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+}
+
+
+CK_DLL_MFUN( package_version_setVersion_ints ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  t_CKINT major = GET_NEXT_INT( ARGS );
+  t_CKINT minor = GET_NEXT_INT( ARGS );
+  t_CKINT patch = GET_NEXT_INT( ARGS );
+
+  string val = c_obj->setVersion(major, minor, patch);
+
+  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+}
+
+CK_DLL_MFUN( package_version_getVersion ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  string val = c_obj->getVersion();
+
+  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+}
+
+CK_DLL_MFUN( package_version_setApi_string ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_version_data_offset );
+
+  string version = GET_NEXT_STRING_SAFE( ARGS );
+
+  string val = c_obj->setApiVersion(version);
+
+  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+}
+
+CK_DLL_MFUN( package_version_setApi_ints ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  t_CKINT major = GET_NEXT_INT( ARGS );
+  t_CKINT minor = GET_NEXT_INT( ARGS );
+
+  string val = c_obj->setApiVersion(major, minor);
+
+  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+}
+
+CK_DLL_MFUN( package_version_getApi ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  string val = c_obj->getApiVersion();
+
+  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+}
+
+CK_DLL_MFUN( package_version_setCkVerMin_string ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  string version = GET_NEXT_STRING_SAFE( ARGS );
+
+  string val = c_obj->setMinCkVersion(version);
+
+  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+}
+
+CK_DLL_MFUN( package_version_setCkVerMin_ints ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  int mega = GET_NEXT_INT( ARGS );
+  int major = GET_NEXT_INT( ARGS );
+  int minor = GET_NEXT_INT( ARGS );
+  int patch = GET_NEXT_INT( ARGS );
+
+  string val = c_obj->setMinCkVersion(mega, major, minor, patch);
+
+  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+}
+
+CK_DLL_MFUN( package_version_getCkVerMin ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  string val = c_obj->getMinCkVersion();
+
+  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+}
+
+CK_DLL_MFUN( package_version_setCkVerMax_string ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  string version = GET_NEXT_STRING_SAFE( ARGS );
+
+  string val = c_obj->setMaxCkVersion(version);
+
+  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+}
+
+CK_DLL_MFUN( package_version_setCkVerMax_ints ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  int mega = GET_NEXT_INT( ARGS );
+  int major = GET_NEXT_INT( ARGS );
+  int minor = GET_NEXT_INT( ARGS );
+  int patch = GET_NEXT_INT( ARGS );
+
+  string val = c_obj->setMaxCkVersion(mega, major, minor, patch);
+
+  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+}
+
+CK_DLL_MFUN( package_version_getCkVerMax ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  string val = c_obj->getMaxCkVersion();
+
+  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+}
+
+CK_DLL_MFUN( package_version_setOS ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  string os = GET_NEXT_STRING_SAFE( ARGS );
+
+  string val = c_obj->setOS(os);
+
+  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+}
+
+CK_DLL_MFUN( package_version_getOS ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  string val = c_obj->getOS();
+
+  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+}
+
+CK_DLL_MFUN( package_version_addFile ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  string file = GET_NEXT_STRING_SAFE( ARGS );
+
+  c_obj->addFile(file, "./", PACKAGE_FILE);
+}
+
+CK_DLL_MFUN( package_version_addFile_dir ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  string file = GET_NEXT_STRING_SAFE( ARGS );
+  string dir = GET_NEXT_STRING_SAFE( ARGS );
+
+  c_obj->addFile(file, dir, PACKAGE_FILE);
+}
+
+CK_DLL_MFUN( package_version_addDataFile ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  string file = GET_NEXT_STRING_SAFE( ARGS );
+
+  c_obj->addFile(file, "./", DATA_FILE);
+}
+
+CK_DLL_MFUN( package_version_addDataFile_dir ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  string file = GET_NEXT_STRING_SAFE( ARGS );
+  string dir = GET_NEXT_STRING_SAFE( ARGS );
+
+  c_obj->addFile(file, dir, DATA_FILE);
+}
+
+CK_DLL_MFUN( package_version_addExampleFile ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  string file = GET_NEXT_STRING_SAFE( ARGS );
+
+  c_obj->addFile(file, "./", EXAMPLE_FILE);
+}
+
+CK_DLL_MFUN( package_version_addExampleFile_dir ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  string file = GET_NEXT_STRING_SAFE( ARGS );
+  string dir = GET_NEXT_STRING_SAFE( ARGS );
+
+  c_obj->addFile(file, dir, EXAMPLE_FILE);
+}
+
+CK_DLL_MFUN( package_version_addDocsFile ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  string file = GET_NEXT_STRING_SAFE( ARGS );
+
+  c_obj->addFile(file, "./", DOCS_FILE);
+}
+
+CK_DLL_MFUN( package_version_addDocsFile_dir ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  string file = GET_NEXT_STRING_SAFE( ARGS );
+  string dir = GET_NEXT_STRING_SAFE( ARGS );
+
+  c_obj->addFile(file, dir, DOCS_FILE);
+}
+
+CK_DLL_MFUN( package_version_addDepsFile ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  string file = GET_NEXT_STRING_SAFE( ARGS );
+
+  c_obj->addFile(file, "./", DEPS_FILE);
+}
+
+CK_DLL_MFUN( package_version_addDepsFile_dir ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  string file = GET_NEXT_STRING_SAFE( ARGS );
+  string dir = GET_NEXT_STRING_SAFE( ARGS );
+
+  c_obj->addFile(file, dir, DEPS_FILE);
+}
+
+CK_DLL_MFUN( package_version_createZip ) {
+  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  string package_dir = GET_NEXT_STRING_SAFE( ARGS );
+  string filename = GET_NEXT_STRING_SAFE( ARGS );
+  string url = GET_NEXT_STRING_SAFE( ARGS );
+
+  c_obj->createZip(package_dir, filename, url);
+}
+CK_DLL_MFUN( package_version_generateVersionDefinition ) { }

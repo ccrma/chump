@@ -20,39 +20,46 @@
 
 // instantiate a Chumpinate
 // Package.help();
-Package pkg("test-pkg");
-// Package pkg;
+// Package pkg("test-pkg");
 
-// "test-pkg" => pkg.name;
+// "nick" => pkg.authors;
 
-"nick" => pkg.authors;
+// ["nick", "ge"] => pkg.authors;
 
-["nick", "ge"] => pkg.authors;
+// "www.www.com" => pkg.homepage;
+// "www.www.com" => pkg.repository;
 
-"www.www.com" => pkg.homepage;
-"www.www.com" => pkg.repository;
+// "mit" => pkg.license;
+// "a description" => pkg.description;
 
-"mit" => pkg.license;
-"a description" => pkg.description;
+// ["wow", "much", "keyword"] => pkg.keywords;
 
-["wow", "much", "keyword"] => pkg.keywords;
-
-"./" => pkg.generatePackageDefinition;
-
-// // call obj.param() with argument of 5; same as obj.param(5)
-// 5 => obj.param;
-
-// // print
-// <<< obj.param() >>>;
-
-// <<< Package.help() >>>;
+// "./" => pkg.generatePackageDefinition;
 
 
-// instantiate a Chumpinate
+PackageVersion.help();
+PackageVersion ver("1.0.0");
 // PackageVersion ver;
 
-// call ver.param() with argument of 5; same as ver.param(5)
-// 5 => ver.param;
+"10.2" => ver.apiVersion;
+<<< ver.apiVersion() >>>;
 
-// print
-// <<< ver.param() >>>;
+"1.5.4.2" => ver.languageVersionMin;
+<<< ver.languageVersionMin() >>>;
+
+"1.5.4.3" => ver.languageVersionMax;
+<<< ver.languageVersionMax() >>>;
+
+"linux" => ver.os;
+<<< ver.os() >>>;
+
+
+// Add itself
+ver.addFile("./test.txt");
+ver.addDataFile("./test.txt");
+ver.addExampleFile("./test.txt", "test");
+ver.addDocsFile("./test.txt");
+ver.addDepsFile("./test.txt");
+
+ver.generateVersion("./", "poop", "www.");
+
