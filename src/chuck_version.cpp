@@ -180,8 +180,6 @@ void ApiVersion::set_version(string version_string) {
   std::smatch match;
 
   if (std::regex_search(version_string, match, version_regex)) {
-    std::cout << match[1] << std::endl;
-    std::cout << match[2] << std::endl;
     major = std::stoi(match[1]);
     minor = std::stoi(match[2]);
   } else {

@@ -249,11 +249,22 @@ public:
     };
 
     if (authors.size() > 0) j["authors"] = authors;
+    else j["authors"] = "";
+
     if (homepage) j["homepage"] = homepage.value();
+    else j["homepage"] = "";
+
     if (repository) j["repository"] = repository.value();
+    else j["respository"] = "";
+
     if (license) j["license"] = license.value();
+    else j["license"] = "";
+
     if (description) j["description"] = description.value();
+    else j["description"] = "";
+
     if (keywords.size() > 0) j["keywords"] = keywords;
+    else j["keywords"] = {};
 
     if (fs::exists(json_path) && !fs::is_directory(json_path)) {
       std::cerr << "Path " << json_path << " exists, but is not a directory" << std::endl;
@@ -389,8 +400,10 @@ CK_DLL_QUERY( Chumpinate )
     // each overloaded constructor begins with `QUERY->add_ctor()`
     // followed by a sequence of `QUERY->add_arg()`
     QUERY->add_ctor( QUERY, package_version_ctor_string );
+    QUERY->add_arg( QUERY, "string", "pkg_name" );
     QUERY->add_arg( QUERY, "string", "version" );
     QUERY->add_ctor( QUERY, package_version_ctor_ints );
+    QUERY->add_arg( QUERY, "string", "pkg_name" );
     QUERY->add_arg( QUERY, "int", "mega" );
     QUERY->add_arg( QUERY, "int", "major" );
     QUERY->add_arg( QUERY, "int", "minor" );
@@ -536,7 +549,7 @@ CK_DLL_CTOR(package_ctor_name )
   std::string name = GET_NEXT_STRING_SAFE(ARGS);
 
   // instantiate our internal c++ class representation
-  PackageChuginate * c_obj = new PackageChuginate( name  );
+  PackageChuginate * c_obj = new PackageChuginate( name );
 
   // store the pointer in the ChucK object member
   OBJ_MEMBER_INT( SELF, package_data_offset ) = (t_CKINT)c_obj;
@@ -757,7 +770,12 @@ CK_DLL_MFUN( package_generatePackageDefinition ){
 
   string arg1 = GET_NEXT_STRING_SAFE( ARGS );
 
-  t_CKINT val = c_obj->generatePackageDefinition( arg1 );
+  t_CKINT val;
+  try {
+    val = c_obj->generatePackageDefinition( arg1 );
+  } catch (const std::exception &e) {
+    API->vm->throw_exception( e.what(), "", SHRED);
+  }
 
   RETURN->v_int = val;
 }
@@ -780,18 +798,20 @@ public:
   {
   }
 
-  PackageVersionChumpinate( string _ver )
+  PackageVersionChumpinate( string _pkg_name, string _ver )
   {
     PackageVersion p(_ver);
     ver = p;
 
-    api_ver = {};
+    package_name = _pkg_name;
   }
 
-  PackageVersionChumpinate( int major, int minor, int patch )
+  PackageVersionChumpinate( string _pkg_name, int major, int minor, int patch )
   {
     PackageVersion p(major, minor, patch);
     ver = p;
+
+    package_name = _pkg_name;
   }
 
   // set parameter example
@@ -945,9 +965,8 @@ public:
     if (!_return)
       return false;
 
-    // TODO generate chucksum
+    // Generate checksum
     zip_checksum = hash_file(zip_filepath);
-    // std::cout << zip_checksum << std::endl;
 
     return true;
   }
@@ -1023,6 +1042,8 @@ public:
 
     if (language_version_min) {
       j["language_version_min"] = language_version_min.value();
+    } else {
+      throw std::invalid_argument("field PackageVersion.language_version_min must be set");
     }
 
     if (language_version_max) {
@@ -1031,6 +1052,8 @@ public:
 
     if (os) {
       j["os"] = os.value();
+    } else {
+      throw std::invalid_argument("field PackageVersion.os must be set ('windows', 'linux', 'mac', or ány'");
     }
 
     File f;
@@ -1041,7 +1064,7 @@ public:
 
     j["files"] = f;
 
-    fs::path json_dir = pkg_dir / ver.getVersionString();
+    fs::path json_dir = pkg_dir / package_name / ver.getVersionString();
     fs::create_directory(json_dir);
 
     if (filename.extension() != ".json") {
@@ -1073,6 +1096,8 @@ private:
   // path to the url where the zipped package can be downloaded
   fs::path url_zip;
   string zip_checksum;
+
+  string package_name; // Name of package (i.e. 'Chumpinate')
 };
 
 
@@ -1096,10 +1121,16 @@ CK_DLL_CTOR( package_version_ctor_string ) {
   // get the offset where we'll store our internal c++ class pointer
   OBJ_MEMBER_INT( SELF, package_version_data_offset ) = 0;
 
+  std::string pkg_name = GET_NEXT_STRING_SAFE(ARGS);
   std::string ver_arg = GET_NEXT_STRING_SAFE(ARGS);
 
   // instantiate our internal c++ class representation
-  PackageVersionChumpinate * c_obj = new PackageVersionChumpinate( ver_arg );
+  PackageVersionChumpinate * c_obj;
+  try {
+    c_obj = new PackageVersionChumpinate( pkg_name, ver_arg );
+  } catch (const std::exception &e) {
+    API->vm->throw_exception( e.what(), "", SHRED);
+  }
 
   // store the pointer in the ChucK object member
   OBJ_MEMBER_INT( SELF, package_version_data_offset ) = (t_CKINT)c_obj;
@@ -1109,12 +1140,18 @@ CK_DLL_CTOR( package_version_ctor_ints ) {
   // get the offset where we'll store our internal c++ class pointer
   OBJ_MEMBER_INT( SELF, package_version_data_offset ) = 0;
 
+  std::string pkg_name = GET_NEXT_STRING_SAFE(ARGS);
   t_CKINT ver_major = GET_NEXT_INT(ARGS);
   t_CKINT ver_minor = GET_NEXT_INT(ARGS);
   t_CKINT ver_patch = GET_NEXT_INT(ARGS);
 
   // instantiate our internal c++ class representation
-  PackageVersionChumpinate * c_obj = new PackageVersionChumpinate( ver_major, ver_minor, ver_patch );
+  PackageVersionChumpinate * c_obj;
+  try {
+    c_obj = new PackageVersionChumpinate( pkg_name, ver_major, ver_minor, ver_patch );
+  } catch (const std::exception &e) {
+    API->vm->throw_exception( e.what(), "", SHRED);
+  }
 
   // store the pointer in the ChucK object member
   OBJ_MEMBER_INT( SELF, package_version_data_offset ) = (t_CKINT)c_obj;
@@ -1401,5 +1438,10 @@ CK_DLL_MFUN( package_version_generateVersionDefinition ) {
   string filename = GET_NEXT_STRING_SAFE( ARGS );
   string pkg_dir = GET_NEXT_STRING_SAFE( ARGS );
 
-  c_obj->generateVersionDefinition(filename, pkg_dir);
+  t_CKINT val;
+  try {
+    val = c_obj->generateVersionDefinition(filename, pkg_dir);
+  } catch (const std::exception &e) {
+    API->vm->throw_exception( e.what(), "", SHRED);
+  }
 }
