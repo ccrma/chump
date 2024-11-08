@@ -41,6 +41,8 @@
 #include "chuck_version.h"
 
 // general includes
+#include <chrono>
+#include <ctime>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -57,6 +59,8 @@ using std::vector;
 using json = nlohmann::json;
 
 namespace fs = std::filesystem;
+
+
 
 
 // declaration of chugin constructor
@@ -908,11 +912,6 @@ public:
     // TODO validate that it's a url
     url_zip = url;
 
-    // if (fs::exists(json_path) && !fs::is_directory(json_path)) {
-    //   std::cerr << "Path " << json_path << " exists, but is not a directory" << std::endl;
-    //   return false;
-    // }
-
     // create directory
     fs::create_directory(package_dir);
 
@@ -958,24 +957,54 @@ public:
       file.seekg(0, std::ios::beg);
 
       std::vector<char> buffer(size);
-      if (size == 0 || file.read(&buffer[0], size))
-        {
-          zip_fileinfo zfi = { 0 };
-          // fs::path zipPath = destination.lexically_normal();
+      if (size == 0 || file.read(&buffer[0], size)) {
+        tm_zip lastWriteTime = getLastWriteTime(filepath);
+        zip_fileinfo zfi;
+        zfi.tmz_date = lastWriteTime;
+        std::cout << zfi.tmz_date.tm_mday << std::endl;
 
-          if (ZIP_OK == zipOpenNewFileInZip(zf, destination.c_str(), &zfi, NULL, 0, NULL, 0, NULL, Z_DEFLATED, MZ_COMPRESS_LEVEL_DEFAULT))
-            {
-              if (zipWriteInFileInZip(zf, size == 0 ? "" : &buffer[0], size))
-                _return = false;
+        if (ZIP_OK == zipOpenNewFileInZip(zf, destination.c_str(), &zfi, NULL, 0, NULL, 0, NULL, Z_DEFLATED, MZ_COMPRESS_LEVEL_DEFAULT))
+          {
+            if (zipWriteInFileInZip(zf, size == 0 ? "" : &buffer[0], size))
+              _return = false;
 
-              if (zipCloseFileInZip(zf))
-                _return = false;
-            }
-        }
+            if (zipCloseFileInZip(zf))
+              _return = false;
+          }
+      }
       file.close();
     }
 
     return _return;
+  }
+
+  tm_zip getLastWriteTime(const fs::path& filepath) {
+    // Get last write time as a filesystem time point
+    auto ftime = fs::last_write_time(filepath);
+
+    // Convert filesystem time to time_t
+    auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+                  ftime - fs::file_time_type::clock::now() + std::chrono::system_clock::now());
+    std::time_t cftime = std::chrono::system_clock::to_time_t(sctp);
+
+    // Convert time_t to tm struct
+    std::tm tm;
+#ifdef _WIN32
+    localtime_s(&tm, &cftime);
+#else
+    localtime_r(&cftime, &tm);
+#endif
+
+    // Map std::tm to tm_zip format
+    tm_zip result;
+    result.tm_sec  = tm.tm_sec;
+    result.tm_min  = tm.tm_min;
+    result.tm_hour = tm.tm_hour;
+    result.tm_mday = tm.tm_mday;
+    result.tm_mon  = tm.tm_mon;
+    result.tm_year = tm.tm_year + 1900; // Adjust for tm_zip's expected year range
+
+    return result;
   }
 
 private:

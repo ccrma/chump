@@ -61,5 +61,5 @@ ver.addExampleFile("./test.txt", "test");
 ver.addDocsFile("./test.txt");
 ver.addDepsFile("./test.txt");
 
-ver.generateVersion("./", "poop", "www.");
+ver.generateVersion("./butt", "poop", "www.");
 
