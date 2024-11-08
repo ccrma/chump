@@ -39,6 +39,7 @@
 #include "chugin.h"
 #include "package.h"
 #include "chuck_version.h"
+#include "util.h"
 
 // general includes
 #include <chrono>
@@ -494,6 +495,7 @@ CK_DLL_QUERY( Chumpinate )
     QUERY->add_arg( QUERY, "string", "url");
 
     QUERY->add_mfun( QUERY, package_version_generateVersionDefinition, "int", "generateVersionDefinition" );
+    QUERY->add_arg( QUERY, "string", "filename");
     QUERY->add_arg( QUERY, "string", "pkg_dir");
 
     // this reserves a variable in the ChucK internal class to store
@@ -931,7 +933,10 @@ public:
     // iterate through all files in different file directories and add them to the .zip file
     // for (auto file: files) {
     for (std::size_t i = 0; i < files.size(); i++) {
-      addFileToZip(zf, files[i], file_destinations[i]);
+      if (!addFileToZip(zf, files[i], file_destinations[i])) {
+        std::cerr << "error opening file " << files[i] << std::endl;
+        _return = false;
+      }
     }
 
     if (zipClose(zf, NULL))
@@ -941,7 +946,8 @@ public:
       return false;
 
     // TODO generate chucksum
-
+    zip_checksum = hash_file(zip_filepath);
+    // std::cout << zip_checksum << std::endl;
 
     return true;
   }
@@ -961,7 +967,6 @@ public:
         tm_zip lastWriteTime = getLastWriteTime(filepath);
         zip_fileinfo zfi;
         zfi.tmz_date = lastWriteTime;
-        std::cout << zfi.tmz_date.tm_mday << std::endl;
 
         if (ZIP_OK == zipOpenNewFileInZip(zf, destination.c_str(), &zfi, NULL, 0, NULL, 0, NULL, Z_DEFLATED, MZ_COMPRESS_LEVEL_DEFAULT))
           {
@@ -1007,19 +1012,63 @@ public:
     return result;
   }
 
+  t_CKINT generateVersionDefinition( fs::path filename, fs::path pkg_dir ) {
+    json j = {
+      {"version", ver.getVersionString()}
+    };
+
+    if (api_ver) {
+      j["api_version"] = api_ver.value();
+    }
+
+    if (language_version_min) {
+      j["language_version_min"] = language_version_min.value();
+    }
+
+    if (language_version_max) {
+      j["language_version_min"] = language_version_max.value();
+    }
+
+    if (os) {
+      j["os"] = os.value();
+    }
+
+    File f;
+    f.url = url_zip;
+    f.local_dir = "./";
+    f.file_type = ZIP_FILE;
+    f.checksum = zip_checksum;
+
+    j["files"] = f;
+
+    fs::path json_dir = pkg_dir / ver.getVersionString();
+    fs::create_directory(json_dir);
+
+    if (filename.extension() != ".json") {
+      filename.replace_extension("json");
+    }
+
+
+    std::ofstream o(json_dir / filename);
+    o << std::setw(4) << j << std::endl;
+    o.close();
+
+    return true;
+  }
+
 private:
   // instance data
   t_CKFLOAT m_param;
 
   PackageVersion ver;
   optional<ApiVersion> api_ver;
-  optional<int> testp;
   optional<ChuckVersion> language_version_min;
   optional<ChuckVersion> language_version_max;
   optional<string> os;
 
   vector<fs::path> files; // the actual paths of the files to be zipped
   vector<fs::path> file_destinations; // the package-relative paths of the files to be zipped
+  vector<FileType> files_types;
 
   // path to the url where the zipped package can be downloaded
   fs::path url_zip;
@@ -1346,4 +1395,11 @@ CK_DLL_MFUN( package_version_createZip ) {
 
   c_obj->createZip(package_dir, filename, url);
 }
-CK_DLL_MFUN( package_version_generateVersionDefinition ) { }
+CK_DLL_MFUN( package_version_generateVersionDefinition ) {
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+  string filename = GET_NEXT_STRING_SAFE( ARGS );
+  string pkg_dir = GET_NEXT_STRING_SAFE( ARGS );
+
+  c_obj->generateVersionDefinition(filename, pkg_dir);
+}

@@ -18,28 +18,29 @@
 //    `chuck --chugin:Chumpinate.chug Chumpinate-test.ck -v3`
 //--------------------------------------------------------------------
 
-// instantiate a Chumpinate
-// Package.help();
-// Package pkg("test-pkg");
+// instantiate a Chumpinate package
+Package pkg("test-pkg");
 
-// "nick" => pkg.authors;
+// Add our metadata...
+"nick" => pkg.authors;
 
-// ["nick", "ge"] => pkg.authors;
+["nick", "ge"] => pkg.authors;
 
-// "www.www.com" => pkg.homepage;
-// "www.www.com" => pkg.repository;
+"www.www.com" => pkg.homepage;
+"www.www.com" => pkg.repository;
 
-// "mit" => pkg.license;
-// "a description" => pkg.description;
+"mit" => pkg.license;
+"a description" => pkg.description;
 
-// ["wow", "much", "keyword"] => pkg.keywords;
+["wow", "much", "keyword"] => pkg.keywords;
 
-// "./" => pkg.generatePackageDefinition;
+// generate a package-definition.json
+// This will be stored in "test-pkg/package.json"
+"./" => pkg.generatePackageDefinition;
 
 
-PackageVersion.help();
+// Now we need to define a specific PackageVersion for test-pkg
 PackageVersion ver("1.0.0");
-// PackageVersion ver;
 
 "10.2" => ver.apiVersion;
 <<< ver.apiVersion() >>>;
@@ -54,12 +55,18 @@ PackageVersion ver("1.0.0");
 <<< ver.os() >>>;
 
 
-// Add itself
+// Add a bunch of files that are found in this version of the pkg
 ver.addFile("./test.txt");
 ver.addDataFile("./test.txt");
 ver.addExampleFile("./test.txt", "test");
 ver.addDocsFile("./test.txt");
 ver.addDepsFile("./test.txt");
 
-ver.generateVersion("./butt", "poop", "www.");
+// wrap up all our files into a zip file, and tell Chumpinate what URL
+// this zip file will be located at.
+ver.generateVersion("./", "test-pkg_windows", "ccrma.stanford.edu/~nshaheed/test-pkg.zip");
+
+// Generate a version definition json file, stores this in "test-pkg/1.0.0/test-pkg_window.json"
+ver.generateVersionDefinition("test-pkg_windows", "./test-pkg");
+
 
