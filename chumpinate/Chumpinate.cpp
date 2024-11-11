@@ -904,6 +904,10 @@ public:
   void addFile(fs::path file, fs::path dir, FileType file_type) {
     fs::path destination;
 
+    if (!fs::exists(file)) {
+      std::cerr << "File " << file << " doesn't exist!" << std::endl;
+    }
+
     switch (file_type) {
     case PACKAGE_FILE:
       destination = dir / file.filename();

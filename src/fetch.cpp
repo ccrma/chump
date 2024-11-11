@@ -27,6 +27,10 @@ struct curl_progress {
 
 // Callback function to update progress
 int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow) {
+    if (!clientp) {
+      std::cerr << "progress callback recieved empty clientp" << std::endl;
+      return -1;
+    }
     // metadata for the progress bar
     struct curl_progress *memory = static_cast<struct curl_progress*>(clientp);
 
@@ -202,7 +206,7 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
     return false;
   }
 
-    // struct progress data;
+  // struct progress data;
   CURL *curl;
   FILE *fp;
   CURLcode res;
@@ -233,9 +237,15 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
     // Set file to write to
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
 
+    struct curl_progress data;
+    data.packageName = "manifest";
+    data.fileName = "manifest.json";
+
     // Set the progress callback function
-    if (render)
+    if (render) {
+      curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &data);
       curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progressCallback);
+    }
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 
     // We don't want to write the error to a file if the request fails
