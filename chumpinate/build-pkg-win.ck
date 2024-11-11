@@ -35,7 +35,7 @@ PackageVersion ver("Chumpinate", me.arg(0));
 
 "1.5.4.0" => ver.languageVersionMin;
 
-"linux"=> ver.os;
+"windows"=> ver.os;
 
 ver.addFile("../builddir-release/chumpinate/Chumpinate.chug");
 
@@ -45,12 +45,12 @@ ver.addFile("../builddir-release/chumpinate/Chumpinate.chug");
 
 // wrap up all our files into a zip file, and tell Chumpinate what URL
 // this zip file will be located at.
-ver.generateVersion("./", "Chumpinate_linux", "https://ccrma.stanford.edu/~nshaheed/" + path);
+ver.generateVersion("./", "Chumpinate_windows", "https://ccrma.stanford.edu/~nshaheed/" + path);
 
 chout <= "Use the following commands to upload the package to CCRMA's servers:" <= IO.newline();
 chout <= "ssh nshaheed@ccrma-gate.stanford.edu \"mkdir -p ~/Library/Web/chugins/Chumpinate/"
       <= ver.version() <= "/" <= ver.os() <= "\"" <= IO.newline();
-chout <= "scp Chumpinate_linux.zip nshaheed@ccrma-gate.stanford.edu:~/Library/Web/" <= path <= IO.newline();
+chout <= "scp Chumpinate_windows.zip nshaheed@ccrma-gate.stanford.edu:~/Library/Web/" <= path <= IO.newline();
 
-// Generate a version definition json file, stores this in "chumpinate/<VerNo>/Chumpinate_linux.json"
-ver.generateVersionDefinition("Chumpinate_linux", "./" );
+// Generate a version definition json file, stores this in "chumpinate/<VerNo>/Chumpinate_windows.json"
+ver.generateVersionDefinition("Chumpinate_windows", "./" );
