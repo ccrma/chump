@@ -942,7 +942,7 @@ public:
 
     zip_filepath.replace_extension("zip");
 
-    zipFile zf = zipOpen(zip_filepath.c_str(), APPEND_STATUS_CREATE);
+    zipFile zf = zipOpen(zip_filepath.string().c_str(), APPEND_STATUS_CREATE);
 
     if (zf == NULL)
       return false;
@@ -987,7 +987,7 @@ public:
         zip_fileinfo zfi;
         zfi.tmz_date = lastWriteTime;
 
-        if (ZIP_OK == zipOpenNewFileInZip(zf, destination.c_str(), &zfi, NULL, 0, NULL, 0, NULL, Z_DEFLATED, MZ_COMPRESS_LEVEL_DEFAULT))
+        if (ZIP_OK == zipOpenNewFileInZip(zf, destination.string().c_str(), &zfi, NULL, 0, NULL, 0, NULL, Z_DEFLATED, MZ_COMPRESS_LEVEL_DEFAULT))
           {
             if (zipWriteInFileInZip(zf, size == 0 ? "" : &buffer[0], size))
               _return = false;
@@ -1057,7 +1057,7 @@ public:
     }
 
     File f;
-    f.url = url_zip;
+    f.url = url_zip.string();
     f.local_dir = "./";
     f.file_type = ZIP_FILE;
     f.checksum = zip_checksum;

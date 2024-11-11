@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cstdio>
+#include <sstream>
 #include <stdexcept>
 #include <regex>
 
