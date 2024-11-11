@@ -1062,7 +1062,9 @@ public:
     f.file_type = ZIP_FILE;
     f.checksum = zip_checksum;
 
-    j["files"] = f;
+    vector<File> fs = {f};
+
+    j["files"] = fs;
 
     fs::path json_dir = pkg_dir / package_name / ver.getVersionString();
     fs::create_directory(json_dir);
