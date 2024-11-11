@@ -6,5 +6,5 @@ shared_library(
   'Chumpinate.cpp',
   name_prefix: '', # 'lib' is prepended otherwise
   name_suffix: 'chug',
-  dependencies: [cheaders_dep, nlohmann_json_dep]
+  dependencies: [cheaders_dep, chump_lib_dep, nlohmann_json_dep]
 )
