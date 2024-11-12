@@ -15,6 +15,7 @@ PackageList::PackageList(fs::path filepath) {
   }
 
   json data = json::parse(f);
+  f.close();
 
   // parse all the packages
   json j_packages = data["packages"];

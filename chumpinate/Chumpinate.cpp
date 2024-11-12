@@ -991,13 +991,28 @@ public:
         zip_fileinfo zfi;
         zfi.tmz_date = lastWriteTime;
 
-        if (ZIP_OK == zipOpenNewFileInZip(zf, destination.string().c_str(), &zfi, NULL, 0, NULL, 0, NULL, Z_DEFLATED, MZ_COMPRESS_LEVEL_DEFAULT))
+        // Some builds of minizip-ng can't actually compress 
+        // (depending on availability of dependencies). In that 
+        // case we simply use zip as a wrapper so we only have to
+        // deal with one file.
+        #ifdef MZ_ZIP_NO_COMPRESSION
+        int compression_level = MZ_COMPRESS_METHOD_STORE;
+        #else
+        int compression_level = MZ_COMPRESS_LEVEL_DEFAULT;
+        #endif
+
+        int zip_status = zipOpenNewFileInZip(zf, destination.string().c_str(), &zfi, NULL, 0, NULL, 0, NULL, Z_DEFLATED, compression_level);
+        if (zip_status == ZIP_OK)
           {
             if (zipWriteInFileInZip(zf, size == 0 ? "" : &buffer[0], size))
               _return = false;
 
             if (zipCloseFileInZip(zf))
               _return = false;
+          }
+          else {
+            std::cerr << "zip file failed to add: " << zip_status << std::endl;
+            _return = false;
           }
       }
       file.close();
