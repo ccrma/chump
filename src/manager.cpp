@@ -378,6 +378,9 @@ bool Manager::update_manifest() {
     are_equal = false;
   }
 
+  temp_manifest.close();
+  curr_manifest.close();
+
   if (are_equal) {
     std::cerr << "current manifest is up-to-date, doing nothing" << std::endl;
     return false;
