@@ -167,6 +167,7 @@ bool Manager::update(string packageName) {
 
   if (!f.good()) {
     std::cerr << "Unable to open " << install_dir / "version.json" << std::endl;
+    f.close();
     return false;
   }
 
@@ -288,7 +289,14 @@ bool Manager::uninstall(string packageName) {
     return false;
   }
 
-  json pkg_ver = json::parse(f);
+  json pkg_ver;
+  try {
+    pkg_ver = json::parse(f);
+  } catch (const std::exception &e) {
+    f.close();
+    throw;
+  }
+
   f.close();
   InstalledVersion installed_ver = pkg_ver.template get<InstalledVersion>();
   PackageVersion curr_ver = installed_ver.version();
