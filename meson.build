@@ -42,7 +42,9 @@ install_data('data/manifest.json',
              install_mode: 'rwxrwxrwx',
             )
 
+
 # Expose data for tests at local level in build dir
+message('copying test data...')
 fs.copyfile('tests/data/test-package-list.json')
 
 # Chumpinate options

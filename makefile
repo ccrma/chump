@@ -10,7 +10,7 @@ build-release:
 	meson setup builddir-release
 
 build-debug:
-	meson setup --buildtype=debug --debug builddir-debug
+	meson setup --buildtype=debug --debug builddir-debug -Db_coverage=true
 
 build-release-win:
 	meson setup builddir-release --backend vs
@@ -29,6 +29,9 @@ build-mac-arm64: setup-mac-arm64
 
 install:
 	meson install -C builddir-release
+
+coverage: build-debug
+	ninja coverage -C builddir-debug
 
 .PHONY: mac osx linux linux-oss linux-jack linux-alsa linux-all
 mac osx linux linux-oss linux-jack linux-alsa linux-all: build-release
