@@ -4,7 +4,6 @@ chump_lib_sources = [
         'manager.cpp',
         'package_list.cpp',
         'package.cpp',
-        'uninstaller.cpp',
         'util.cpp',
 ]
 

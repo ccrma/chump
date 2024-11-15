@@ -9,7 +9,6 @@
 #include "package.h"
 #include "package_list.h"
 #include "fetch.h"
-#include "uninstaller.h"
 #include "chuck_version.h"
 
 using std::optional;
@@ -43,7 +42,6 @@ public:
 
 private:
   PackageList* package_list;
-  UninstallerBase* uninstaller;
   ChuckVersion language_version;
   ApiVersion api_version;
   fs::path chump_dir;

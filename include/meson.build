@@ -5,6 +5,5 @@ install_headers(
     'manager.h',
     'package.h',
     'package_list.h',
-    'uninstaller.h',
     'util.h'
 )

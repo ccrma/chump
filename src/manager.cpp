@@ -15,7 +15,6 @@ Manager::Manager(string package_list_path, fs::path package_install_dir, ChuckVe
   // parse the existing manifest.
   if (package_list_path == "") package_list = new PackageList();
   else package_list = new PackageList(package_list_path);
-  uninstaller = new Uninstaller(package_list, chump_dir);
 
   language_version = ck_ver;
   api_version = api_ver;
