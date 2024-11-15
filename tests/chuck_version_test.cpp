@@ -1,5 +1,6 @@
 #include "chuck_version.h"
 #include <catch2/catch_test_macros.hpp>
+#include <sstream>
 
 TEST_CASE("ChuckVersion constructor with default command", "[ChuckVersion]") {
     SECTION("Invalid command") {
