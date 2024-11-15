@@ -30,6 +30,11 @@ TEST_CASE("Parsing invalid version string") {
         REQUIRE_THROWS_AS(PackageVersion(versionStr), std::invalid_argument);
     }
 
+    SECTION("Invalid format: negative umber") {
+        std::string versionStr = "1.2.-3";
+        REQUIRE_THROWS_AS(PackageVersion(versionStr), std::invalid_argument);
+    }
+
     SECTION("Invalid format: Extra dot") {
         std::string versionStr = "1.2.3.";
         REQUIRE_THROWS_AS(PackageVersion(versionStr), std::invalid_argument);

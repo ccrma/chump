@@ -18,6 +18,31 @@ TEST_CASE("ApiVersion constructor with version string", "[ApiVersion]") {
         // Provide an invalid version string, the constructor should throw an exception
         REQUIRE_THROWS_AS(ApiVersion("Invalid version string"), std::runtime_error);
     }
+
+    SECTION("Invalid version string format - letters") {
+        REQUIRE_THROWS_AS(ApiVersion("abc.def"), std::runtime_error);
+    }
+
+    SECTION("Invalid version string format - no dot") {
+        REQUIRE_THROWS_AS(ApiVersion("20 30"), std::runtime_error);
+    }
+
+    SECTION("Empty version string") {
+        REQUIRE_THROWS_AS(ApiVersion(""), std::runtime_error);
+    }
+
+}
+
+TEST_CASE("ApiVersion makeVersion static method", "[ApiVersion]") {
+    ApiVersion version = ApiVersion::makeVersion("1.2");
+    REQUIRE(version.getVersionString() == "1.2");
+}
+
+TEST_CASE("Output stream operator", "[ApiVersion]") {
+    ApiVersion version(6, 9);
+    std::ostringstream os;
+    os << version;
+    REQUIRE(os.str() == "6.9");
 }
 
 TEST_CASE("ApiVersion version numbers are correctly parsed", "[ApiVersion]") {
@@ -25,6 +50,30 @@ TEST_CASE("ApiVersion version numbers are correctly parsed", "[ApiVersion]") {
         ApiVersion chuck("10.1");
         REQUIRE(chuck.major == 10);
         REQUIRE(chuck.minor == 1);
+    }
+}
+
+TEST_CASE("ApiVersion parameterized constructor") {
+    ApiVersion apiVer(2, 3);
+    REQUIRE(apiVer.getVersionString() == "2.3");
+}
+
+TEST_CASE("ApiVersion makeVersion, makeSystemVersion") {
+    ApiVersion apiVer = ApiVersion::makeVersion("4.5");
+    REQUIRE(apiVer.getVersionString() == "4.5");
+}
+
+TEST_CASE("ApiVersion::set_version", "[ApiVersion]") {
+    ApiVersion version;
+    SECTION("Valid version string") {
+        version.set_version("4.5");
+        REQUIRE(version == ApiVersion(4, 5));
+    }
+
+    SECTION("Invalid version string throws") {
+        REQUIRE_THROWS_AS(version.set_version("4..5"), std::runtime_error);
+        REQUIRE_THROWS_AS(version.set_version(""), std::runtime_error);
+        REQUIRE_THROWS_AS(version.set_version("4."), std::runtime_error);
     }
 }
 

@@ -27,7 +27,39 @@ TEST_CASE("ChuckVersion version numbers are correctly parsed", "[ChuckVersion]")
         REQUIRE(chuck.minor == 3);
         REQUIRE(chuck.patch == 8);
     }
+    SECTION("Valid positive values initialization") {
+        ChuckVersion version(1, 2, 3, 4);
+        REQUIRE(version.mega == 1);
+        REQUIRE(version.major == 2);
+        REQUIRE(version.minor == 3);
+        REQUIRE(version.patch == 4);
+    }
 }
+
+TEST_CASE("ChuckVersion makeVersion, makeSystemVersion") {
+    ChuckVersion ver = ChuckVersion::makeVersion("7.8.9.10");
+    REQUIRE(ver.getVersionString() == "7.8.9.10");
+}
+
+TEST_CASE("ChuckVersion - getVersionString", "[version]") {
+
+    SECTION("Positive cases") {
+      CHECK(ChuckVersion(0, 0, 0, 0).getVersionString() == "0.0.0.0");
+        CHECK(ChuckVersion(1, 0, 0, 0).getVersionString() == "1.0.0.0");
+        CHECK(ChuckVersion(0, 1, 0, 0).getVersionString() == "0.1.0.0");
+        CHECK(ChuckVersion(0, 0, 1, 0).getVersionString() == "0.0.1.0");
+        CHECK(ChuckVersion(0, 0, 0, 1).getVersionString() == "0.0.0.1");
+        CHECK(ChuckVersion(1, 2, 3, 4).getVersionString() == "1.2.3.4");
+    }
+
+    SECTION("Negative values") {
+        CHECK(ChuckVersion(-1, 0, 0, 0).getVersionString() == "-1.0.0.0");
+        CHECK(ChuckVersion(0, -1, 0, 0).getVersionString() == "0.-1.0.0");
+        CHECK(ChuckVersion(0, 0, -1, 0).getVersionString() == "0.0.-1.0");
+        CHECK(ChuckVersion(0, 0, 0, -1).getVersionString() == "0.0.0.-1");
+    }
+}
+
 
 // Unit tests
 TEST_CASE("ChuckVersion comparison operators", "[ChuckVersion]") {
@@ -76,4 +108,11 @@ TEST_CASE("ChuckVersion comparison operators", "[ChuckVersion]") {
         REQUIRE_FALSE(chuck1 >= chuck2);
         REQUIRE_FALSE(chuck1 >= chuck3);
     }
+}
+
+TEST_CASE("Output stream operator", "[ChuckVersion]") {
+  ChuckVersion version(1, 4, 5, 1);
+  std::ostringstream os;
+  os << version;
+  REQUIRE(os.str() == "1.4.5.1");
 }
