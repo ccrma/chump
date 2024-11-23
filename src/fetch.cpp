@@ -10,6 +10,9 @@
 
 #include <openssl/sha.h>
 
+#define CHUMP_PROGRESS_BAR_WIDTH 50
+#define CHUMP_PROGRESS_BAR_WIDTH_EXTRA (CHUMP_PROGRESS_BAR_WIDTH+10)
+
 
 Fetch::Fetch() {
   render = false;
@@ -32,12 +35,12 @@ int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal
       return -1;
     }
     // metadata for the progress bar
-    struct curl_progress *memory = static_cast<struct curl_progress*>(clientp);
+    // struct curl_progress *memory = static_cast<struct curl_progress*>(clientp);
 
     // Calculate progress percentage
     double progress = (dlnow > 0) ? ((double)dlnow / (double)dltotal) : 0.0;
 
-    int bar_width = 50; // Width of the progress bar
+    int bar_width = CHUMP_PROGRESS_BAR_WIDTH; // Width of the progress bar
     int filled_width = progress * bar_width;
 
     // Get the current time point
@@ -192,7 +195,8 @@ bool Fetch::fetch(std::string url, fs::path dir,
     return false;
   }
 
-    std::cerr << "\r |- successfully downloaded " << filename << "!                                                             " << std::endl;;
+  std::string line = string(" |- successfully downloaded ") + filename.string() + "!";
+  std::cerr << "\r" << std::left << std::setw(CHUMP_PROGRESS_BAR_WIDTH_EXTRA) << line << std::endl;
 
   return true;
 }
