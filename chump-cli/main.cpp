@@ -65,6 +65,15 @@ int main( int argc, const char ** argv ) {
   app.require_subcommand(1); // only want a single command here
 
   CLI11_PARSE(app, argc, argv);
+
+  // check if we output to TTY (teletype interactive terminal)
+  // if not disable color teriminal to avoid outputing
+  // ANSI escape codes to the output stream, which would
+  // show up in | and >
+  t_CKBOOL colorTerminal = ck_isatty();
+  // set the color terminal global setting
+  TC::globalDisableOverride( !colorTerminal );
+
   /****************************************************************
    * Chump setup
    ****************************************************************/

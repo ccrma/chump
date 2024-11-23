@@ -66,41 +66,39 @@ void printPackages(Manager* mgr, bool print_installed) {
 
 
 std::string printLogo() {
-  std::string logo = R"(
-                                                            ss
-                                                            rox        zop
-                                                            xor        ony
-                         tkjiimtz             yrljjjjjjox    oo       qnx
-                             zsliiiilrwzzxsliiimty           sov     wor
-                                   xrmjjjjmsz                 oo     poz
-                                                              row   yoq
-                                          xqnrutlhiihmv        oo   tov
-                                     zskiijnpmklry             uot  oo
-                                  yohhmu                        pnyzop
-                        uljjjjjjjihpy                           znopoy
-                                                                 vnfo
-                                                                  vmr
-
-                                                                                zxwvx
-                                                                           zxxwwwy  ywwz
-                 xx   yy                                              ywwwxxz         zxvx
-           ysoooopuz  xw                                              xx                 ww
-         womsz        ywy                                             zwx                xx
-        tmt            wx                                              ww                ww
-       xnq             ww                    zz                        zwx               ww
-      zno              ww                     yz     zz zyz             ww              xvz
-      poy              ww                     zyz    xvuvvv   vx        ywxyxyzywwxxxxwwxz
-      oo               xw     zxy     yxz      zyz   xtv  wwwwzwvz      zuuxyxxy
-      oo               zwx    wtw     zwx       yz   ywx  xtvy  wwz      xx
-      tmnooooooopv      ww   wwww      yxz      zzz  zvw  zww   ww       xx
-       tmoooxxywxy      ywz xwzxwz     zxyz     zzz  zvw       zwx       ww
-                        zwx wx  ww     zz yyz   yy    ww       ywy       xw
-                         xwvw    wvy   yy  zyyzyz     xx       xwz       zwy
-                          vtx                 z                zyz        xx
-                                                                          xw
-                                                                           xy
-                           the CHUck Manager of Packages (chump)
-)";
+std::string logo = R"(
+                                                 ss
+                                                 rox        zop
+                                                 xor        ony
+              tkjiimtz             yrljjjjjjox    oo       qnx
+                  zsuckerlrwzzxsliiimty           sov     wor
+                        xrmjjjjmsz                 oo     poz
+                                                   row   yoq
+                               xqnrutchumpmv        oo   tov
+                          zskiijnpmklry             uot  oo
+                       yohhmu                        pnyzop
+             uljjjjjjhippy                           znopoy
+                                                      vnfo
+                                                       vmr         zxwvx
+                                                              zxxwwwy  ywwz
+            oo  yy                                          wwwxxz       zxvx
+        ysoooo  xw                                         xx               ww
+      womsz     ywy                                        zwx              xx
+     tmt         wx                                         ww              ww
+    xnq          ww                   zz                    zwx             ww
+   zno           ww                    yz     zz zyz         ww            xvz
+   poy           ww                    zyz    xvuvvv   vx    ywxyxyzywxxwwxz
+   oo            xw     zxy    yxz      zyz   xtv  wwwwzwvz  zuuxyxxy
+   oo            zwx    wtw    zwx       yz   ywx  xtvy  wwz  xx
+   tmntoooooopv   ww   wwww     yxz      zzz  zvw  zww   ww   xx
+    tmoooxxywxy   ywz xwzxwz    zxyz     zzz  zvw       zwx   ww
+                  zwx wx  ww    zz yyz   yy    ww       ywy   xw
+                   xwvw    wvy  yy  zyyzyz     xx       xwz   zwy
+                    vtx                z               zyz    xx
+                                                               xw
+                                                                xy
+                --- ChuMP! the CHUck Manager of Packages ---
+  )";
 
     return logo;
 }

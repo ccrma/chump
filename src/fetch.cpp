@@ -11,7 +11,7 @@
 #include <openssl/sha.h>
 
 #define CHUMP_PROGRESS_BAR_WIDTH 50
-#define CHUMP_PROGRESS_BAR_WIDTH_EXTRA (CHUMP_PROGRESS_BAR_WIDTH+10)
+#define CHUMP_PROGRESS_BAR_WIDTH_EXTRA (CHUMP_PROGRESS_BAR_WIDTH+50)
 
 
 Fetch::Fetch() {
@@ -74,12 +74,14 @@ int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal
       line = "=^";
     }
 
+    line = TC::blue(line, TRUE);
+
     line += " [";
     for (int i = 0; i < bar_width; i++) {
         if (i < filled_width)
-          line += "=";
+          line += TC::green("=",TRUE);
         else if (i == filled_width)
-          line += "v";
+          line += TC::orange("v",TRUE);
         else
           line += " ";
     }
@@ -165,8 +167,8 @@ bool Fetch::fetch(std::string url, fs::path dir,
 
     // Perform the request
     //if (render) initscr();
-    string line = "down-chucking package: '";
-    line += package.name + "' file: '" + filename.string() + "'\n";
+    string line = TC::orange("down-chucking package",TRUE) + " ";
+    line += TC::bold(package.name) + TC::orange(" ├─ ",TRUE) + filename.string() + "\n";
     // print it
     // fprintf( stderr, "%s", line.c_str() );
     std::cerr << line;
@@ -195,7 +197,9 @@ bool Fetch::fetch(std::string url, fs::path dir,
     return false;
   }
 
-  std::string line = string(" |- successfully downloaded ") + filename.string() + "!";
+  // std::string line = string(" |- successfully downloaded ") + filename.string() + "!";
+  // std::string line = string(" |- ") + TC::green("successfully downloaded ") + filename.string() + "!";
+  std::string line = string("   └─[") + TC::green("OK",TRUE) + "] " + TC::blue(filename.string());
   std::cerr << "\r" << std::left << std::setw(CHUMP_PROGRESS_BAR_WIDTH_EXTRA) << line << std::endl;
 
   return true;
