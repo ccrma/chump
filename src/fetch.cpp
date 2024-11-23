@@ -10,8 +10,6 @@
 
 #include <openssl/sha.h>
 
-#include <unistd.h>
-
 
 Fetch::Fetch() {
   render = false;
@@ -267,7 +265,6 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
     // Perform the request
     if (render) initscr();
     res = curl_easy_perform(curl);
-      usleep( 10000 );
     if (render) endwin();
 
     // Clean up
