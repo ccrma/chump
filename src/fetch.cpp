@@ -10,6 +10,8 @@
 
 #include <openssl/sha.h>
 
+#include <unistd.h>
+
 
 Fetch::Fetch() {
   render = false;
@@ -53,36 +55,40 @@ int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal
     long long milliseconds_count = milliseconds.count() % 1000;
 
     // Clear the screen
-    erase();
+    // erase();
 
     // Draw the progress bar
     // mvprintw(0, 0, "DownChucKing: [");
-    mvprintw(0, 0, "DownChucKing Package %s (%s)\n", memory->packageName.c_str(), memory->fileName.c_str());
+    // mvprintw(0, 0, "DownChucKing Package %s (%s)\n", memory->packageName.c_str(), memory->fileName.c_str());
+
+    string line;
 
     if (milliseconds_count < 250) {
-      printw("=>");
+      line = "=>";
     } else if (milliseconds_count < 500) {
-      printw("=v");
+      line = "=v";
     } else if (milliseconds_count < 750) {
-      printw("=<");
+      line = "=<";
     } else {
-      printw("=^");
+      line = "=^";
     }
 
-    printw(" [");
-
+    line += " [";
     for (int i = 0; i < bar_width; i++) {
         if (i < filled_width)
-          printw("=");
+          line += "=";
         else if (i == filled_width)
-          printw("v");
+          line += "v";
         else
-          printw(" ");
+          line += " ";
     }
-    printw("] %3d%% ", (int)(progress * 100));
+    line += string("] ") + std::to_string( (int)(progress * 100 + .5) ) + "%";
+    // print it
+    // fprintf( stderr, "\r%s", line.c_str() );
+    std::cerr << "\r" << line.c_str();
 
     // mvprintw(1, 0, memory->fileName.c_str());
-    refresh();
+    // refresh();
 
     return 0;
 }
@@ -157,9 +163,15 @@ bool Fetch::fetch(std::string url, fs::path dir,
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
 
     // Perform the request
-    if (render) initscr();
+    //if (render) initscr();
+    string line = "down-chucking package: '";
+    line += package.name + "' file: '" + filename.string() + "'\n";
+    // print it
+    // fprintf( stderr, "%s", line.c_str() );
+    std::cerr << line;
+
     res = curl_easy_perform(curl);
-    if (render) endwin();
+    //if (render) endwin();
 
     // Clean up
     curl_easy_cleanup(curl);
@@ -182,7 +194,7 @@ bool Fetch::fetch(std::string url, fs::path dir,
     return false;
   }
 
-  std::cout << "Successfully downloaded " << filename << "!" << std::endl;
+    std::cerr << "\r |- successfully downloaded " << filename << "!                                                             " << std::endl;;
 
   return true;
 }
@@ -244,7 +256,8 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
     // Set the progress callback function
     if (render) {
       curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &data);
-      curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progressCallback);
+      // curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progressCallback);
+      curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progressCallback);
     }
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 
@@ -254,6 +267,7 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
     // Perform the request
     if (render) initscr();
     res = curl_easy_perform(curl);
+      usleep( 10000 );
     if (render) endwin();
 
     // Clean up
@@ -270,8 +284,8 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
     return false;
   }
 
-  std::cout << "Successfully downloaded manifest.json!" << std::endl;
-  // std::cout << "hash: " << hash_file(tempFilePath) << std::endl;
+  std::cerr << "Successfully downloaded manifest.json!" << std::endl;
+  // std::cerr << "hash: " << hash_file(tempFilePath) << std::endl;
 
   return true;
 }
