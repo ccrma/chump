@@ -172,15 +172,15 @@ int main( int argc, const char ** argv ) {
     while (true) {
 
       std::string logo = bedtimeLogo(counter);
-      std::cout << logo;
 
-      auto num_lines = std::count( logo.begin(), logo.end(), '\n' );
-
-      for (int i = 0; i < num_lines; i++) {
-        std::cout << "\x1b[F"; // Move the cursor up one line
+      int i = 0;
+      int rate = 4;
+      while (i < logo.length()) {
+        std::cout << logo.substr(i, 4);
+        i += rate;
       }
+
       counter++;
-      std::this_thread::sleep_for(std::chrono::milliseconds(120));
     }
   } else if (app.got_subcommand(dim)) {
     int counter = 0;
