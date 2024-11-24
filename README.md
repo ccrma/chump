@@ -12,7 +12,7 @@ The ChucK Manager of Packages
 
 ### Linux
 ```
-apt-get install libssl-dev libncurses5-dev libncursesw5-dev # install dependencies
+apt-get install libssl-dev # install dependencies
 make linux # build
 make test # run unit and integration tests
 make install # install chump (can require sudo)

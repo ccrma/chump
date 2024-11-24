@@ -3,8 +3,6 @@
 #include <chrono>
 #include <sstream>
 
-#include "curses.h"
-
 #include "fetch.h"
 #include "util.h"
 
@@ -35,7 +33,6 @@ int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal
       return -1;
     }
     // metadata for the progress bar
-    // struct curl_progress *memory = static_cast<struct curl_progress*>(clientp);
 
     // Calculate progress percentage
     double progress = (dlnow > 0) ? ((double)dlnow / (double)dltotal) : 0.0;
@@ -54,13 +51,6 @@ int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal
 
     // Extract the milliseconds component
     long long milliseconds_count = milliseconds.count() % 1000;
-
-    // Clear the screen
-    // erase();
-
-    // Draw the progress bar
-    // mvprintw(0, 0, "DownChucKing: [");
-    // mvprintw(0, 0, "DownChucKing Package %s (%s)\n", memory->packageName.c_str(), memory->fileName.c_str());
 
     string line;
 
@@ -86,12 +76,7 @@ int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal
           line += " ";
     }
     line += string("] ") + std::to_string( (int)(progress * 100 + .5) ) + "%";
-    // print it
-    // fprintf( stderr, "\r%s", line.c_str() );
     std::cerr << "\r" << line.c_str();
-
-    // mvprintw(1, 0, memory->fileName.c_str());
-    // refresh();
 
     return 0;
 }
@@ -166,15 +151,11 @@ bool Fetch::fetch(std::string url, fs::path dir,
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
 
     // Perform the request
-    //if (render) initscr();
     string line = TC::orange("down-chucking package",TRUE) + " ";
     line += TC::bold(package.name) + TC::orange(" ├─ ",TRUE) + filename.string() + "\n";
-    // print it
-    // fprintf( stderr, "%s", line.c_str() );
     std::cerr << line;
 
     res = curl_easy_perform(curl);
-    //if (render) endwin();
 
     // Clean up
     curl_easy_cleanup(curl);
@@ -197,8 +178,6 @@ bool Fetch::fetch(std::string url, fs::path dir,
     return false;
   }
 
-  // std::string line = string(" |- successfully downloaded ") + filename.string() + "!";
-  // std::string line = string(" |- ") + TC::green("successfully downloaded ") + filename.string() + "!";
   std::string line = string("   └─[") + TC::green("OK",TRUE) + "] " + TC::blue(filename.string());
   std::cerr << "\r" << std::left << std::setw(CHUMP_PROGRESS_BAR_WIDTH_EXTRA) << line << std::endl;
 
@@ -262,7 +241,6 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
     // Set the progress callback function
     if (render) {
       curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &data);
-      // curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progressCallback);
       curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progressCallback);
     }
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
@@ -271,9 +249,7 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
 
     // Perform the request
-    if (render) initscr();
     res = curl_easy_perform(curl);
-    if (render) endwin();
 
     // Clean up
     curl_easy_cleanup(curl);
