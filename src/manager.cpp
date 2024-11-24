@@ -187,12 +187,12 @@ bool Manager::update(string packageName) {
   PackageVersion latest_version = ver.value();
 
   if (curr_version == latest_version) {
-    std::cout << package.name << " is already up-to-date." << std::endl;
+    std::cerr << package.name << " is already up-to-date." << std::endl;
     return true;
   }
 
   if (curr_version > latest_version) {
-    std::cout << package.name << " is installed already with a newer version." << std::endl;
+    std::cerr << package.name << " is installed already with a newer version." << std::endl;
     return true;
   }
 

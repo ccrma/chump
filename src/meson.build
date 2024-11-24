@@ -13,23 +13,17 @@ libcurl_dep = dependency('libcurl', required: true)
 openssl_dep = subproject('openssl', required: true).get_variable('openssl_dep')
 minizip_dep = subproject('minizip-ng', required: true).get_variable('minizip_ng_dep')
 
-# Windows needs pdcurses, linux/macos needs curses
-if build_machine.system() == 'windows'
-  curses_dep = pdcurses_lib_dep
-else
-  curses_dep = dependency('curses', static: true)
-endif
-
-# zlib = dependency('zlib', version : '1.2.11')
+cheaders_proj = subproject('cheaders')
+cheaders_dep = cheaders_proj.get_variable('cheaders_dep')
 
 chump_lib = static_library(
   'chump_lib',
   sources: chump_lib_sources,
   include_directories : inc,
-  dependencies : [nlohmann_json_dep, libcurl_dep, curses_dep, openssl_dep, minizip_dep],
+  dependencies : [nlohmann_json_dep, libcurl_dep, openssl_dep, minizip_dep, cheaders_dep],
 )
 
 chump_lib_dep = declare_dependency(
-  dependencies: [nlohmann_json_dep, libcurl_dep, curses_dep, openssl_dep, minizip_dep],
+  dependencies: [nlohmann_json_dep, libcurl_dep, openssl_dep, minizip_dep, cheaders_dep],
   include_directories : inc,
   link_with : chump_lib)
