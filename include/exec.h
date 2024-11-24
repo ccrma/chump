@@ -93,6 +93,19 @@ void get_terminal_size(int& width, int& height) {
 #endif // Windows/Linux
 }
 
+void clear()
+{
+#if defined _WIN32
+    system("cls");
+    //clrscr(); // including header file : conio.h
+#elif defined (__LINUX__) || defined(__gnu_linux__) || defined(__linux__)
+    system("clear");
+    //std::cout<< u8"\033[2J\033[1;1H"; //Using ANSI Escape Sequences
+#elif defined (__APPLE__)
+    system("clear");
+#endif
+}
+
 std::string jumbleColors(std::string str, int counter) {
   std::default_random_engine generator;
   std::uniform_int_distribution<int> distribution(0,3);
@@ -251,13 +264,13 @@ std::string dimColors(std::string str, int counter) {
       output += substr; // TC::default(substr, bold);
       break;
     case 1:
-      output += TC::red(substr, FALSE);
+      output += TC::blue(substr, FALSE);
       break;
     case 2:
-      output += TC::color(TC::FG_BLACK, substr, bold);
+      output += TC::color(TC::FG_WHITE, substr, bold);
       break;
     case 3:
-      output += TC::magenta(substr, bold);
+      output += TC::orange(substr, bold);
       break;
     default:
       break;
@@ -422,13 +435,22 @@ std::string dimLogo(int counter) {
     "                                                                                 ",
   };
 
-    // auto num_lines = std::count( logo.begin(), logo.end(), '\n' );
-    // num_lines += ( !logo.empty() && logo.back() != '\n' );
+  std::string empty_line(width, ' ');
+  int padding_h = (height - logo.size()) / 2;
+
 
   std::string logo_combined;
 
+  for (int i = 0; i < padding_h; i++) {
+    logo_combined += empty_line + "\n";
+  }
+
   for (auto line: logo) {
     logo_combined += padding + line + padding + "\n";
+  }
+
+  for (int i = 0; i < padding_h; i++) {
+    logo_combined += empty_line + "\n";
   }
 
   logo_combined = dimColors(logo_combined, counter);

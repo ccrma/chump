@@ -174,16 +174,20 @@ int main( int argc, const char ** argv ) {
 
       std::string logo = bedtimeLogo(counter);
 
+      int width=0, height=0;
+      get_terminal_size(width, height);
+
       int i = 0;
-      int rate = 4;
       while (i < logo.length()) {
-        std::cout << logo.substr(i, 4);
-        i += rate;
+        std::cout << logo.substr(i, width);
+        i += width;
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
       }
 
       counter++;
     }
   } else if (app.got_subcommand(dim)) {
+    clear();
     int counter = 0;
     while (true) {
 
