@@ -69,6 +69,7 @@ int main( int argc, const char ** argv ) {
 
   update_list_flag->excludes(pkg_opt);
 
+  // This is where the fun is
   CLI::App* cereal = app.add_subcommand("cereal", "a fruity breakfast treat");
   CLI::App* river = app.add_subcommand("river", "flowing & ebbing");
   CLI::App* bedtime = app.add_subcommand("bedtime", "zzzzz....");
