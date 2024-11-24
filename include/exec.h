@@ -4,6 +4,9 @@
 #include <vector>
 #include <random>
 #include <cctype>
+#include <thread>
+#include <chrono>
+#include <stdlib.h>
 
 #include "manager.h"
 #include "util.h"
@@ -69,7 +72,7 @@ void printPackages(Manager* mgr, bool print_installed) {
   }
 }
 
-std::string jumbleColors(std::string str) {
+std::string jumbleColors(std::string str, int counter) {
   std::default_random_engine generator;
   std::uniform_int_distribution<int> distribution(0,3);
 
@@ -77,8 +80,16 @@ std::string jumbleColors(std::string str) {
 
   for(std::string::size_type i = 0; i < str.size(); ++i) {
     int val = distribution(generator);
+    val = (val + counter) % 4;
+    // int val = rand() % 4;
+
+    int bold = distribution(generator) % 2;
 
     std::string substr = str.substr(i, 1);
+
+    int bg = distribution(generator);
+    bg = (bg + counter) % 4;
+    bg = (counter + i) % 4 ;
 
     if (std::isspace(str[i])) {
       output += substr;
@@ -87,61 +98,174 @@ std::string jumbleColors(std::string str) {
 
     switch(val) {
     case 0:
-      output += TC::green(substr, FALSE);
+      output += TC::green(substr, bold);
       break;
     case 1:
-      output += TC::orange(substr, FALSE);
+      output += TC::orange(substr, TRUE);
       break;
     case 2:
-      output += TC::blue(substr, FALSE);
+      output += TC::blue(substr, bold);
       break;
     case 3:
-      output += TC::magenta(substr, FALSE);
+      output += TC::magenta(substr, bold);
       break;
     default:
       break;
     }
   }
-  std::cout << str.length() << std::endl;
-  std::cout << output.length() << std::endl;
+
   return output;
 }
 
-std::string printLogo() {
-  // std::string logo = R"(
-  //                                                ss
-  //                                                rox        zop
-  //                                                xor        ony
-  //             tkjiimtz             yrljjjjjjox    oo       qnx
-  //                 zsuckerlrwzzxsliiimty           sov     wor
-  //                       xrmjjjjmsz                 oo     poz
-  //                                                  row   yoq
-  //                              xqnrutchumpmv        oo   tov
-  //                         zskiijnpmklry             uot  oo
-  //                      yohhmu                        pnyzop
-  //            uljjjjjjhippy                           znopoy
-  //                                                     vnfo
-  //                                                      vmr         zxwvx
-  //                                                             zxxwwwy  ywwz
-  //           oo  yy                                          wwwxxz       zxvx
-  //       ysoooo  xw                                         xx               ww
-  //     womsz     ywy                                        zwx              xx
-  //    tmt         wx                                         ww              ww
-  //   xnq          ww                   zz                    zwx             ww
-  //  zno           ww                    yz     zz zyz         ww            xvz
-  //  poy           ww                    zyz    xvuvvv   vx    ywxyxyzywxxwwxz
-  //  oo            xw     zxy    yxz      zyz   xtv  wwwwzwvz  zuuxyxxy
-  //  oo            zwx    wtw    zwx       yz   ywx  xtvy  wwz  xx
-  //  tmntoooooopv   ww   wwww     yxz      zzz  zvw  zww   ww   xx
-  //   tmoooxxywxy   ywz xwzxwz    zxyz     zzz  zvw       zwx   ww
-  //                 zwx wx  ww    zz yyz   yy    ww       ywy   xw
-  //                  xwvw    wvy  yy  zyyzyz     xx       xwz   zwy
-  //                   vtx                z               zyz    xx
-  //                                                              xw
-  //                                                               xy
-  //               --- ChuMP! the CHUck Manager of Packages ---
-  // )";
+std::string riverColors(std::string str, int counter) {
+  std::default_random_engine generator;
+  std::uniform_int_distribution<int> distribution(0,3);
 
+  string output = "";
+
+  for(std::string::size_type i = 0; i < str.size(); ++i) {
+    int val = distribution(generator);
+    val = (val + counter) % 4;
+    // int val = rand() % 4;
+
+    int bold = distribution(generator) % 2;
+
+    std::string substr = str.substr(i, 1);
+
+    int bg = distribution(generator);
+    bg = (bg + counter) % 4;
+    bg = (counter + i) % 4 ;
+
+    if (std::isspace(str[i])) {
+      switch(bg) {
+      case 0:
+        output += TC::set(TC::BG_CYAN);
+        break;
+      case 1:
+        output += TC::set(TC::BG_MAGENTA);
+        break;
+      case 2:
+        output += TC::set(TC::BG_WHITE);
+        break;
+      case 3:
+        output += TC::set(TC::BG_DEFAULT);
+        break;
+      default:
+        break;
+      }
+      output += substr + TC::reset();
+      continue;
+    }
+
+    output += TC::set(TC::DIM);
+    switch(val) {
+    case 0:
+      output += substr; // TC::default(substr, bold);
+      break;
+    case 1:
+      output += TC::red(substr, TRUE);
+      break;
+    case 2:
+      output += TC::color(TC::FG_BLACK, substr, bold);
+      break;
+    case 3:
+      output += TC::magenta(substr, bold);
+      break;
+    default:
+      break;
+    }
+  }
+
+  return output;
+}
+
+std::string riverLogo(int counter) {
+  std::string logo = R"(
+                                                 ss
+                                                 rox        zop
+                                                 xor        ony
+              tkjiimtz             yrljjjjjjox    oo       qnx
+                  zsuckerlrwzzxsliiimty           sov     wor
+                        xrmjjjjmsz                 oo     poz
+                                                   row   yoq
+                               xqnrutchumpmv        oo   tov
+                          zskiijnpmklry             uot  oo
+                       yohhmu                        pnyzop
+             uljjjjjjhippy                           znopoy
+                                                      vnfo
+                                                       vmr         zxwvx
+                                                              zxxwwwy  ywwz
+            oo  yy                                          wwwxxz       zxvx
+        ysoooo  xw                                         xx               ww
+      womsz     ywy                                        zwx              xx
+     tmt         wx                                         ww              ww
+    xnq          ww                   zz                    zwx             ww
+   zno           ww                    yz     zz zyz         ww            xvz
+   poy           ww                    zyz    xvuvvv   vx    ywxyxyzywxxwwxz
+   oo            xw     zxy    yxz      zyz   xtv  wwwwzwvz  zuuxyxxy
+   oo            zwx    wtw    zwx       yz   ywx  xtvy  wwz  xx
+   tmntoooooopv   ww   wwww     yxz      zzz  zvw  zww   ww   xx
+    tmoooxxywxy   ywz xwzxwz    zxyz     zzz  zvw       zwx   ww
+                  zwx wx  ww    zz yyz   yy    ww       ywy   xw
+                   xwvw    wvy  yy  zyyzyz     xx       xwz   zwy
+                    vtx                z               zyz    xx
+                                                               xw
+                                                                xy
+                --- ChuMP! the CHUck Manager of Packages ---
+  )";
+
+  auto num_lines = std::count( logo.begin(), logo.end(), '\n' );
+  num_lines += ( !logo.empty() && logo.back() != '\n' );
+
+  logo = riverColors(logo, counter);
+
+  return logo;
+}
+
+std::string jumbleLogo(int counter) {
+  std::string logo = R"(
+                                                 ss
+                                                 rox        zop
+                                                 xor        ony
+              tkjiimtz             yrljjjjjjox    oo       qnx
+                  zsuckerlrwzzxsliiimty           sov     wor
+                        xrmjjjjmsz                 oo     poz
+                                                   row   yoq
+                               xqnrutchumpmv        oo   tov
+                          zskiijnpmklry             uot  oo
+                       yohhmu                        pnyzop
+             uljjjjjjhippy                           znopoy
+                                                      vnfo
+                                                       vmr         zxwvx
+                                                              zxxwwwy  ywwz
+            oo  yy                                          wwwxxz       zxvx
+        ysoooo  xw                                         xx               ww
+      womsz     ywy                                        zwx              xx
+     tmt         wx                                         ww              ww
+    xnq          ww                   zz                    zwx             ww
+   zno           ww                    yz     zz zyz         ww            xvz
+   poy           ww                    zyz    xvuvvv   vx    ywxyxyzywxxwwxz
+   oo            xw     zxy    yxz      zyz   xtv  wwwwzwvz  zuuxyxxy
+   oo            zwx    wtw    zwx       yz   ywx  xtvy  wwz  xx
+   tmntoooooopv   ww   wwww     yxz      zzz  zvw  zww   ww   xx
+    tmoooxxywxy   ywz xwzxwz    zxyz     zzz  zvw       zwx   ww
+                  zwx wx  ww    zz yyz   yy    ww       ywy   xw
+                   xwvw    wvy  yy  zyyzyz     xx       xwz   zwy
+                    vtx                z               zyz    xx
+                                                               xw
+                                                                xy
+                --- ChuMP! the CHUck Manager of Packages ---
+  )";
+
+  auto num_lines = std::count( logo.begin(), logo.end(), '\n' );
+  num_lines += ( !logo.empty() && logo.back() != '\n' );
+
+  logo = jumbleColors(logo, counter);
+
+  return logo;
+}
+
+std::string printLogo() {
   std::ostringstream o;
   o << TC::green("                                                 ") << TC::orange("              ") << "               " << endl;
   o << TC::green("                                                 ") << TC::orange("ss            ") << "               " << endl;
@@ -176,6 +300,5 @@ std::string printLogo() {
   o << TC::blue("               ") << TC::red("               ") << TC::orange("              ") << TC::magenta("                ") << TC::orange("    xy            ") << endl;
   o << "                --- ChuMP! the CHUck Manager of Packages ---                  " << endl;
 
- // return jumbleColors(logo);
   return o.str();
 }

@@ -69,6 +69,9 @@ int main( int argc, const char ** argv ) {
 
   update_list_flag->excludes(pkg_opt);
 
+  CLI::App* cereal = app.add_subcommand("cereal", "a fruity breakfast treat");
+  CLI::App* river = app.add_subcommand("river", "flowing & ebbing");
+
   app.require_subcommand(1); // only want a single command here
 
   CLI11_PARSE(app, argc, argv);
@@ -131,6 +134,36 @@ int main( int argc, const char ** argv ) {
       manager->update_manifest();
     } else {
       manager->update(update_package_name);
+    }
+  } else if (app.got_subcommand(cereal)) {
+    int counter = 0;
+    while (true) {
+
+      std::string logo = jumbleLogo(counter);
+      std::cout << logo;
+
+      auto num_lines = std::count( logo.begin(), logo.end(), '\n' );
+
+      for (int i = 0; i < num_lines; i++) {
+        std::cout << "\x1b[F"; // Move the cursor up one line
+      }
+      counter++;
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+  } else if (app.got_subcommand(river)) {
+    int counter = 0;
+    while (true) {
+
+      std::string logo = riverLogo(counter);
+      std::cout << logo;
+
+      auto num_lines = std::count( logo.begin(), logo.end(), '\n' );
+
+      for (int i = 0; i < num_lines; i++) {
+        std::cout << "\x1b[F"; // Move the cursor up one line
+      }
+      counter++;
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
   }
 
