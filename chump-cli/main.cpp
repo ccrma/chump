@@ -71,6 +71,8 @@ int main( int argc, const char ** argv ) {
 
   CLI::App* cereal = app.add_subcommand("cereal", "a fruity breakfast treat");
   CLI::App* river = app.add_subcommand("river", "flowing & ebbing");
+  CLI::App* bedtime = app.add_subcommand("bedtime", "zzzzz....");
+  CLI::App* dim = app.add_subcommand("dim", "what's there?");
 
   app.require_subcommand(1); // only want a single command here
 
@@ -164,6 +166,36 @@ int main( int argc, const char ** argv ) {
       }
       counter++;
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+  } else if (app.got_subcommand(bedtime)) {
+    int counter = 0;
+    while (true) {
+
+      std::string logo = bedtimeLogo(counter);
+      std::cout << logo;
+
+      auto num_lines = std::count( logo.begin(), logo.end(), '\n' );
+
+      for (int i = 0; i < num_lines; i++) {
+        std::cout << "\x1b[F"; // Move the cursor up one line
+      }
+      counter++;
+      std::this_thread::sleep_for(std::chrono::milliseconds(120));
+    }
+  } else if (app.got_subcommand(dim)) {
+    int counter = 0;
+    while (true) {
+
+      std::string logo = dimLogo(counter);
+      std::cout << logo;
+
+      auto num_lines = std::count( logo.begin(), logo.end(), '\n' );
+
+      for (int i = 0; i < num_lines; i++) {
+        std::cout << "\x1b[F"; // Move the cursor up one line
+      }
+      counter++;
+      std::this_thread::sleep_for(std::chrono::milliseconds(120));
     }
   }
 

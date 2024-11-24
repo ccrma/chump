@@ -180,6 +180,222 @@ std::string riverColors(std::string str, int counter) {
   return output;
 }
 
+std::string dimColors(std::string str, int counter) {
+  std::default_random_engine generator;
+  std::uniform_int_distribution<int> distribution(0,3);
+
+  string output = "";
+
+  for(std::string::size_type i = 0; i < str.size(); ++i) {
+    int val = distribution(generator);
+    val = (val + counter) % 4;
+
+    int bold = distribution(generator) % 2;
+
+    std::string substr = str.substr(i, 1);
+
+    int bg = distribution(generator);
+    bg = (bg + counter) % 4;
+    bg = (int(counter / 2) + i) % 4 ;
+
+    output += TC::set(TC::DIM);
+
+    if (std::isspace(str[i]) && substr != "\n") {
+      switch(bg) {
+      case 0:
+        output += TC::red(".");
+        break;
+      case 1:
+        output += TC::magenta(".");
+        break;
+      case 2:
+        output += TC::color(TC::FG_BLACK, ".", bold);
+        break;
+      case 3:
+        output += TC::color(TC::FG_WHITE, ".", bold);
+        break;
+      default:
+        break;
+      }
+      output += TC::reset();
+      continue;
+    }
+
+    if (std::isspace(str[i])) {
+      output += substr;
+      continue;
+    }
+
+    switch(val) {
+    case 0:
+      output += substr; // TC::default(substr, bold);
+      break;
+    case 1:
+      output += TC::red(substr, FALSE);
+      break;
+    case 2:
+      output += TC::color(TC::FG_BLACK, substr, bold);
+      break;
+    case 3:
+      output += TC::magenta(substr, bold);
+      break;
+    default:
+      break;
+    }
+  }
+
+  return output;
+}
+
+std::string bedtimeColors(std::string str, int counter) {
+  std::default_random_engine generator;
+  std::uniform_int_distribution<int> distribution(0,3);
+
+  string output = "";
+
+  for(std::string::size_type i = 0; i < str.size(); ++i) {
+    int val = distribution(generator);
+    val = (val + counter) % 4;
+
+    int bold = distribution(generator) % 2;
+
+    std::string substr = str.substr(i, 1);
+
+    int bg = distribution(generator);
+    bg = (bg + counter) % 4;
+    bg = (counter + i) % 4 ;
+
+    output += TC::set(TC::DIM);
+
+    if (std::isspace(str[i])) {
+      switch(bg) {
+      case 0:
+        output += TC::red(".");
+        break;
+      case 1:
+        output += TC::magenta(".");
+        break;
+      case 2:
+        output += TC::color(TC::FG_BLACK, ".", bold);
+        break;
+      case 3:
+        output += TC::color(TC::FG_WHITE, ".", bold);
+        break;
+      default:
+        break;
+      }
+      output += TC::reset();
+      continue;
+    }
+
+    switch(val) {
+    case 0:
+      output += substr; // TC::default(substr, bold);
+      break;
+    case 1:
+      output += TC::red(substr, FALSE);
+      break;
+    case 2:
+      output += TC::color(TC::FG_BLACK, substr, bold);
+      break;
+    case 3:
+      output += TC::magenta(substr, bold);
+      break;
+    default:
+      break;
+    }
+  }
+
+  return output;
+}
+
+std::string bedtimeLogo(int counter) {
+  std::string logo = R"(
+                                                 ss
+                                                 rox        zop
+                                                 xor        ony
+              tkjiimtz             yrljjjjjjox    oo       qnx
+                  zsuckerlrwzzxsliiimty           sov     wor
+                        xrmjjjjmsz                 oo     poz
+                                                   row   yoq
+                               xqnrutchumpmv        oo   tov
+                          zskiijnpmklry             uot  oo
+                       yohhmu                        pnyzop
+             uljjjjjjhippy                           znopoy
+                                                      vnfo
+                                                       vmr         zxwvx
+                                                              zxxwwwy  ywwz
+            oo  yy                                          wwwxxz       zxvx
+        ysoooo  xw                                         xx               ww
+      womsz     ywy                                        zwx              xx
+     tmt         wx                                         ww              ww
+    xnq          ww                   zz                    zwx             ww
+   zno           ww                    yz     zz zyz         ww            xvz
+   poy           ww                    zyz    xvuvvv   vx    ywxyxyzywxxwwxz
+   oo            xw     zxy    yxz      zyz   xtv  wwwwzwvz  zuuxyxxy
+   oo            zwx    wtw    zwx       yz   ywx  xtvy  wwz  xx
+   tmntoooooopv   ww   wwww     yxz      zzz  zvw  zww   ww   xx
+    tmoooxxywxy   ywz xwzxwz    zxyz     zzz  zvw       zwx   ww
+                  zwx wx  ww    zz yyz   yy    ww       ywy   xw
+                   xwvw    wvy  yy  zyyzyz     xx       xwz   zwy
+                    vtx                z               zyz    xx
+                                                               xw
+                                                                xy
+                --- ChuMP! the CHUck Manager of Packages ---
+  )";
+
+  auto num_lines = std::count( logo.begin(), logo.end(), '\n' );
+  num_lines += ( !logo.empty() && logo.back() != '\n' );
+
+  logo = bedtimeColors(logo, counter);
+
+  return logo;
+}
+
+std::string dimLogo(int counter) {
+  std::string logo =
+    "                                                                                 \n"
+    "                                                 ss                              \n"
+    "                                                 rox        zop                  \n"
+    "                                                 xor        ony                  \n"
+    "              tkjiimtz             yrljjjjjjox    oo       qnx                   \n"
+    "                  zsuckerlrwzzxsliiimty           sov     wor                    \n"
+    "                        xrmjjjjmsz                 oo     poz                    \n"
+    "                                                   row   yoq                     \n"
+    "                               xqnrutchumpmv        oo   tov                     \n"
+    "                          zskiijnpmklry             uot  oo                      \n"
+    "                       yohhmu                        pnyzop                      \n"
+    "             uljjjjjjhippy                           znopoy                      \n"
+    "                                                      vnfo                       \n"
+    "                                                       vmr         zxwvx         \n"
+    "                                                              zxxwwwy  ywwz      \n"
+    "            oo  yy                                          wwwxxz       zxvx    \n"
+    "        ysoooo  xw                                         xx               ww   \n"
+    "      womsz     ywy                                        zwx              xx   \n"
+    "     tmt         wx                                         ww              ww   \n"
+    "    xnq          ww                   zz                    zwx             ww   \n"
+    "   zno           ww                    yz     zz zyz         ww            xvz   \n"
+    "   poy           ww                    zyz    xvuvvv   vx    ywxyxyzywxxwwxz     \n"
+    "   oo            xw     zxy    yxz      zyz   xtv  wwwwzwvz  zuuxyxxy            \n"
+    "   oo            zwx    wtw    zwx       yz   ywx  xtvy  wwz  xx                 \n"
+    "   tmntoooooopv   ww   wwww     yxz      zzz  zvw  zww   ww   xx                 \n"
+    "    tmoooxxywxy   ywz xwzxwz    zxyz     zzz  zvw       zwx   ww                 \n"
+    "                  zwx wx  ww    zz yyz   yy    ww       ywy   xw                 \n"
+    "                   xwvw    wvy  yy  zyyzyz     xx       xwz   zwy                \n"
+    "                    vtx                z               zyz    xx                 \n"
+    "                                                               xw                \n"
+    "                                                                xy               \n"
+    "                --- ChuMP! the CHUck Manager of Packages ---                     \n"
+    "                                                                                 \n";
+
+  auto num_lines = std::count( logo.begin(), logo.end(), '\n' );
+  num_lines += ( !logo.empty() && logo.back() != '\n' );
+
+  logo = dimColors(logo, counter);
+
+  return logo;
+}
+
 std::string riverLogo(int counter) {
   std::string logo = R"(
                                                  ss
