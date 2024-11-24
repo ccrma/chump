@@ -12,6 +12,12 @@
 #include "manager.h"
 #include "util.h"
 
+#if defined(_WIN32)
+#include <Windows.h>
+#else
+#include <sys/ioctl.h>
+#endif
+
 using std::endl;
 
 std::string printLogo();
@@ -71,6 +77,20 @@ void printPackages(Manager* mgr, bool print_installed) {
               << std::setw(12) << truncate(p.description, 100, true)
               << std::endl;
   }
+}
+
+void get_terminal_size(int& width, int& height) {
+#if defined(_WIN32)
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+    width = (int)(csbi.srWindow.Right-csbi.srWindow.Left+1);
+    height = (int)(csbi.srWindow.Bottom-csbi.srWindow.Top+1);
+#elif defined(__linux__)
+    struct winsize w;
+    ioctl(fileno(stdout), TIOCGWINSZ, &w);
+    width = (int)(w.ws_col);
+    height = (int)(w.ws_row);
+#endif // Windows/Linux
 }
 
 std::string jumbleColors(std::string str, int counter) {
@@ -353,133 +373,185 @@ std::string bedtimeLogo(int counter) {
 }
 
 std::string dimLogo(int counter) {
-  std::string logo =
-    "                                                                                 \n"
-    "                                                 ss                              \n"
-    "                                                 rox        zop                  \n"
-    "                                                 xor        ony                  \n"
-    "              tkjiimtz             yrljjjjjjox    oo       qnx                   \n"
-    "                  zsuckerlrwzzxsliiimty           sov     wor                    \n"
-    "                        xrmjjjjmsz                 oo     poz                    \n"
-    "                                                   row   yoq                     \n"
-    "                               xqnrutchumpmv        oo   tov                     \n"
-    "                          zskiijnpmklry             uot  oo                      \n"
-    "                       yohhmu                        pnyzop                      \n"
-    "             uljjjjjjhippy                           znopoy                      \n"
-    "                                                      vnfo                       \n"
-    "                                                       vmr         zxwvx         \n"
-    "                                                              zxxwwwy  ywwz      \n"
-    "            oo  yy                                          wwwxxz       zxvx    \n"
-    "        ysoooo  xw                                         xx               ww   \n"
-    "      womsz     ywy                                        zwx              xx   \n"
-    "     tmt         wx                                         ww              ww   \n"
-    "    xnq          ww                   zz                    zwx             ww   \n"
-    "   zno           ww                    yz     zz zyz         ww            xvz   \n"
-    "   poy           ww                    zyz    xvuvvv   vx    ywxyxyzywxxwwxz     \n"
-    "   oo            xw     zxy    yxz      zyz   xtv  wwwwzwvz  zuuxyxxy            \n"
-    "   oo            zwx    wtw    zwx       yz   ywx  xtvy  wwz  xx                 \n"
-    "   tmntoooooopv   ww   wwww     yxz      zzz  zvw  zww   ww   xx                 \n"
-    "    tmoooxxywxy   ywz xwzxwz    zxyz     zzz  zvw       zwx   ww                 \n"
-    "                  zwx wx  ww    zz yyz   yy    ww       ywy   xw                 \n"
-    "                   xwvw    wvy  yy  zyyzyz     xx       xwz   zwy                \n"
-    "                    vtx                z               zyz    xx                 \n"
-    "                                                               xw                \n"
-    "                                                                xy               \n"
-    "                --- ChuMP! the CHUck Manager of Packages ---                     \n"
-    "                                                                                 \n";
+  int width=0, height=0;
+  get_terminal_size(width, height);
 
-  auto num_lines = std::count( logo.begin(), logo.end(), '\n' );
-  num_lines += ( !logo.empty() && logo.back() != '\n' );
+  // 81 is the width of the chump logo
+  int padding_len = (width - 81) / 2;
+  if (padding_len < 0) padding_len = 0;
 
-  logo = dimColors(logo, counter);
+  std::string padding = "";
 
-  return logo;
+  for (int i = 0; i < padding_len; i++) {
+    padding += " ";
+  }
+
+  std::vector<std::string> logo = {
+    "                                                                                 ",
+    "                                                 ss                              ",
+    "                                                 rox        zop                  ",
+    "                                                 xor        ony                  ",
+    "              tkjiimtz             yrljjjjjjox    oo       qnx                   ",
+    "                  zsuckerlrwzzxsliiimty           sov     wor                    ",
+    "                        xrmjjjjmsz                 oo     poz                    ",
+    "                                                   row   yoq                     ",
+    "                               xqnrutchumpmv        oo   tov                     ",
+    "                          zskiijnpmklry             uot  oo                      ",
+    "                       yohhmu                        pnyzop                      ",
+    "             uljjjjjjhippy                           znopoy                      ",
+    "                                                      vnfo                       ",
+    "                                                       vmr         zxwvx         ",
+    "                                                              zxxwwwy  ywwz      ",
+    "            oo  yy                                          wwwxxz       zxvx    ",
+    "        ysoooo  xw                                         xx               ww   ",
+    "      womsz     ywy                                        zwx              xx   ",
+    "     tmt         wx                                         ww              ww   ",
+    "    xnq          ww                   zz                    zwx             ww   ",
+    "   zno           ww                    yz     zz zyz         ww            xvz   ",
+    "   poy           ww                    zyz    xvuvvv   vx    ywxyxyzywxxwwxz     ",
+    "   oo            xw     zxy    yxz      zyz   xtv  wwwwzwvz  zuuxyxxy            ",
+    "   oo            zwx    wtw    zwx       yz   ywx  xtvy  wwz  xx                 ",
+    "   tmntoooooopv   ww   wwww     yxz      zzz  zvw  zww   ww   xx                 ",
+    "    tmoooxxywxy   ywz xwzxwz    zxyz     zzz  zvw       zwx   ww                 ",
+    "                  zwx wx  ww    zz yyz   yy    ww       ywy   xw                 ",
+    "                   xwvw    wvy  yy  zyyzyz     xx       xwz   zwy                ",
+    "                    vtx                z               zyz    xx                 ",
+    "                                                               xw                ",
+    "                                                                xy               ",
+    "                --- ChuMP! the CHUck Manager of Packages ---                     ",
+    "                                                                                 ",
+  };
+
+    // auto num_lines = std::count( logo.begin(), logo.end(), '\n' );
+    // num_lines += ( !logo.empty() && logo.back() != '\n' );
+
+  std::string logo_combined;
+
+  for (auto line: logo) {
+    logo_combined += padding + line + padding + "\n";
+  }
+
+  logo_combined = dimColors(logo_combined, counter);
+
+  return logo_combined;
 }
 
 std::string riverLogo(int counter) {
-  std::string logo = R"(
-                                                 ss
-                                                 rox        zop
-                                                 xor        ony
-              tkjiimtz             yrljjjjjjox    oo       qnx
-                  zsuckerlrwzzxsliiimty           sov     wor
-                        xrmjjjjmsz                 oo     poz
-                                                   row   yoq
-                               xqnrutchumpmv        oo   tov
-                          zskiijnpmklry             uot  oo
-                       yohhmu                        pnyzop
-             uljjjjjjhippy                           znopoy
-                                                      vnfo
-                                                       vmr         zxwvx
-                                                              zxxwwwy  ywwz
-            oo  yy                                          wwwxxz       zxvx
-        ysoooo  xw                                         xx               ww
-      womsz     ywy                                        zwx              xx
-     tmt         wx                                         ww              ww
-    xnq          ww                   zz                    zwx             ww
-   zno           ww                    yz     zz zyz         ww            xvz
-   poy           ww                    zyz    xvuvvv   vx    ywxyxyzywxxwwxz
-   oo            xw     zxy    yxz      zyz   xtv  wwwwzwvz  zuuxyxxy
-   oo            zwx    wtw    zwx       yz   ywx  xtvy  wwz  xx
-   tmntoooooopv   ww   wwww     yxz      zzz  zvw  zww   ww   xx
-    tmoooxxywxy   ywz xwzxwz    zxyz     zzz  zvw       zwx   ww
-                  zwx wx  ww    zz yyz   yy    ww       ywy   xw
-                   xwvw    wvy  yy  zyyzyz     xx       xwz   zwy
-                    vtx                z               zyz    xx
-                                                               xw
-                                                                xy
-                --- ChuMP! the CHUck Manager of Packages ---
-  )";
+  int width=0, height=0;
+  get_terminal_size(width, height);
 
-  auto num_lines = std::count( logo.begin(), logo.end(), '\n' );
-  num_lines += ( !logo.empty() && logo.back() != '\n' );
+  // 81 is the width of the chump logo
+  int padding_len = (width - 81) / 2;
+  if (padding_len < 0) padding_len = 0;
 
-  logo = riverColors(logo, counter);
+  std::string padding = "";
 
-  return logo;
+  for (int i = 0; i < padding_len; i++) {
+    padding += " ";
+  }
+
+  std::vector<std::string> logo = {
+    "                                                 ss            ",
+    "                                                 rox        zop ",
+    "                                                 xor        ony ",
+    "              tkjiimtz             yrljjjjjjox    oo       qnx ",
+    "                  zsuckerlrwzzxsliiimty           sov     wor ",
+    "                        xrmjjjjmsz                 oo     poz ",
+    "                                                   row   yoq ",
+    "                               xqnrutchumpmv        oo   tov ",
+    "                          zskiijnpmklry             uot  oo ",
+    "                       yohhmu                        pnyzop ",
+    "             uljjjjjjhippy                           znopoy ",
+    "                                                      vnfo              ",
+    "                                                       vmr         zxwvx ",
+    "                                                              zxxwwwy  ywwz ",
+    "            oo  yy                                          wwwxxz       zxvx ",
+    "        ysoooo  xw                                         xx               ww ",
+    "      womsz     ywy                                        zwx              xx ",
+    "     tmt         wx                                         ww              ww ",
+    "    xnq          ww                   zz                    zwx             ww ",
+    "   zno           ww                    yz     zz zyz         ww            xvz ",
+    "   poy           ww                    zyz    xvuvvv   vx    ywxyxyzywxxwwxz ",
+    "   oo            xw     zxy    yxz      zyz   xtv  wwwwzwvz  zuuxyxxy       ",
+    "   oo            zwx    wtw    zwx       yz   ywx  xtvy  wwz  xx ",
+    "   tmntoooooopv   ww   wwww     yxz      zzz  zvw  zww   ww   xx ",
+    "    tmoooxxywxy   ywz xwzxwz    zxyz     zzz  zvw       zwx   ww ",
+    "                  zwx wx  ww    zz yyz   yy    ww       ywy   xw ",
+    "                   xwvw    wvy  yy  zyyzyz     xx       xwz   zwy ",
+    "                    vtx                z               zyz    xx ",
+    "                                                               xw ",
+    "                                                                xy ",
+    "                --- ChuMP! the CHUck Manager of Packages ---      ",
+  };
+
+  std::string logo_combined;
+
+  for (auto line: logo) {
+    logo_combined += padding + line +"\n";
+  }
+
+  logo_combined = riverColors(logo_combined, counter);
+
+  return logo_combined;
 }
 
 std::string jumbleLogo(int counter) {
-  std::string logo = R"(
-                                                 ss
-                                                 rox        zop
-                                                 xor        ony
-              tkjiimtz             yrljjjjjjox    oo       qnx
-                  zsuckerlrwzzxsliiimty           sov     wor
-                        xrmjjjjmsz                 oo     poz
-                                                   row   yoq
-                               xqnrutchumpmv        oo   tov
-                          zskiijnpmklry             uot  oo
-                       yohhmu                        pnyzop
-             uljjjjjjhippy                           znopoy
-                                                      vnfo
-                                                       vmr         zxwvx
-                                                              zxxwwwy  ywwz
-            oo  yy                                          wwwxxz       zxvx
-        ysoooo  xw                                         xx               ww
-      womsz     ywy                                        zwx              xx
-     tmt         wx                                         ww              ww
-    xnq          ww                   zz                    zwx             ww
-   zno           ww                    yz     zz zyz         ww            xvz
-   poy           ww                    zyz    xvuvvv   vx    ywxyxyzywxxwwxz
-   oo            xw     zxy    yxz      zyz   xtv  wwwwzwvz  zuuxyxxy
-   oo            zwx    wtw    zwx       yz   ywx  xtvy  wwz  xx
-   tmntoooooopv   ww   wwww     yxz      zzz  zvw  zww   ww   xx
-    tmoooxxywxy   ywz xwzxwz    zxyz     zzz  zvw       zwx   ww
-                  zwx wx  ww    zz yyz   yy    ww       ywy   xw
-                   xwvw    wvy  yy  zyyzyz     xx       xwz   zwy
-                    vtx                z               zyz    xx
-                                                               xw
-                                                                xy
-                --- ChuMP! the CHUck Manager of Packages ---
-  )";
+  int width=0, height=0;
+  get_terminal_size(width, height);
 
-  auto num_lines = std::count( logo.begin(), logo.end(), '\n' );
-  num_lines += ( !logo.empty() && logo.back() != '\n' );
+  // 81 is the width of the chump logo
+  int padding_len = (width - 81) / 2;
+  if (padding_len < 0) padding_len = 0;
 
-  logo = jumbleColors(logo, counter);
+  std::string padding = "";
 
-  return logo;
+  for (int i = 0; i < padding_len; i++) {
+    padding += " ";
+  }
+
+  std::vector<std::string> logo = {
+    "                                                 ss",
+    "                                                 rox        zop",
+    "                                                 xor        ony",
+    "              tkjiimtz             yrljjjjjjox    oo       qnx",
+    "                  zsuckerlrwzzxsliiimty           sov     wor",
+    "                        xrmjjjjmsz                 oo     poz",
+    "                                                   row   yoq",
+    "                               xqnrutchumpmv        oo   tov",
+    "                          zskiijnpmklry             uot  oo",
+    "                       yohhmu                        pnyzop",
+    "             uljjjjjjhippy                           znopoy",
+    "                                                      vnfo",
+    "                                                       vmr         zxwvx",
+    "                                                              zxxwwwy  ywwz",
+    "            oo  yy                                          wwwxxz       zxvx",
+    "        ysoooo  xw                                         xx               ww",
+    "      womsz     ywy                                        zwx              xx",
+    "     tmt         wx                                         ww              ww",
+    "    xnq          ww                   zz                    zwx             ww",
+    "   zno           ww                    yz     zz zyz         ww            xvz",
+    "   poy           ww                    zyz    xvuvvv   vx    ywxyxyzywxxwwxz",
+    "   oo            xw     zxy    yxz      zyz   xtv  wwwwzwvz  zuuxyxxy",
+    "   oo            zwx    wtw    zwx       yz   ywx  xtvy  wwz  xx",
+    "   tmntoooooopv   ww   wwww     yxz      zzz  zvw  zww   ww   xx",
+    "    tmoooxxywxy   ywz xwzxwz    zxyz     zzz  zvw       zwx   ww",
+    "                  zwx wx  ww    zz yyz   yy    ww       ywy   xw",
+    "                   xwvw    wvy  yy  zyyzyz     xx       xwz   zwy",
+    "                    vtx                z               zyz    xx",
+    "                                                               xw",
+    "                                                                xy",
+    "                --- ChuMP! the CHUck Manager of Packages ---",
+  };
+
+  std::string logo_combined;
+
+  for (auto line: logo) {
+    logo_combined += padding + line +"\n";
+  }
+
+  logo_combined = jumbleColors(logo_combined, counter);
+
+  return logo_combined;
 }
 
 std::string printLogo() {
