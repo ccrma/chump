@@ -141,6 +141,100 @@ bool Manager::install(string packageName) {
   return true;
 }
 
+bool Manager::install_local(fs::path pkgDefn, fs::path pkgVer, fs::path pkgZip) {
+  if (!fs::is_regular_file(pkgDefn)) {
+    std::cerr << "Package definition " << pkgDefn << "is not a file, exiting..." << std::endl;
+    return false;
+  }
+
+  if (!fs::is_regular_file(pkgVer)) {
+    std::cerr << "Package version " << pkgVer << "is not a file, exiting..." << std::endl;
+    return false;
+  }
+
+  if (!fs::is_regular_file(pkgZip)) {
+    std::cerr << "Package zip " << pkgZip << "is not a file, exiting..." << std::endl;
+    return false;
+  }
+
+  // only supporting zip for now
+  if (pkgZip.extension() != ".zip") {
+    std::cerr << "Package path " << pkgZip << "is not a zip file, exiting..." << std::endl;
+  }
+
+  // parse package and version files
+  std::ifstream ver_stream(pkgVer);
+  if (!ver_stream.good()) {
+    std::cerr << "Unable to open " << pkgVer << std::endl;
+    ver_stream.close();
+    return false;
+  }
+
+  json pkg_ver;
+  // need to close file on failure
+  try {
+    pkg_ver = json::parse(ver_stream);
+    ver_stream.close();
+  } catch (const std::exception &e) {
+    ver_stream.close();
+    throw;
+  }
+
+  PackageVersion version = pkg_ver.template get<PackageVersion>();
+
+  std::ifstream pkg_stream(pkgDefn);
+  if (!pkg_stream.good()) {
+    std::cerr << "Unable to open " << pkgDefn << std::endl;
+    pkg_stream.close();
+    return false;
+  }
+
+  json pkg_json;
+  // need to close file on failure
+  try {
+    pkg_json = json::parse(pkg_stream);
+    pkg_stream.close();
+  } catch (const std::exception &e) {
+    pkg_stream.close();
+    throw;
+  }
+
+  Package package = pkg_json.template get<Package>();
+
+  // if there is already a packages/PACKAGE directory, error out and tell the user to call update
+  fs::path install_dir = packagePath(package, chump_dir);
+
+  if (fs::exists(install_dir / "version.json")) {
+    std::cerr << "The package '" << package.name << "' already exists." << std::endl;
+    std::cerr << "Use `chump update " << package.name << "' to update the existing package" << std::endl;
+    std::cerr << "Or use `chump uninstall " << package.name << "` to remove the package" << std::endl;
+    return false;
+  }
+
+  fs::create_directory(install_dir);
+  // Unzip the local file to the installed directory
+  if (!unzipFile(pkgZip.string(), install_dir.string())) return false;
+
+
+  // Add all files to the InstalledVersion file list
+  InstalledVersion installed_ver = InstalledVersion(package, version);
+  for (auto const& dir_entry : fs::recursive_directory_iterator(install_dir)) {
+    if (fs::is_regular_file(dir_entry)) {
+      installed_ver.files.push_back(fs::relative(dir_entry, install_dir));
+    }
+  }
+
+  // Write version.json to file.
+  json version_json = installed_ver;
+
+  std::ofstream o(install_dir / "version.json");
+  o << std::setw(4) << version_json << std::endl;
+  o.close();
+
+  // We succeeded
+  return true;
+}
+
 bool Manager::update(string packageName) {
   // lookup package name (default to latest version)
   auto pkg = package_list->find_package(packageName);
@@ -240,6 +334,13 @@ bool Manager::update(string packageName) {
     fs::remove(dir / filename);
   }
 
+  InstalledVersion installed_ver(package, latest_version);
+  for (auto const& dir_entry : fs::recursive_directory_iterator(temp_dir)) {
+    if (fs::is_regular_file(dir_entry)) {
+      installed_ver.files.push_back(fs::relative(dir_entry, temp_dir));
+    }
+  }
+
   // create install dir if needed
   fs::create_directory(install_dir);
 
@@ -251,9 +352,9 @@ bool Manager::update(string packageName) {
     return false;
   }
 
-  // Write version.json to file.
-  json latest_version_json = InstalledVersion(package, latest_version);
 
+  // Write version.json to file.
+  json latest_version_json = installed_ver;
   std::ofstream o(install_dir / "version.json");
   o << std::setw(4) << latest_version_json << std::endl;
   o.close();
@@ -262,21 +363,13 @@ bool Manager::update(string packageName) {
 }
 
 bool Manager::uninstall(string packageName) {
-  auto pkg = package_list->find_package(packageName);
-
-  if (!pkg) {
-    std::cerr << "Package " << packageName << " not found." << std::endl;
-    return false;
-  }
-
-  Package package = pkg.value();
-
   // if there is already a .chump/PACKAGE directory, error out and tell the user to call update
-  fs::path install_dir = packagePath(package, chump_dir);
+  fs::path packageNamePath = fs::path(packageName);
+  fs::path install_dir = chump_dir / packageNamePath;
 
   if (!fs::exists(install_dir)) {
     std::cerr << "The install directory '" << install_dir << "' does not exist." << std::endl;
-    std::cerr << "Use `chump install " << package.name << "' to install the existing package" << std::endl;
+    std::cerr << "Use `chump install " << packageName << "' to install the existing package" << std::endl;
     return false;
   }
 
@@ -300,26 +393,22 @@ bool Manager::uninstall(string packageName) {
   InstalledVersion installed_ver = pkg_ver.template get<InstalledVersion>();
   PackageVersion curr_ver = installed_ver.version();
 
-  optional<PackageVersion> installed_version = package_list->find_package_version(packageName, curr_ver);
-
-  if (!installed_version) {
-    std::cerr << "Unable to find package version" << std::endl;
-    return false;
-  }
-
   // Remove all files associated with package
-  for (auto file: installed_version.value().files) {
-    fs::path dir = file.local_dir;
-    string url = file.url;
-    fs::path ft_dir = fileTypeToDir(file.file_type);
+  for (auto file: installed_ver.files) {
+    fs::path filepath = file.lexically_normal();
+    std::cout << "Removing " << install_dir / filepath << std::endl;
+    fs::remove(install_dir / filepath);
 
-    fs::path filename = fs::path(url).filename();
+    fs::path parent = filepath.parent_path();
+    fs::path root = filepath.root_path();
 
-    fs::path curr_dir = install_dir / dir / ft_dir;
+    fs::path parent_path = install_dir / parent;
 
-    fs::remove(curr_dir / filename);
-    if (fs::is_empty(curr_dir)) {
-      fs::remove(curr_dir.lexically_normal());
+    // make sure the parent dir isn't the root dir and check that it's
+    // empty
+    if (parent != root && fs::is_empty(parent_path)) {
+
+      fs::remove(parent_path.lexically_normal());
     }
   }
 

@@ -30,6 +30,7 @@ class Manager {
   optional<PackageVersion> latestPackageVersion(string name);
 
   bool install(string packageName);
+  bool install_local(fs::path pkgDefn, fs::path pkgVer, fs::path pkgZip);
   bool uninstall(string packageName);
   bool update(string packageName);
   bool update_manifest(); // Download a new package manifest
