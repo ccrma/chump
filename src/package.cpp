@@ -292,7 +292,7 @@ optional<PackageVersion> Package::latest_version(string os, ChuckVersion languag
   optional<PackageVersion> latest_version;
 
   for (PackageVersion version : versions) {
-    ChuckVersion ck_min(version.language_version_min);
+    ChuckVersion ck_min_ver(version.language_version_min);
 
     optional<ApiVersion> api;
 
@@ -301,11 +301,11 @@ optional<PackageVersion> Package::latest_version(string os, ChuckVersion languag
 
     // filter out bad candidates
     if (version.os != "any" && version.os != os) continue;
-    if (language_version < ck_min) continue;
+    if (language_version < ck_min_ver) continue;
 
     if (version.language_version_max) {
-      ChuckVersion ck_max(version.language_version_max.value());
-      if (language_version > ck_max) continue;
+      ChuckVersion ck_max_ver(version.language_version_max.value());
+      if (language_version > ck_max_ver) continue;
     }
 
     if (api && api != api_version) continue;
@@ -336,7 +336,7 @@ optional<PackageVersion> Package::version(PackageVersion ver, string os, ChuckVe
   optional<PackageVersion> returned_version;
 
   for (PackageVersion version : versions) {
-    ChuckVersion ck_min(version.language_version_min);
+    ChuckVersion ck_min_ver(version.language_version_min);
 
     optional<ApiVersion> api;
 
@@ -345,11 +345,11 @@ optional<PackageVersion> Package::version(PackageVersion ver, string os, ChuckVe
 
     // filter out bad candidates
     if (version.os != "any" && version.os != os) continue;
-    if (language_ver < ck_min) continue;
+    if (language_ver < ck_min_ver) continue;
 
     if (version.language_version_max) {
-      ChuckVersion ck_max(version.language_version_max.value());
-      if (language_ver > ck_max) continue;
+      ChuckVersion ck_max_ver(version.language_version_max.value());
+      if (language_ver > ck_max_ver) continue;
     }
 
     if (api && api != api_ver) continue;

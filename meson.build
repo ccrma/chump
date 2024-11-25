@@ -17,12 +17,6 @@ inc = [include_directories('include')]
 
 subdir('include')
 
-# windows needs pdcurses
-if build_machine.system() == 'windows'
-  subdir('extern/pdcurses')
-  inc += include_directories('extern/pdcurses')
-endif
-
 subdir('src')
 subdir('chump-cli')
 subdir('tests')
