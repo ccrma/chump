@@ -140,16 +140,16 @@ int main( int argc, const char ** argv )
     string info_package_name = parser.getCommandTarget( "info" );
     // list -i
     bool installed_flag = parser.getCommandOption( "list", "-i", "--installed" );
+    // update package list
+    bool update_package_list = parser.getCommandOption( "list", "--update-list", "-u" );
     // install package name
     string install_package_name = parser.getCommandTarget( "install" );
     // uninstall package name
     string uninstall_package_name = parser.getCommandTarget( "uninstall" );
     // update package name
     string update_package_name = parser.getCommandTarget( "update" );
-    // update package list
-    bool update_package_list = parser.getCommandOption( "update", "--update-list", "-u" );
 
-    // if the manifest isn't loading properly, only allow `chump update -u`.
+    // if the manifest isn't loading properly, only allow `chump list -u`.
     // this is an escape hatch, because failing to parse manifest.json will
     // result in an exception and the program won't continue.
     if( !validate_manifest(pkg_path) )
@@ -204,8 +204,15 @@ int main( int argc, const char ** argv )
     }
     else if( subcommand == "list" )
     {
-        // print list
-        printPackages( manager, installed_flag );
+        if( update_package_list ) {
+            // update manifest
+            manager->update_manifest();
+        }
+        else
+        {
+            // print list
+            printPackages( manager, installed_flag );
+        }
     }
     else if( subcommand == "install" )
     {
@@ -235,20 +242,15 @@ int main( int argc, const char ** argv )
     }
     else if( subcommand == "update" )
     {
-        if( update_package_list ) {
-            // update manifest
-            manager->update_manifest();
-        } else {
-            // check
-            if( update_package_name == "" )
-            {
-                cerr << "[chump]: " << TC::blue(subcommand,TRUE) << TC::orange(" requires additional argument...",TRUE) << endl;
-                cerr << "(run `chump --help` for more information)" << endl;
-                return 1;
-            }
-            // update package
-            manager->update( update_package_name );
+        // check
+        if( update_package_name == "" )
+        {
+            cerr << "[chump]: " << TC::blue(subcommand,TRUE) << TC::orange(" requires additional argument...",TRUE) << endl;
+            cerr << "(run `chump --help` for more information)" << endl;
+            return 1;
         }
+        // update package
+        manager->update( update_package_name );
     }
     else if( subcommand == "logo" )
     {
@@ -374,12 +376,12 @@ void printUsage()
     cerr << "commands:" << endl;
     cerr << INDENT << TC::blue("help",TRUE) << "                     (same as `chump --help`)" << endl;
     cerr << INDENT << TC::blue("list",TRUE) << "                     list available packages" << endl;
-    cerr << INDENT << "└─" << TC::blue("list",TRUE) << " -i                  └─list only installed packages" << endl;
+    cerr << INDENT << "  └─" << TC::blue("--installed/-i",TRUE) << "         └─list only installed packages" << endl;
+    cerr << INDENT << "  └─" << TC::blue("--update/-u",TRUE) << "            └─update list of available packages" << endl;
     cerr << INDENT << TC::blue("info",TRUE) << " <package>           display information about <package>" << endl;
     cerr << INDENT << TC::blue("install",TRUE) << " <package>        download and install <package>" << endl;
     cerr << INDENT << TC::blue("uninstall",TRUE) << " <package>      uninstall <package> <package>" << endl;
     cerr << INDENT << TC::blue("update",TRUE) << " <package>         update <package> to latest compatible version" << endl;
-    cerr << INDENT << "└─" << TC::blue("update",TRUE) << " -u                └─update list of available packages" << endl;
     cerr << INDENT << TC::blue("logo",TRUE) << " <mode>              behold the chump logo" << endl;
     cerr << "                               └─<modes>: cereal, river, bedtime, dim" << endl;
 }
