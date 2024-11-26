@@ -184,6 +184,14 @@ int main( int argc, const char ** argv )
     // match subcommands
     if( subcommand == "info" )
     {
+        // check
+        if( info_package_name == "" )
+        {
+            cerr << "[chump]: " << TC::blue(subcommand,TRUE) << TC::orange(" requires additional argument...",TRUE) << endl;
+            cerr << "(run `chump --help` for more information)" << endl;
+            return 1;
+        }
+
         // get optional package
         optional<Package> pkg = manager->getPackage(info_package_name);
         // check
@@ -201,11 +209,27 @@ int main( int argc, const char ** argv )
     }
     else if( subcommand == "install" )
     {
+        // check
+        if( install_package_name == "" )
+        {
+            cerr << "[chump]: " << TC::blue(subcommand,TRUE) << TC::orange(" requires additional argument...",TRUE) << endl;
+            cerr << "(run `chump --help` for more information)" << endl;
+            return 1;
+        }
+
         // install a package by name
         manager->install( install_package_name );
     }
     else if( subcommand == "uninstall" )
     {
+        // check
+        if( install_package_name == "" )
+        {
+            cerr << "[chump]: " << TC::blue(subcommand,TRUE) << TC::orange(" requires additional argument...",TRUE) << endl;
+            cerr << "(run `chump --help` for more information)" << endl;
+            return 1;
+        }
+
         // uninstall a package by name
         manager->uninstall( uninstall_package_name );
     }
@@ -215,6 +239,13 @@ int main( int argc, const char ** argv )
             // update manifest
             manager->update_manifest();
         } else {
+            // check
+            if( update_package_name == "" )
+            {
+                cerr << "[chump]: " << TC::blue(subcommand,TRUE) << TC::orange(" requires additional argument...",TRUE) << endl;
+                cerr << "(run `chump --help` for more information)" << endl;
+                return 1;
+            }
             // update package
             manager->update( update_package_name );
         }
@@ -223,6 +254,15 @@ int main( int argc, const char ** argv )
     {
         // get target
         string target = parser.getCommandTarget( "logo" );
+
+        // check
+        if( target == "" )
+        {
+            cerr << "[chump]: " << TC::blue(subcommand,TRUE) << TC::orange(" requires additional argument...",TRUE) << endl;
+            cerr << "(run `chump --help` for more information)" << endl;
+            return 1;
+        }
+
         // check target
         if( target == "cereal" )
         {
