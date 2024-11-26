@@ -380,8 +380,8 @@ void printUsage()
     cerr << INDENT << TC::blue("uninstall",TRUE) << " <package>      uninstall <package> <package>" << endl;
     cerr << INDENT << TC::blue("update",TRUE) << " <package>         update <package> to latest compatible version" << endl;
     cerr << INDENT << "└─" << TC::blue("update",TRUE) << " -u                └─update list of available packages" << endl;
-    cerr << INDENT << TC::blue("logo",TRUE) << " <mode>              behold the chump logo; modes include..." << endl;
-    cerr << "                               └─cereal, river, bedtime, dim" << endl;
+    cerr << INDENT << TC::blue("logo",TRUE) << " <mode>              behold the chump logo" << endl;
+    cerr << "                               └─<modes>: cereal, river, bedtime, dim" << endl;
 }
 
 
