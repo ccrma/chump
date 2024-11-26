@@ -9,6 +9,8 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <algorithm>
+#include <cctype>
 
 #include <mz.h>
 #include <unzip.h>
@@ -250,6 +252,15 @@ bool unzipFile(const std::string& zipPath, const std::string& outputDir) {
     unzClose(zipFile);
 
     return true;
+}
+
+// tolower
+string to_lower( const string & str )
+{
+    string s = str;
+    std::transform( s.begin(), s.end(), s.begin(),
+                    [](unsigned char c){ return std::tolower(c); } );
+    return s;
 }
 
 
