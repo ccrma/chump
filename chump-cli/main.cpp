@@ -182,7 +182,14 @@ int main( int argc, const char ** argv )
     string subcommand = parser.command().name();
 
     // match subcommands
-    if( subcommand == "info" )
+    if ( subcommand == "help" )
+    {
+        // print usage
+        printUsage();
+        // peace out
+        return 0;
+    }
+    else if( subcommand == "info" )
     {
         // check
         if( info_package_name == "" )
@@ -374,16 +381,16 @@ void printUsage()
     cerr << endl;
     // commands
     cerr << "commands:" << endl;
-    cerr << INDENT << TC::blue("help",TRUE) << "                     (same as `chump --help`)" << endl;
-    cerr << INDENT << TC::blue("list",TRUE) << "                     list available packages" << endl;
-    cerr << INDENT << "  └─" << TC::blue("--installed/-i",TRUE) << "         └─list only installed packages" << endl;
-    cerr << INDENT << "  └─" << TC::blue("--update/-u",TRUE) << "            └─update list of available packages" << endl;
-    cerr << INDENT << TC::blue("info",TRUE) << " <package>           display information about <package>" << endl;
-    cerr << INDENT << TC::blue("install",TRUE) << " <package>        download and install <package>" << endl;
-    cerr << INDENT << TC::blue("uninstall",TRUE) << " <package>      uninstall <package> <package>" << endl;
-    cerr << INDENT << TC::blue("update",TRUE) << " <package>         update <package> to latest compatible version" << endl;
-    cerr << INDENT << TC::blue("logo",TRUE) << " <mode>              behold the chump logo" << endl;
-    cerr << "                               └─<modes>: cereal, river, bedtime, dim" << endl;
+    cerr << INDENT << TC::blue("help",TRUE) << "                      (same as `chump --help`)" << endl;
+    cerr << INDENT << TC::blue("list",TRUE) << "                      list available packages" << endl;
+    cerr << INDENT << "  └─" << TC::blue(" --installed/-i",TRUE) << "         └─list only installed packages" << endl;
+    cerr << INDENT << "  └─" << TC::blue(" --update-list/-u",TRUE) << "       └─update list of available packages" << endl;
+    cerr << INDENT << TC::blue("info",TRUE) << " <package>            display information about <package>" << endl;
+    cerr << INDENT << TC::blue("install",TRUE) << " <package>         download and install <package>" << endl;
+    cerr << INDENT << TC::blue("uninstall",TRUE) << " <package>       uninstall <package> <package>" << endl;
+    cerr << INDENT << TC::blue("update",TRUE) << " <package>          update <package> to latest compatible version" << endl;
+    cerr << INDENT << TC::blue("logo",TRUE) << " <mode>               behold the chump logo" << endl;
+    cerr << "                                └─ <modes>: cereal, river, bedtime, dim" << endl;
 }
 
 
