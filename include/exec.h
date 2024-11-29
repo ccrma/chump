@@ -355,7 +355,7 @@ std::string bedtimeLogo(int counter) {
                           zskiijnpmklry             uot  oo
                        yohhmu                        pnyzop
              uljjjjjjhippy                           znopoy
-                                                      vnfo
+                                                      vamp
                                                        vmr         zxwvx
                                                               zxxwwwy  ywwz
             oo  yy                                          wwwxxz       zxvx
@@ -412,7 +412,7 @@ std::string dimLogo(int counter) {
     "                          zskiijnpmklry             uot  oo                      ",
     "                       yohhmu                        pnyzop                      ",
     "             uljjjjjjhippy                           znopoy                      ",
-    "                                                      vnfo                       ",
+    "                                                      vamp                       ",
     "                                                       vmr         zxwvx         ",
     "                                                              zxxwwwy  ywwz      ",
     "            oo  yy                                          wwwxxz       zxvx    ",
@@ -484,7 +484,7 @@ std::string riverLogo(int counter) {
     "                          zskiijnpmklry             uot  oo ",
     "                       yohhmu                        pnyzop ",
     "             uljjjjjjhippy                           znopoy ",
-    "                                                      vnfo              ",
+    "                                                      vamp              ",
     "                                                       vmr         zxwvx ",
     "                                                              zxxwwwy  ywwz ",
     "            oo  yy                                          wwwxxz       zxvx ",
@@ -543,7 +543,7 @@ std::string jumbleLogo(int counter) {
     "                          zskiijnpmklry             uot  oo",
     "                       yohhmu                        pnyzop",
     "             uljjjjjjhippy                           znopoy",
-    "                                                      vnfo",
+    "                                                      vamp",
     "                                                       vmr         zxwvx",
     "                                                              zxxwwwy  ywwz",
     "            oo  yy                                          wwwxxz       zxvx",
@@ -590,7 +590,7 @@ std::string printLogo() {
   o << TC::green("                          zskiijnpmklry          ") << TC::orange("   uot  oo    ") << "               " << endl;
   o << TC::green("                       yohhmu                    ") << TC::orange("    pnyzop    ") << "               " << endl;
   o << TC::green("             uljjjjjjhippy                       ") << TC::orange("    znopoy    ") << "               " << endl;
-  o << TC::green("                                                 ") << TC::orange("     vnfo     ") << "               " << endl;
+  o << TC::green("                                                 ") << TC::orange("     vamp     ") << "               " << endl;
   o << TC::green("                                                 ") << TC::orange("      vmr     ") <<                                  TC::orange("    zxwvx      ") << endl;
   o << TC::green("                                                 ") << TC::orange("             ") <<                                  TC::orange("zxxwwwy  ywwz   ") << endl;
   o << TC::blue("            oo ") << TC::red(" yy            ") << TC::orange("              ") << TC::magenta("                ") << TC::orange("wwwxxz       zxvx ") << endl;
