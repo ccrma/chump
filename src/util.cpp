@@ -53,7 +53,7 @@ std::string whichOS() {
 #elif defined(__linux__)
   return "linux";
 #else
-    std::cerr << "Unknown operating system" << std::endl;
+    std::cerr << "[chump]: unknown operating system" << std::endl;
     return "";
 #endif
 }
@@ -155,15 +155,16 @@ std::string hash_file(fs::path filename) {
 
 bool validate_manifest(fs::path manifest_path) {
   if (!fs::exists(manifest_path)) {
-    std::cerr << "Unable to find manifest.json. try update the chump package list (`chump update -u`)" << std::endl;
+      std::cerr << "[chump]: unable to find manifest.json..." << std::endl;
+      std::cerr << "[chump]: hint: try updating the chump package list (`chump list -u`)" << std::endl;
     return false;
   }
 
   try {
     PackageList p(manifest_path);
   } catch (const std::exception &e) {
-    std::cerr << "failed to validate manifest.json with the error: " << e.what() << std::endl;
-    std::cerr << "try updating the manifest with `chump update -u`" << std::endl;
+    std::cerr << "[chump]: failed to validate manifest.json with the error: " << e.what() << std::endl;
+    std::cerr << "[chump]: hint: try updating the chump package list (`chump list -u`)" << std::endl;
     return false;
   }
 
@@ -196,7 +197,7 @@ fs::path fileTypeToDir(FileType f) {
 bool unzipFile(const std::string& zipPath, const std::string& outputDir) {
     unzFile zipFile = unzOpen(zipPath.c_str());
     if (zipFile == nullptr) {
-        std::cerr << "Error opening ZIP file: " << zipPath << std::endl;
+        std::cerr << "[chump]: error opening ZIP file: " << zipPath << std::endl;
         return false;
     }
 
@@ -222,7 +223,7 @@ bool unzipFile(const std::string& zipPath, const std::string& outputDir) {
 
             FILE* outFile = fopen(fullPath.c_str(), "wb");
             if (outFile == nullptr) {
-                std::cerr << "Error opening output file: " << fullPath << std::endl;
+                std::cerr << "[chump]: error opening output file: " << fullPath << std::endl;
                 unzCloseCurrentFile(zipFile);
                 unzClose(zipFile);
                 return false;
@@ -238,7 +239,7 @@ bool unzipFile(const std::string& zipPath, const std::string& outputDir) {
             unzCloseCurrentFile(zipFile);
 
             if (bytesRead < 0) {
-                std::cerr << "Error reading ZIP file: " << filename << std::endl;
+                std::cerr << "[chump]: error reading ZIP file: " << filename << std::endl;
                 unzClose(zipFile);
                 return false;
             }
