@@ -363,7 +363,7 @@ bool Manager::update(string packageName) {
 }
 
 bool Manager::uninstall(string packageName) {
-  // if there is already a .chump/PACKAGE directory, error out and tell the user to call update
+  // if there isn't already a .chump/PACKAGE directory, error out and tell the user to install
   fs::path packageNamePath = fs::path(packageName);
   fs::path install_dir = chump_dir / packageNamePath;
 
@@ -425,7 +425,32 @@ bool Manager::uninstall(string packageName) {
 }
 
 std::vector<Package> Manager::listPackages() {
-  return package_list->get_packages();
+  std::vector<Package> pkg_list = package_list->get_packages();
+
+  for (auto const& dir_entry : fs::directory_iterator{chump_dir}) {
+    if (!fs::is_directory(dir_entry)) continue;
+    if (!fs::exists(dir_entry.path() / "version.json")) continue;
+
+    optional<InstalledVersion> installed_version = getInstalledVersion(dir_entry);
+
+    if (!installed_version) continue;
+
+    bool found_pkg = false;
+    for (Package pkg : pkg_list) {
+      if (pkg.name == installed_version.value().name) {
+        found_pkg = true;
+        break;
+      }
+    }
+
+    if (!found_pkg) {
+      pkg_list.push_back(installed_version.value().package());
+    }
+
+    std::cout << dir_entry << std::endl;
+  }
+
+  return pkg_list;
 }
 
 bool Manager::is_installed(Package pkg) {

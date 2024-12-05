@@ -31,7 +31,8 @@ fs::path fileTypeToDir(FileType f);
 
 bool unzipFile(const string& zipPath, const string& outputDir);
 
-
+// Try to open a verison.json file
+optional<InstalledVersion> getInstalledVersion(fs::path dir);
 
 // are we output to a terminal?
 t_CKBOOL ck_isatty();

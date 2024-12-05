@@ -171,6 +171,7 @@ bool Fetch::fetch(std::string url, fs::path dir,
     return false;
   }
 
+  std::cerr << std::endl;
   if (hash_file(tempFilePath) != checksum) {
     std::cerr << "the downloaded file (" << url
               << ") does not match expected hash - aborting" << std::endl;
@@ -265,6 +266,7 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
     return false;
   }
 
+  std::cerr << std::endl;
   std::cerr << "Successfully downloaded manifest.json!" << std::endl;
   // std::cerr << "hash: " << hash_file(tempFilePath) << std::endl;
 
