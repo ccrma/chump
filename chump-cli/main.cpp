@@ -234,6 +234,20 @@ int main( int argc, const char ** argv )
         // install a package by name
         manager->install( install_package_name );
     }
+    else if( subcommand == "install-local" )
+    {
+        vector<string> targets = parser.command().targets();
+
+        // validate target size
+        if (targets.size() != 3) {
+            cerr << "[chump]: " << TC::blue(subcommand,TRUE) << TC::orange(" requires exactly 3 arguments...",TRUE) << endl;
+            cerr << "(run `chump --help` for more information)" << endl;
+            return 1;
+        }
+
+        // install a package by name
+        manager->install_local( targets[0], targets[1], targets[2] );
+    }
     else if( subcommand == "uninstall" )
     {
         // check
@@ -377,20 +391,24 @@ void printUsage()
     cerr << usage << endl << endl;
     // options
     cerr << "options:" << endl;
-    cerr << INDENT << TC::orange("--help/-h",TRUE) << "                print this help message and exit" << endl;
+    cerr << INDENT << TC::orange("--help/-h",TRUE) << "                        print this help message and exit" << endl;
     cerr << endl;
     // commands
     cerr << "commands:" << endl;
-    cerr << INDENT << TC::blue("help",TRUE) << "                      (same as `chump --help`)" << endl;
-    cerr << INDENT << TC::blue("list",TRUE) << "                      list available packages" << endl;
-    cerr << INDENT << "  └─" << TC::blue(" --installed/-i",TRUE) << "         └─list only installed packages" << endl;
-    cerr << INDENT << "  └─" << TC::blue(" --update-list/-u",TRUE) << "       └─update list of available packages" << endl;
-    cerr << INDENT << TC::blue("info",TRUE) << " <package>            display information about <package>" << endl;
-    cerr << INDENT << TC::blue("install",TRUE) << " <package>         download and install <package>" << endl;
-    cerr << INDENT << TC::blue("uninstall",TRUE) << " <package>       uninstall <package> <package>" << endl;
-    cerr << INDENT << TC::blue("update",TRUE) << " <package>          update <package> to latest compatible version" << endl;
-    cerr << INDENT << TC::blue("logo",TRUE) << " <mode>               behold the chump logo" << endl;
-    cerr << "                                └─ <modes>: cereal, river, bedtime, dim" << endl;
+    cerr << INDENT << TC::blue("help",TRUE) << "                             (same as `chump --help`)" << endl;
+    cerr << INDENT << TC::blue("list",TRUE) << "                             list available packages" << endl;
+    cerr << INDENT << "  └─" << TC::blue(" --installed/-i",TRUE) << "                └─list only installed packages" << endl;
+    cerr << INDENT << "  └─" << TC::blue(" --update-list/-u",TRUE) << "              └─update list of available packages" << endl;
+    cerr << INDENT << TC::blue("info",TRUE) << " <package>                   display information about <package>" << endl;
+    cerr << INDENT << TC::blue("install",TRUE) << " <package>                download and install <package>" << endl;
+    cerr << INDENT << TC::blue("install-local",TRUE) << " <def> <ver> <zip>  install a locally defined package" << endl;
+    cerr << INDENT << "  └─" << TC::blue(" <def>",TRUE) << "                         └─package.json - json file with package metadata" << endl;
+    cerr << INDENT << "  └─" << TC::blue(" <ver>",TRUE) << "                         └─version.json - json file with version-specific metadata" << endl;
+    cerr << INDENT << "  └─" << TC::blue(" <zip>",TRUE) << "                         └─package.zip - zip file containing all the files for a package version" << endl;
+    cerr << INDENT << TC::blue("uninstall",TRUE) << " <package>              uninstall <package> <package>" << endl;
+    cerr << INDENT << TC::blue("update",TRUE) << " <package>                 update <package> to latest compatible version" << endl;
+    cerr << INDENT << TC::blue("logo",TRUE) << " <mode>                      behold the chump logo" << endl;
+    cerr << "                                       └─ <modes>: cereal, river, bedtime, dim" << endl;
 }
 
 

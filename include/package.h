@@ -123,6 +123,8 @@ struct InstalledVersion {
 
   // Export a PackageVersion
   PackageVersion version();
+  // Export a Package
+  Package package();
   string name;
 
   vector<string> authors;
