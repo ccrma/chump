@@ -425,6 +425,21 @@ PackageVersion InstalledVersion::version() {
   return v;
 }
 
+// Export a Package.
+Package InstalledVersion::package() {
+  Package pkg;
+
+  pkg.name = name;
+  pkg.authors = authors;
+  pkg.homepage = homepage;
+  pkg.repository = repository;
+  pkg.license = license;
+  pkg.description = description;
+  pkg.keywords = keywords;
+
+  return pkg;
+}
+
 void to_json(json& j, const InstalledVersion& p) {
   j = json{
     {"name", p.name},

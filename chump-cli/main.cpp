@@ -53,6 +53,18 @@ int main( int argc, const char ** argv ) {
     ->option_text("(=<version>)")
     ->required();
 
+  string package_definition, package_version, package_zip;
+  CLI::App* install_local = app.add_subcommand("install_local", "install a local package");
+  install_local
+    ->add_option("package_def", package_definition, "path to package.json file")
+    ->required();
+  install_local
+    ->add_option("package_ver", package_version, "path to version.json file")
+    ->required();
+  install_local
+    ->add_option("package_zip", package_zip, "path to zip file containing all package files")
+    ->required();
+
   CLI::App* uninstall = app.add_subcommand("uninstall", "uninstall <package>");
   string uninstall_package_name;
   uninstall
@@ -128,6 +140,8 @@ int main( int argc, const char ** argv ) {
     std::cout << pkg.value() << std::endl;
   } else if (app.got_subcommand(list)) {
     printPackages(manager, installed_flag);
+  } else if (app.got_subcommand(install_local)) {
+    manager->install_local(package_definition, package_version, package_zip);
   } else if (app.got_subcommand(install)) {
     manager->install(install_package_name);
   } else if (app.got_subcommand(uninstall)) {

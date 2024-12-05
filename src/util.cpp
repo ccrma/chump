@@ -252,6 +252,43 @@ bool unzipFile(const std::string& zipPath, const std::string& outputDir) {
     return true;
 }
 
+// Try to open a verison.json file
+optional<InstalledVersion> getInstalledVersion(fs::path dir) {
+  if (!fs::is_directory(dir)) {
+    std::cerr << "path " << dir << " is not a directory" << std::endl;
+    return {};
+  }
+
+  fs::path json_path = dir / "version.json";
+
+  if (!fs::exists(json_path)) {
+    std::cerr << "file " << json_path << " not found" << std::endl;
+    return {};
+  }
+
+  std::ifstream f(json_path);
+
+  if (!f.good()) {
+    std::cerr << "unable to open " << json_path << std::endl;
+    f.close();
+    return {};
+  }
+
+  InstalledVersion installed_version;
+  try {
+    json pkg_ver = json::parse(f);
+    f.close();
+    installed_version = pkg_ver.template get<InstalledVersion>();
+  } catch (const std::exception &e) {
+    f.close();
+    std::cerr << "exception throw when trying to parse " << json_path
+              << ": " << e.what() << std::endl;
+    return {};
+  }
+
+  return installed_version;
+}
+
 
 
 //-----------------------------------------------------------------------------
