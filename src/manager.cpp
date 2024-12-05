@@ -373,7 +373,7 @@ bool Manager::uninstall(string packageName) {
     return false;
   }
 
-  // Validate that the version is newer
+  // Validate that the version file exists
   std::ifstream f(install_dir / "version.json");
 
   if (!f.good()) {
@@ -447,7 +447,7 @@ std::vector<Package> Manager::listPackages() {
       pkg_list.push_back(installed_version.value().package());
     }
 
-    std::cout << dir_entry << std::endl;
+    // std::cout << dir_entry << std::endl;
   }
 
   return pkg_list;

@@ -278,7 +278,7 @@ optional<InstalledVersion> getInstalledVersion(fs::path dir) {
   try {
     json pkg_ver = json::parse(f);
     f.close();
-    InstalledVersion installed_version = pkg_ver.template get<InstalledVersion>();
+    installed_version = pkg_ver.template get<InstalledVersion>();
   } catch (const std::exception &e) {
     f.close();
     std::cerr << "exception throw when trying to parse " << json_path
