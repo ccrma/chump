@@ -69,7 +69,18 @@ void printPackages(Manager* mgr, bool print_installed) {
     if (latest)
       latest_version = latest.value().getVersionString();
 
-    string installed = mgr->is_installed(p) ? "yes" : "no";
+    string installed = "no";
+
+    if (mgr->is_installed(p)) {
+        auto installed_version = mgr->get_installed_version(p);
+
+        installed = "yes";
+        if (installed_version) {
+            installed +=
+                " (" + installed_version.value().version().getVersionString()
+                + ")";
+        }
+    }
 
     std::cout << std::left << std::setw(20) << truncate(p.name, 17, true) << "| "
               << std::setw(12) << latest_version << "| "

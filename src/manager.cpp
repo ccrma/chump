@@ -459,6 +459,14 @@ bool Manager::is_installed(Package pkg) {
     return fs::exists(install_dir / "version.json");
 }
 
+optional<InstalledVersion> Manager::get_installed_version(Package pkg) {
+    fs::path install_dir = packagePath(pkg, chump_dir);
+
+    if (!fs::exists(install_dir / "version.json")) return {};
+
+    return getInstalledVersion(install_dir);
+}
+
 bool Manager::update_manifest() {
     // Create a temporary directory to download our manifest to
     fs::path temp_dir = {fs::temp_directory_path() /= std::tmpnam(nullptr)};
