@@ -91,12 +91,13 @@ void printPackages(Manager* mgr, bool print_installed) {
 }
 
 void get_terminal_size(int& width, int& height) {
+    width = height = 0;
 #if defined(_WIN32)
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
     width = (int)(csbi.srWindow.Right-csbi.srWindow.Left+1);
     height = (int)(csbi.srWindow.Bottom-csbi.srWindow.Top+1);
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
     struct winsize w;
     ioctl(fileno(stdout), TIOCGWINSZ, &w);
     width = (int)(w.ws_col);
