@@ -31,6 +31,9 @@ fs::path fileTypeToDir(FileType f);
 
 bool unzipFile(const string& zipPath, const string& outputDir);
 
+// tolower
+string to_lower( const string & str );
+
 // Try to open a verison.json file
 optional<InstalledVersion> getInstalledVersion(fs::path dir);
 

@@ -15,6 +15,9 @@ build-debug:
 build-release-win:
 	meson setup builddir-release --backend vs
 
+build-release-mac:
+	meson setup builddir-release --backend xcode
+
 setup-mac-x86_64:
 	meson setup --cross-file cross/x86_64-macos.txt builddir-x86_64
 

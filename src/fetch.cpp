@@ -29,7 +29,7 @@ struct curl_progress {
 // Callback function to update progress
 int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow) {
     if (!clientp) {
-      std::cerr << "progress callback recieved empty clientp" << std::endl;
+      std::cerr << "[chump]: progress callback recieved empty clientp" << std::endl;
       return -1;
     }
     // metadata for the progress bar
@@ -89,7 +89,7 @@ bool Fetch::fetch(std::string url, fs::path dir,
                   Package package, fs::path temp_dir,
                   FileType file_type, string checksum) {
   if (!isURL(url)) {
-    std::cerr << "Not a URL!" << std::endl;
+    std::cerr << "[chump]: not a URL!" << std::endl;
     return false;
   }
 
@@ -118,7 +118,7 @@ bool Fetch::fetch(std::string url, fs::path dir,
 #endif
 
   if (!fp) {
-    std::cerr << "Error opening file for writing" << std::endl;
+    std::cerr << "[chump]: error opening file for writing" << std::endl;
     return false;
   }
 
@@ -162,18 +162,18 @@ bool Fetch::fetch(std::string url, fs::path dir,
     fclose(fp);
 
     if (res != CURLE_OK) {
-      std::cerr << "Failed to download: " << curl_easy_strerror(res) << std::endl;
+      std::cerr << "[chump]: failed to download: " << curl_easy_strerror(res) << std::endl;
       return false;
     }
 
   } else {
-    std::cerr << "Failed to initialize libcurl" << std::endl;
+    std::cerr << "[chump]: failed to initialize libcurl" << std::endl;
     return false;
   }
 
   std::cerr << std::endl;
   if (hash_file(tempFilePath) != checksum) {
-    std::cerr << "the downloaded file (" << url
+    std::cerr << "[chump]: the downloaded file (" << url
               << ") does not match expected hash - aborting" << std::endl;
 
     return false;
@@ -200,7 +200,7 @@ bool Fetch::isURL(std::string path) {
 
 bool Fetch::fetch_manifest(std::string url, fs::path dir) {
   if (!isURL(url)) {
-    std::cerr << "Not a URL!" << std::endl;
+    std::cerr << "[chump]: not a URL!" << std::endl;
     return false;
   }
 
@@ -218,7 +218,7 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
 #endif
 
   if (!fp) {
-    std::cerr << "Error opening file for writing" << std::endl;
+    std::cerr << "[chump]: error opening file for writing" << std::endl;
     return false;
   }
 
@@ -257,17 +257,17 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
     fclose(fp);
 
     if (res != CURLE_OK) {
-      std::cerr << "Failed to download: " << curl_easy_strerror(res) << std::endl;
+      std::cerr << "[chump]: failed to download: " << curl_easy_strerror(res) << std::endl;
       return false;
     }
 
   } else {
-    std::cerr << "Failed to initialize libcurl" << std::endl;
+    std::cerr << "[chump]: failed to initialize libcurl" << std::endl;
     return false;
   }
 
   std::cerr << std::endl;
-  std::cerr << "Successfully downloaded manifest.json!" << std::endl;
+  std::cerr << "[chump]: successfully downloaded manifest.json!" << std::endl;
   // std::cerr << "hash: " << hash_file(tempFilePath) << std::endl;
 
   return true;
