@@ -23,7 +23,7 @@ static const string INDENT = "    ";
 
 // function prototypes
 void printUsage();
-
+void printPackage(Package p);
 
 
 //-----------------------------------------------------------------------------
@@ -207,7 +207,7 @@ int main( int argc, const char ** argv )
             std::cerr << "unable to find package " << info_package_name << std::endl;
             return 1;
         }
-        std::cout << pkg.value() << std::endl;
+        printPackage(pkg.value());
     }
     else if( subcommand == "list" )
     {
@@ -330,7 +330,7 @@ int main( int argc, const char ** argv )
                 int width=0, height=0;
                 get_terminal_size(width, height);
 
-                int i = 0;
+                size_t i = 0;
                 while (i < logo.length()) {
                     std::cout << logo.substr(i, width);
                     i += width;
@@ -397,22 +397,84 @@ void printUsage()
     cerr << "commands:" << endl;
     cerr << INDENT << TC::blue("help",TRUE) << "                             (same as `chump --help`)" << endl;
     cerr << INDENT << TC::blue("list",TRUE) << "                             list available packages" << endl;
-    cerr << INDENT << "  └─" << TC::blue(" --installed/-i",TRUE) << "                └─ list only installed packages" << endl;
-    cerr << INDENT << "  └─" << TC::blue(" --update-list/-u",TRUE) << "              └─ update list of available packages" << endl;
+    cerr << INDENT << "  ├╴" << TC::blue(" --installed/-i",TRUE) << "                ├╴list only installed packages" << endl;
+    cerr << INDENT << "  └╴" << TC::blue(" --update-list/-u",TRUE) << "              └╴update list of available packages" << endl;
     cerr << INDENT << TC::blue("info",TRUE) << " <package>                   display information about <package>" << endl;
     cerr << INDENT << TC::blue("install",TRUE) << " <package>                download and install <package>" << endl;
     cerr << INDENT << TC::blue("install-local",TRUE) << " <def> <ver> <zip>  install a locally defined package" << endl;
-    cerr << INDENT << "  └─" << TC::blue(" <def>",TRUE) << "                         └─ json file with package metadata" << endl;
-    cerr << INDENT << "  └─" << TC::blue(" <ver>",TRUE) << "                         └─ json file of version definition" << endl;
-    cerr << INDENT << "  └─" << TC::blue(" <zip>",TRUE) << "                         └─ zip file of all package contents" << endl;
+    cerr << INDENT << "  ├╴" << TC::blue(" <def>",TRUE) << "                         ├╴json file with package metadata" << endl;
+    cerr << INDENT << "  ├╴" << TC::blue(" <ver>",TRUE) << "                         ├╴json file of version definition" << endl;
+    cerr << INDENT << "  └╴" << TC::blue(" <zip>",TRUE) << "                         └╴zip file of all package contents" << endl;
     cerr << INDENT << TC::blue("uninstall",TRUE) << " <package>              uninstall <package> <package>" << endl;
     cerr << INDENT << TC::blue("update",TRUE) << " <package>                 update <package> to latest version" << endl;
     cerr << INDENT << "                                   (compatible with chuck version and OS)" << endl;
     cerr << INDENT << TC::blue("logo",TRUE) << " <mode>                      behold the chump logo" << endl;
-    cerr << INDENT << "  └─" << TC::blue(" cereal",TRUE) << "                        └─ a fruity breakfast treat" << endl;
-    cerr << INDENT << "  └─" << TC::blue(" river",TRUE) << "                         └─ flowing & ebbing" << endl;
-    cerr << INDENT << "  └─" << TC::blue(" bedtime",TRUE) << "                       └─ zzzzz...." << endl;
-    cerr << INDENT << "  └─" << TC::blue(" dim",TRUE) << "                           └─ what's there?" << endl;
+    cerr << INDENT << "  ├╴" << TC::blue(" cereal",TRUE) << "                        ├╴a fruity breakfast treat" << endl;
+    cerr << INDENT << "  ├╴" << TC::blue(" river",TRUE) << "                         ├╴flowing & ebbing" << endl;
+    cerr << INDENT << "  ├╴" << TC::blue(" bedtime",TRUE) << "                       ├╴zzzzz...." << endl;
+    cerr << INDENT << "  └╴" << TC::blue(" dim",TRUE) << "                           └╴what's there?" << endl;
+    cerr << endl;
+}
+
+//-----------------------------------------------------------------------------
+// name: printPackage()
+// desc: pretty print a chump package
+//-----------------------------------------------------------------------------
+void printPackage(Package p) {
+    cerr << TC::blue(p.name) << endl;
+
+    string TREE_INDENT = "  │ ";
+
+    if (p.authors.size() == 1)
+        cerr << "  ├╴" << TC::orange("Author:") << endl;
+    else if (p.authors.size() > 1)
+        cerr << "  ├╴" << TC::orange("Authors:") << endl;
+    // for (auto author : p.authors) {
+    for (size_t i = 0; i < p.authors.size(); i++) {
+        if (i != p.authors.size() - 1)
+            cerr << TREE_INDENT << "  ├╴" << p.authors[i] << endl;
+        else
+            cerr << TREE_INDENT << "  └╴" << p.authors[i] << endl;
+    }
+
+    if (p.homepage != "") {
+        cerr << "  ├╴" << TC::orange("Homepage: ") << p.homepage << endl;
+    }
+    if (p.repository != "") {
+        cerr << "  ├╴" << TC::orange("Repository: ") << p.repository << endl;
+    }
+    if (p.license != "") {
+        cerr << "  ├╴" << TC::orange("License: ") << p.license << endl;
+    }
+    if (p.description != "") {
+        cerr << "  └╴" << TC::orange("Description: ") << endl;
+        cerr << INDENT << "  └╴";
+
+        // https://stackoverflow.com/questions/6891652/formatting-a-string-into-multiple-lines-of-a-specific-length-in-c-c
+        size_t width = (INDENT + "  └╴").length();
+        size_t textlen = 80 - width;
+
+        string input = p.description;
+        string substr = input.substr(0, textlen);
+
+        size_t currpos = 0;
+        size_t nextpos = substr.rfind(' ');
+
+        cerr << input.substr(currpos, nextpos) << endl;
+        currpos += nextpos + 1;
+        substr = input.substr(currpos, textlen + 1);
+
+        while (substr.length() == textlen + 1 &&
+               (nextpos = substr.rfind(' ')) != input.npos) {
+            cerr << INDENT << "    "  << input.substr(currpos, nextpos) << endl;
+            currpos += nextpos + 1;
+            substr = input.substr(currpos, textlen + 1);
+        }
+
+        if (currpos != input.length())
+            cerr << INDENT << "    "  << input.substr(currpos) << endl;
+    }
+
     cerr << endl;
 }
 

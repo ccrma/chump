@@ -21,12 +21,7 @@
 using std::endl;
 
 std::string printLogo();
-void printPackage(Package pkg);
 void printPackages(Manager* mgr);
-
-void printPackage(Package pkg) {
-  std::cout << pkg << std::endl;
-}
 
 // https://stackoverflow.com/questions/19580877/how-to-truncate-a-string-formating-c
 std::string truncate(std::string str, size_t width, bool show_ellipsis=true) {
