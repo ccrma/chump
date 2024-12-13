@@ -28,7 +28,7 @@ ChuckVersion ChuckVersion::makeSystemVersion() {
     std::string cmd = "where chuck >nul 2>&1";
 #else
     // Use 'which' command on Unix-like systems
-    std::string cmd = "which chuck2 > /dev/null 2>&1";
+    std::string cmd = "which chuck > /dev/null 2>&1";
 #endif
 
     if (std::system(cmd.c_str()) != EXIT_SUCCESS) {
@@ -158,7 +158,7 @@ ApiVersion ApiVersion::makeSystemVersion() {
     std::string cmd = "where chuck >nul 2>&1";
 #else
     // Use 'which' command on Unix-like systems
-    std::string cmd = "which chuck2 > /dev/null 2>&1";
+    std::string cmd = "which chuck > /dev/null 2>&1";
 #endif
 
     if (std::system(cmd.c_str()) != EXIT_SUCCESS) {
