@@ -397,22 +397,22 @@ void printUsage()
     cerr << "commands:" << endl;
     cerr << INDENT << TC::blue("help",TRUE) << "                             (same as `chump --help`)" << endl;
     cerr << INDENT << TC::blue("list",TRUE) << "                             list available packages" << endl;
-    cerr << INDENT << "  ├╴" << TC::blue(" --installed/-i",TRUE) << "                ├╴list only installed packages" << endl;
-    cerr << INDENT << "  └╴" << TC::blue(" --update-list/-u",TRUE) << "              └╴update list of available packages" << endl;
+    cerr << INDENT << "  ├╴" << TC::blue("--installed/-i",TRUE) << "                 ├╴list only installed packages" << endl;
+    cerr << INDENT << "  └╴" << TC::blue("--update-list/-u",TRUE) << "               └╴update list of available packages" << endl;
     cerr << INDENT << TC::blue("info",TRUE) << " <package>                   display information about <package>" << endl;
     cerr << INDENT << TC::blue("install",TRUE) << " <package>                download and install <package>" << endl;
     cerr << INDENT << TC::blue("install-local",TRUE) << " <def> <ver> <zip>  install a locally defined package" << endl;
-    cerr << INDENT << "  ├╴" << TC::blue(" <def>",TRUE) << "                         ├╴json file with package metadata" << endl;
-    cerr << INDENT << "  ├╴" << TC::blue(" <ver>",TRUE) << "                         ├╴json file of version definition" << endl;
-    cerr << INDENT << "  └╴" << TC::blue(" <zip>",TRUE) << "                         └╴zip file of all package contents" << endl;
+    cerr << INDENT << "  ├╴" << TC::blue("<def>",TRUE) << "                          ├╴json file with package metadata" << endl;
+    cerr << INDENT << "  ├╴" << TC::blue("<ver>",TRUE) << "                          ├╴json file of version definition" << endl;
+    cerr << INDENT << "  └╴" << TC::blue("<zip>",TRUE) << "                          └╴zip file of all package contents" << endl;
     cerr << INDENT << TC::blue("uninstall",TRUE) << " <package>              uninstall <package> <package>" << endl;
     cerr << INDENT << TC::blue("update",TRUE) << " <package>                 update <package> to latest version" << endl;
     cerr << INDENT << "                                   (compatible with chuck version and OS)" << endl;
     cerr << INDENT << TC::blue("logo",TRUE) << " <mode>                      behold the chump logo" << endl;
-    cerr << INDENT << "  ├╴" << TC::blue(" cereal",TRUE) << "                        ├╴a fruity breakfast treat" << endl;
-    cerr << INDENT << "  ├╴" << TC::blue(" river",TRUE) << "                         ├╴flowing & ebbing" << endl;
-    cerr << INDENT << "  ├╴" << TC::blue(" bedtime",TRUE) << "                       ├╴zzzzz...." << endl;
-    cerr << INDENT << "  └╴" << TC::blue(" dim",TRUE) << "                           └╴what's there?" << endl;
+    cerr << INDENT << "  ├╴" << TC::blue("cereal",TRUE) << "                         ├╴a fruity breakfast treat" << endl;
+    cerr << INDENT << "  ├╴" << TC::blue("river",TRUE) << "                          ├╴flowing & ebbing" << endl;
+    cerr << INDENT << "  ├╴" << TC::blue("bedtime",TRUE) << "                        ├╴zzzzz...." << endl;
+    cerr << INDENT << "  └╴" << TC::blue("dim",TRUE) << "                            └╴what's there?" << endl;
     cerr << endl;
 }
 
