@@ -1,9 +1,7 @@
 @import "Chumpinate"
 
-if (me.args() != 1) {
-   <<< "ERROR: Please provide the version number" >>>;
-   me.exit();
-}
+// Our package version
+"0.1.0" => string version;
 
 <<< "Generating Chumpinate package version " >>>;
 
@@ -25,11 +23,10 @@ Package pkg("Chumpinate");
 // This will be stored in "Chumpinate/package.json"
 "./" => pkg.generatePackageDefinition;
 
-
-<<< "Defining version " + me.arg(0) >>>;;
+<<< "Defining version " + version >>>;;
 
 // Now we need to define a specific PackageVersion for test-pkg
-PackageVersion ver("Chumpinate", me.arg(0));
+PackageVersion ver("Chumpinate", version);
 
 "10.2" => ver.apiVersion;
 
