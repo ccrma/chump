@@ -255,7 +255,11 @@ int main( int argc, const char ** argv )
         // install a package by name
         for ( string install_package_name : install_package_names )
         {
-            manager->install( install_package_name );
+            try {
+                manager->install( install_package_name );
+            } catch (const std::exception &e) {
+                cerr << e.what() << endl;
+            }
         }
     }
     else if( subcommand == "install-local" )
@@ -285,7 +289,11 @@ int main( int argc, const char ** argv )
         // uninstall a package by name
         for ( string uninstall_package_name : uninstall_package_names )
         {
-            manager->uninstall( uninstall_package_name );
+            try {
+                manager->uninstall( uninstall_package_name );
+            } catch (const std::exception &e) {
+                cerr << e.what() << endl;
+            }
         }
     }
     else if( subcommand == "update" )
