@@ -146,10 +146,10 @@ int main( int argc, const char ** argv )
     bool installed_flag = parser.getCommandOption( "list", "-i", "--installed" );
     // update package list
     bool update_package_list = parser.getCommandOption( "list", "--update-list", "-u" );
-    // install package name
-    string install_package_name = parser.getCommandTarget( "install" );
-    // uninstall package name
-    string uninstall_package_name = parser.getCommandTarget( "uninstall" );
+    // install package names
+    vector<string> install_package_names = parser.getCommandTargets();
+    // uninstall package names
+    vector<string> uninstall_package_names = parser.getCommandTargets();
     // update package name
     string update_package_name = parser.getCommandTarget( "update" );
 
@@ -245,7 +245,7 @@ int main( int argc, const char ** argv )
     else if( subcommand == "install" )
     {
         // check
-        if( install_package_name == "" )
+        if( install_package_names.size() == 0 )
         {
             cerr << "[chump]: " << TC::blue(subcommand,TRUE) << TC::orange(" requires additional argument...",TRUE) << endl;
             cerr << "(run `chump --help` for more information)" << endl;
@@ -253,7 +253,10 @@ int main( int argc, const char ** argv )
         }
 
         // install a package by name
-        manager->install( install_package_name );
+        for ( string install_package_name : install_package_names )
+        {
+            manager->install( install_package_name );
+        }
     }
     else if( subcommand == "install-local" )
     {
@@ -272,7 +275,7 @@ int main( int argc, const char ** argv )
     else if( subcommand == "uninstall" )
     {
         // check
-        if( install_package_name == "" )
+        if( install_package_names.size() == 0 )
         {
             cerr << "[chump]: " << TC::blue(subcommand,TRUE) << TC::orange(" requires additional argument...",TRUE) << endl;
             cerr << "(run `chump --help` for more information)" << endl;
@@ -280,7 +283,10 @@ int main( int argc, const char ** argv )
         }
 
         // uninstall a package by name
-        manager->uninstall( uninstall_package_name );
+        for ( string uninstall_package_name : uninstall_package_names )
+        {
+            manager->uninstall( uninstall_package_name );
+        }
     }
     else if( subcommand == "update" )
     {
