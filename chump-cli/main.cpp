@@ -76,11 +76,15 @@ public:
     t_CKBOOL getChumpOption( const string & opt, const string & optAlt );
     // get non-option command target, e.g., the <package> to update
     string getCommandTarget( const string & command );
+    // get non-option command targets, e.g., the <package> to update
+    vector<string> getCommandTargets();
     // get command option, e.g., --installed for chump list
     t_CKBOOL getCommandOption( const string & command, const string & opt );
     // get command option (match either opt or optAlt)
     t_CKBOOL getCommandOption( const string & command,
                                const string & opt, const string & optAlt );
+    // // get command options, e.g., --installed for chump list
+    // vector<string> getCommandOptions();
 
 protected:
     // [options]
@@ -180,10 +184,17 @@ int main( int argc, const char ** argv )
 
     // the subcommand
     string subcommand = parser.command().name();
+    size_t n_targets = parser.getCommandTargets().size();
+    // size_t n_options = parser.getCommandOptions().size();
 
     // match subcommands
     if ( subcommand == "help" )
     {
+        if ( n_targets != 0 ) {
+            cerr << "[chump]: " << TC::blue(subcommand,TRUE) << TC::orange(" does not support subcommands...",TRUE) << endl;
+            cerr << "(run `chump --help` for more information)" << endl;
+            return 1;
+        }
         // print usage
         printUsage();
         // peace out
@@ -195,6 +206,10 @@ int main( int argc, const char ** argv )
         if( info_package_name == "" )
         {
             cerr << "[chump]: " << TC::blue(subcommand,TRUE) << TC::orange(" requires additional argument...",TRUE) << endl;
+            cerr << "(run `chump --help` for more information)" << endl;
+            return 1;
+        } else if ( n_targets != 1 ) {
+            cerr << "[chump]: " << TC::blue(subcommand,TRUE) << TC::orange(" has too many arguments, follows the form 'chump info <package-name>'...",TRUE) << endl;
             cerr << "(run `chump --help` for more information)" << endl;
             return 1;
         }
@@ -211,6 +226,12 @@ int main( int argc, const char ** argv )
     }
     else if( subcommand == "list" )
     {
+        if ( n_targets != 0 ) {
+            cerr << "[chump]: " << TC::blue(subcommand,TRUE) << TC::orange(" does not support subcommands...",TRUE) << endl;
+            cerr << "(run `chump --help` for more information)" << endl;
+            return 1;
+        }
+
         if( update_package_list ) {
             // update manifest
             manager->update_manifest();
@@ -263,6 +284,12 @@ int main( int argc, const char ** argv )
     }
     else if( subcommand == "update" )
     {
+        if ( n_targets != 0 ) {
+            cerr << "[chump]: " << TC::blue(subcommand,TRUE) << TC::orange(" does not support subcommands...",TRUE) << endl;
+            cerr << "(run `chump --help` for more information)" << endl;
+            return 1;
+        }
+
         // check
         if( update_package_name == "" )
         {
@@ -282,6 +309,10 @@ int main( int argc, const char ** argv )
         if( target == "" )
         {
             cerr << "[chump]: " << TC::blue(subcommand,TRUE) << TC::orange(" requires additional argument...",TRUE) << endl;
+            cerr << "(run `chump --help` for more information)" << endl;
+            return 1;
+        } else if ( n_targets != 1 ) {
+            cerr << "[chump]: " << TC::blue(subcommand,TRUE) << TC::orange(" has too many arguments, follows the form 'chump logo <mode>'...",TRUE) << endl;
             cerr << "(run `chump --help` for more information)" << endl;
             return 1;
         }
@@ -330,7 +361,7 @@ int main( int argc, const char ** argv )
                 int width=0, height=0;
                 get_terminal_size(width, height);
 
-                int i = 0;
+                size_t i = 0;
                 while (i < logo.length()) {
                     std::cout << logo.substr(i, width);
                     i += width;
@@ -405,7 +436,7 @@ void printUsage()
     cerr << INDENT << "  └─" << TC::blue(" <def>",TRUE) << "                         └─ json file with package metadata" << endl;
     cerr << INDENT << "  └─" << TC::blue(" <ver>",TRUE) << "                         └─ json file of version definition" << endl;
     cerr << INDENT << "  └─" << TC::blue(" <zip>",TRUE) << "                         └─ zip file of all package contents" << endl;
-    cerr << INDENT << TC::blue("uninstall",TRUE) << " <package>              uninstall <package> <package>" << endl;
+    cerr << INDENT << TC::blue("uninstall",TRUE) << " <package>              uninstall <package>" << endl;
     cerr << INDENT << TC::blue("update",TRUE) << " <package>                 update <package> to latest version" << endl;
     cerr << INDENT << "                                   (compatible with chuck version and OS)" << endl;
     cerr << INDENT << TC::blue("logo",TRUE) << " <mode>                      behold the chump logo" << endl;
@@ -519,6 +550,19 @@ string ChumpArgParser::getCommandTarget( const string & command )
     vector<string> result = m_command.targets();
     // return first element, if there is one
     return result.size() ? result[0] : "";
+}
+
+
+
+//-----------------------------------------------------------------------------
+// name: getCommandTargets()
+// desc: get non-option command targets, e.g., the <package> to update
+//-----------------------------------------------------------------------------
+vector<string> ChumpArgParser::getCommandTargets()
+{
+    // get non-option targets
+    vector<string> result = m_command.targets();
+    return result;
 }
 
 
