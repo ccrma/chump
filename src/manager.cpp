@@ -206,11 +206,11 @@ bool Manager::install_local(fs::path pkgDefn, fs::path pkgVer, fs::path pkgZip) 
 
     if (fs::exists(install_dir / "version.json")) {
         std::cerr << "[chump]: the package '" << package.name << "' already exists." << std::endl;
-        std::cerr << "[chump]: use `chump update " << package.name << "' to update the existing package" << std::endl;
-        std::cerr << "[chump]: or use `chump uninstall " << package.name << "` to remove the package" << std::endl;
-        return false;
+        std::cerr << "[chump]: uninstalling '" << package.name << "'..." << std::endl;
+        uninstall(package.name);
     }
 
+    std::cerr << "[chump]: installing '" << package.name << "'..." << std::endl;
     fs::create_directory(install_dir);
     // Unzip the local file to the installed directory
     if (!unzipFile(pkgZip.string(), install_dir.string())) return false;
@@ -396,7 +396,7 @@ bool Manager::uninstall(string packageName) {
     // Remove all files associated with package
     for (auto file: installed_ver.files) {
         fs::path filepath = file.lexically_normal();
-        std::cout << "Removing " << install_dir / filepath << std::endl;
+        std::cerr << "[chump]: removing " << install_dir / filepath << std::endl;
         fs::remove(install_dir / filepath);
 
         fs::path parent = filepath.parent_path();

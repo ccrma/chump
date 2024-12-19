@@ -215,6 +215,7 @@ bool unzipFile(const std::string& zipPath, const std::string& outputDir) {
         if (filename[strlen(filename) - 1] == '/') {
             std::filesystem::create_directories(fullPath);
         } else {
+            std::cerr << "[chump]: installing \"" << fullPath << "\"" << std::endl;
             // Extract file
             unzOpenCurrentFile(zipFile);
 

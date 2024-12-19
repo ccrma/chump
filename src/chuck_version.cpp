@@ -32,7 +32,7 @@ ChuckVersion ChuckVersion::makeSystemVersion() {
 #endif
 
     if (std::system(cmd.c_str()) != EXIT_SUCCESS) {
-        throw std::runtime_error("[chump] chuck is not installed! please install chuck before using chump. installation instructions can be found at https://chuck.stanford.edu/");
+        throw std::runtime_error("[chump]: chuck is not installed! please install chuck before using chump. installation instructions can be found at https://chuck.stanford.edu/");
     }
 
 
@@ -43,7 +43,7 @@ ChuckVersion ChuckVersion::makeSystemVersion() {
     FILE* pipe = popen("chuck --query:version 2>&1", "r");
 #endif
     if (!pipe) {
-        throw std::runtime_error("[chump] popen() failed!");
+        throw std::runtime_error("[chump]: popen() failed!");
     }
 
     std::string version;
@@ -162,7 +162,7 @@ ApiVersion ApiVersion::makeSystemVersion() {
 #endif
 
     if (std::system(cmd.c_str()) != EXIT_SUCCESS) {
-        throw std::runtime_error("[chump] chuck is not installed! please install chuck before using chump. installation instructions can be found at https://chuck.stanford.edu/");
+        throw std::runtime_error("[chump]: chuck is not installed! please install chuck before using chump. installation instructions can be found at https://chuck.stanford.edu/");
     }
 
     // Query chuck to get api version string
