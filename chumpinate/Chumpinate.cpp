@@ -330,51 +330,85 @@ CK_DLL_QUERY( Chumpinate )
     // to extend a different ChucK class (e.g., "Object")
     QUERY->begin_class( QUERY, "Package", "Object" );
 
+    QUERY->doc_class( QUERY, "Package definition. This class describes "
+        "all metadata associated with a package: description, author, "
+        "license, etc."
+    );
+
+    QUERY->add_ex( QUERY, "build-pkg-win.ck");
+    QUERY->add_ex( QUERY, "build-pkg-mac.ck");
+    QUERY->add_ex( QUERY, "build-pkg-linux.ck");
+
     // register default constructor
     QUERY->add_ctor( QUERY, package_ctor );
     // NOTE constructors can be overloaded like any other functions,
     // each overloaded constructor begins with `QUERY->add_ctor()`
     // followed by a sequence of `QUERY->add_arg()`
     QUERY->add_ctor( QUERY, package_ctor_name );
-    QUERY->add_arg(QUERY, "string", "name");
+    QUERY->add_arg( QUERY, "string", "name");
+    QUERY->doc_func( QUERY, "Create a package called 'name'");
 
     // register the destructor (probably no need to change)
     QUERY->add_dtor( QUERY, package_dtor );
 
     QUERY->add_mfun( QUERY, package_setName, "string", "name" );
     QUERY->add_arg( QUERY, "string", "name" );
+    QUERY->doc_func( QUERY, "Set the package name");
+
     QUERY->add_mfun( QUERY, package_getName, "string", "name" );
+    QUERY->doc_func( QUERY, "Get the package name");
 
     QUERY->add_mfun( QUERY, package_setAuthor, "string[]", "authors" );
     QUERY->add_arg( QUERY, "string", "author" );
+    QUERY->doc_func( QUERY, "Set the package author (if there are "
+                    "multiple authors, use 'pkg.authors(...)')");
 
     QUERY->add_mfun( QUERY, package_setAuthors, "string[]", "authors" );
     QUERY->add_arg( QUERY, "string[]", "authors" );
+    QUERY->doc_func( QUERY, "Set the package authors");
 
     QUERY->add_mfun( QUERY, package_getAuthors, "string[]", "authors" );
+    QUERY->doc_func( QUERY, "Get the package authors");
 
     QUERY->add_mfun( QUERY, package_setHomepage, "string", "homepage" );
     QUERY->add_arg( QUERY, "string", "homepage" );
+    QUERY->doc_func( QUERY, "Set the package homepage");
+
     QUERY->add_mfun( QUERY, package_getHomepage, "string", "homepage" );
+    QUERY->doc_func( QUERY, "Get the package homepage");
 
     QUERY->add_mfun( QUERY, package_setRepository, "string", "repository" );
     QUERY->add_arg( QUERY, "string", "repository" );
+    QUERY->doc_func( QUERY, "Set the URL to the project's repository");
+
     QUERY->add_mfun( QUERY, package_getRepository, "string", "repository" );
+    QUERY->doc_func( QUERY, "Get the URL to the project's repository");
 
     QUERY->add_mfun( QUERY, package_setLicense, "string", "license" );
     QUERY->add_arg( QUERY, "string", "license" );
+    QUERY->doc_func( QUERY, "Set the project's software license");
+
     QUERY->add_mfun( QUERY, package_getLicense, "string", "license" );
+    QUERY->doc_func( QUERY, "Get the project's software license");
 
     QUERY->add_mfun( QUERY, package_setDescription, "string", "description" );
     QUERY->add_arg( QUERY, "string", "description" );
+    QUERY->doc_func( QUERY, "Set the project's description");
+
     QUERY->add_mfun( QUERY, package_getDescription, "string", "description" );
+    QUERY->doc_func( QUERY, "Get the project's description");
 
     QUERY->add_mfun( QUERY, package_setKeywords, "string[]", "keywords" );
     QUERY->add_arg( QUERY, "string[]", "keywords" );
+    QUERY->doc_func( QUERY, "Set the project keywords");
+
     QUERY->add_mfun( QUERY, package_getKeywords, "string[]", "keywords" );
+    QUERY->doc_func( QUERY, "Get the project keywords");
 
     QUERY->add_mfun( QUERY, package_generatePackageDefinition, "int", "generatePackageDefinition" );
     QUERY->add_arg( QUERY, "string", "path" );
+    QUERY->doc_func( QUERY, "Generates a 'package.json' file. Chump needs "
+                    "this to find your package and display metadata about it.");
 
     // this reserves a variable in the ChucK internal class to store
     // referene to the c++ class we defined above
@@ -394,6 +428,15 @@ CK_DLL_QUERY( Chumpinate )
     // to extend a different ChucK class (e.g., "Object")
     QUERY->begin_class( QUERY, "PackageVersion", "Object" );
 
+    QUERY->doc_class( QUERY, "PackageVersion describes a specific "
+                     "version of your package: this includes all files, "
+                     "version number, etc."
+    );
+
+    QUERY->add_ex( QUERY, "build-pkg-win.ck");
+    QUERY->add_ex( QUERY, "build-pkg-mac.ck");
+    QUERY->add_ex( QUERY, "build-pkg-linux.ck");
+
     // register default constructor
     QUERY->add_ctor( QUERY, package_version_ctor );
     // NOTE constructors can be overloaded like any other functions,
@@ -402,114 +445,167 @@ CK_DLL_QUERY( Chumpinate )
     QUERY->add_ctor( QUERY, package_version_ctor_string );
     QUERY->add_arg( QUERY, "string", "pkg_name" );
     QUERY->add_arg( QUERY, "string", "version" );
+    QUERY->doc_func( QUERY, "Create a version of 'pkg_name', using a version string. "
+                    "This version string must follow the semantic versioning format "
+                    "major.minor.patch (i.e. \"1.3.12\") ");
+
+
     QUERY->add_ctor( QUERY, package_version_ctor_ints );
     QUERY->add_arg( QUERY, "string", "pkg_name" );
-    QUERY->add_arg( QUERY, "int", "mega" );
     QUERY->add_arg( QUERY, "int", "major" );
     QUERY->add_arg( QUERY, "int", "minor" );
     QUERY->add_arg( QUERY, "int", "patch" );
+    QUERY->doc_func( QUERY, "Create a version of 'pkg_name', integers "
+                    "correspond to major.minor.patch semantic versioning.");
 
     // register the destructor (probably no need to change)
     QUERY->add_dtor( QUERY, package_version_dtor );
 
-    // example of adding setter method
-    QUERY->add_mfun( QUERY, package_version_setParam, "float", "param" );
-    // example of adding argument to the above method
-    QUERY->add_arg( QUERY, "float", "arg" );
-
-    // example of adding getter method
-    QUERY->add_mfun( QUERY, package_version_getParam, "float", "param" );
-
     QUERY->add_mfun( QUERY, package_version_setVersion_string, "string", "version" );
     QUERY->add_arg( QUERY, "string", "version" );
+    QUERY->doc_func( QUERY, "Set package version, string must follow the semantic versioning format "
+                    "major.minor.patch (i.e. \"1.3.12\") ");
 
     QUERY->add_mfun( QUERY, package_version_setVersion_ints, "string", "version" );
-    QUERY->add_arg( QUERY, "int", "mega" );
     QUERY->add_arg( QUERY, "int", "major" );
     QUERY->add_arg( QUERY, "int", "minor" );
     QUERY->add_arg( QUERY, "int", "patch" );
+    QUERY->doc_func( QUERY, "Set package version, follows the semantic versioning format "
+                    "major.minor.patch (i.e. \"1.3.12\") ");
+
     QUERY->add_mfun( QUERY, package_version_getVersion, "string", "version" );
+    QUERY->doc_func( QUERY, "Set version, follows the semantic versioning format "
+                    "major.minor.patch (i.e. \"1.3.12\") ");
 
     QUERY->add_mfun( QUERY, package_version_setApi_ints, "string", "apiVersion" );
     QUERY->add_arg( QUERY, "int", "major" );
     QUERY->add_arg( QUERY, "int", "minor" );
+    QUERY->doc_func( QUERY, "Set required ChucK API version. Chugins will only load with "
+                    "a specific API version. If your package is only .ck files, this "
+                    "shouldn't be set as it restricts which versions of ChucK "
+                    "can install this package");
+
 
     QUERY->add_mfun( QUERY, package_version_setApi_string, "string", "apiVersion" );
     QUERY->add_arg( QUERY, "string", "version" );
+    QUERY->doc_func( QUERY, "Set required ChucK API version. Chugins will only load with a specific "
+                    "API version. If your package is only .ck files, this shouldn't be set "
+                    "as it restricts which versions of ChucK can install this package");
 
     QUERY->add_mfun( QUERY, package_version_getApi, "string", "apiVersion" );
+    QUERY->doc_func( QUERY, "Get required ChucK API version. Chugins will only load with a specific "
+                    "API version. If your package is only .ck files, this shouldn't be set "
+                    "as it restricts which versions of ChucK can install this package");
 
     QUERY->add_mfun( QUERY, package_version_setCkVerMin_string, "string", "languageVersionMin" );
     QUERY->add_arg( QUERY, "string", "version" );
+    QUERY->doc_func( QUERY, "Set oldest compatible ChucK version. Follows the semantic versioning "
+                    "scheme mega.major.minor.patch (i.e. \"1.5.4.2\")");
 
     QUERY->add_mfun( QUERY, package_version_setCkVerMin_ints, "string", "languageVersionMin");
     QUERY->add_arg( QUERY, "int", "mega" );
     QUERY->add_arg( QUERY, "int", "major" );
     QUERY->add_arg( QUERY, "int", "minor" );
     QUERY->add_arg( QUERY, "int", "patch" );
+    QUERY->doc_func( QUERY, "Set oldest compatible ChucK version. Follows the semantic versioning "
+                    "scheme mega.major.minor.patch (i.e. \"1.5.4.2\")");
 
     QUERY->add_mfun( QUERY, package_version_getCkVerMin, "string", "languageVersionMin" );
-
+    QUERY->doc_func( QUERY, "Gets oldest compatible ChucK version. Follows the semantic versioning "
+                    "scheme mega.major.minor.patch (i.e. \"1.5.4.2\")");
 
     QUERY->add_mfun( QUERY, package_version_setCkVerMax_string, "string", "languageVersionMax" );
     QUERY->add_arg( QUERY, "string", "version" );
+    QUERY->doc_func( QUERY, "Set newest compatible ChucK version. Follows the semantic versioning "
+                    "scheme mega.major.minor.patch (i.e. \"1.5.4.2\")");
 
     QUERY->add_mfun( QUERY, package_version_setCkVerMax_ints, "string", "languageVersionMax" );
     QUERY->add_arg( QUERY, "int", "mega" );
     QUERY->add_arg( QUERY, "int", "major" );
     QUERY->add_arg( QUERY, "int", "minor" );
     QUERY->add_arg( QUERY, "int", "patch" );
+    QUERY->doc_func( QUERY, "Set newest compatible ChucK version. Follows the semantic versioning "
+                    "scheme mega.major.minor.patch (i.e. \"1.5.4.2\")");
 
     QUERY->add_mfun( QUERY, package_version_getCkVerMax, "string", "languageVersionMax" );
+    QUERY->doc_func( QUERY, "Get newest compatible ChucK version. Follows the semantic versioning "
+                    "scheme mega.major.minor.patch (i.e. \"1.5.4.2\")");
 
     QUERY->add_mfun( QUERY, package_version_setOS, "string", "os" );
     QUERY->add_arg( QUERY, "string", "os" );
+    QUERY->doc_func( QUERY, "Set version's operating system (\"mac\", \"windows\", or \"linux\"");
 
     QUERY->add_mfun( QUERY, package_version_getOS, "string", "os" );
+    QUERY->doc_func( QUERY, "Get version's operating system (\"mac\", \"windows\", or \"linux\"");
 
     QUERY->add_mfun( QUERY, package_version_addFile, "string", "addFile" );
     QUERY->add_arg( QUERY, "string", "filepath");
+    QUERY->doc_func( QUERY, "Add file to list of files. This will be stored at the package "
+                    "directory's top level (./)");
 
     QUERY->add_mfun( QUERY, package_version_addFile_dir, "void", "addFile" );
     QUERY->add_arg( QUERY, "string", "filepath");
     QUERY->add_arg( QUERY, "string", "pkg_dir");
+    QUERY->doc_func( QUERY, "Add file to list of files. This will be stored in the directory "
+                    "./pkg_dir");
 
     QUERY->add_mfun( QUERY, package_version_addDataFile, "void", "addDataFile" );
     QUERY->add_arg( QUERY, "string", "filepath");
+    QUERY->doc_func( QUERY, "Add data file to list of files. This will be stored in the directory "
+                    "./_data");
 
     QUERY->add_mfun( QUERY, package_version_addDataFile_dir, "void", "addDataFile" );
     QUERY->add_arg( QUERY, "string", "filepath");
     QUERY->add_arg( QUERY, "string", "pkg_dir");
+    QUERY->doc_func( QUERY, "Add data file to list of files. This will be stored in the directory "
+                    "./_data/pkg_dir");
 
     QUERY->add_mfun( QUERY, package_version_addExampleFile, "void", "addExampleFile" );
     QUERY->add_arg( QUERY, "string", "filepath");
+    QUERY->doc_func( QUERY, "Add example file to list of files. This will be stored in the "
+                    "directory ./_examples");
 
     QUERY->add_mfun( QUERY, package_version_addExampleFile_dir, "void", "addExampleFile" );
     QUERY->add_arg( QUERY, "string", "filepath");
     QUERY->add_arg( QUERY, "string", "pkg_dir");
+    QUERY->doc_func( QUERY, "Add example file to list of files. This will be stored in the "
+                    "directory ./_examples/pkg_dir");
 
     QUERY->add_mfun( QUERY, package_version_addDocsFile, "void", "addDocsFile" );
     QUERY->add_arg( QUERY, "string", "filepath");
+    QUERY->doc_func( QUERY, "Add docs file to list of files. This will be stored in the directory "
+                    "./_docs");
 
     QUERY->add_mfun( QUERY, package_version_addDocsFile_dir, "void", "addDocsFile" );
     QUERY->add_arg( QUERY, "string", "filepath");
     QUERY->add_arg( QUERY, "string", "pkg_dir");
+    QUERY->doc_func( QUERY, "Add docs file to list of files. This will be stored in the directory "
+                    "./_docs/pkg_dir");
 
     QUERY->add_mfun( QUERY, package_version_addDepsFile, "void", "addDepsFile" );
     QUERY->add_arg( QUERY, "string", "filepath");
+    QUERY->doc_func( QUERY, "Add dependency file to list of files. This will be stored in the "
+                    "directory ./_deps");
 
     QUERY->add_mfun( QUERY, package_version_addDepsFile_dir, "void", "addDepsFile" );
     QUERY->add_arg( QUERY, "string", "filepath");
     QUERY->add_arg( QUERY, "string", "pkg_dir");
+    QUERY->doc_func( QUERY, "Add dependency file to list of files. This will be stored in the "
+                    "directory ./_deps/pkg_dir");
 
     QUERY->add_mfun( QUERY, package_version_createZip, "int", "generateVersion" );
     QUERY->add_arg( QUERY, "string", "dir");
     QUERY->add_arg( QUERY, "string", "filename");
     QUERY->add_arg( QUERY, "string", "url");
+    QUERY->doc_func( QUERY, "Combine all files in a version definition into a single zip file that "
+                    "can be used by chump to install a package. 'url' is the url that the "
+                    "zip file will be accessible at.");
 
     QUERY->add_mfun( QUERY, package_version_generateVersionDefinition, "int", "generateVersionDefinition" );
     QUERY->add_arg( QUERY, "string", "filename");
     QUERY->add_arg( QUERY, "string", "pkg_dir");
+    QUERY->doc_func( QUERY, "Create a 'version.json' that has all the metadata necessary to install "
+                    "a specific package version");
 
     // this reserves a variable in the ChucK internal class to store
     // referene to the c++ class we defined above
@@ -991,8 +1087,8 @@ public:
         zip_fileinfo zfi;
         zfi.tmz_date = lastWriteTime;
 
-        // Some builds of minizip-ng can't actually compress 
-        // (depending on availability of dependencies). In that 
+        // Some builds of minizip-ng can't actually compress
+        // (depending on availability of dependencies). In that
         // case we simply use zip as a wrapper so we only have to
         // deal with one file.
         #ifdef MZ_ZIP_NO_COMPRESSION
@@ -1459,9 +1555,8 @@ CK_DLL_MFUN( package_version_generateVersionDefinition ) {
   string filename = GET_NEXT_STRING_SAFE( ARGS );
   string pkg_dir = GET_NEXT_STRING_SAFE( ARGS );
 
-  t_CKINT val;
   try {
-    val = c_obj->generateVersionDefinition(filename, pkg_dir);
+    c_obj->generateVersionDefinition(filename, pkg_dir);
   } catch (const std::exception &e) {
     API->vm->throw_exception( e.what(), "", SHRED);
   }

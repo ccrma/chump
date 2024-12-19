@@ -45,6 +45,7 @@ ver.addExampleFile("build-pkg-linux.ck");
 // Documentation files
 ver.addDocsFile("./index.html");
 ver.addDocsFile("./chumpinate.html");
+ver.addDocsFile("./ckdoc.css");
 
 "chugins/Chumpinate/" + ver.version() + "/" + ver.os() + "/Chumpinate.zip" => string path;
 
