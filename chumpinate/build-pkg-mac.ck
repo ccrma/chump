@@ -34,7 +34,17 @@ PackageVersion ver("Chumpinate", version);
 
 "mac"=> ver.os;
 
+// The chugin file
 ver.addFile("../builddir-release/chumpinate/Chumpinate.chug");
+
+// These build files are examples as well
+ver.addExampleFile("build-pkg-win.ck");
+ver.addExampleFile("build-pkg-mac.ck");
+ver.addExampleFile("build-pkg-linux.ck");
+
+// Documentation files
+ver.addDocsFile("./index.html");
+ver.addDocsFile("./chumpinate.html");
 
 "chugins/Chumpinate/" + ver.version() + "/" + ver.os() + "/Chumpinate.zip" => string path;
 
