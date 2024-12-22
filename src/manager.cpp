@@ -224,19 +224,9 @@ bool Manager::update(string packageName) {
         return false;
     }
 
-    // Validate that the version is newer
-    std::ifstream f(install_dir / "version.json");
+    optional<InstalledVersion> installed_version = open_installed_version_file(install_dir / "version.json");
 
-    if (!f.good()) {
-        std::cerr << "[chump]: unable to open " << install_dir / "version.json" << std::endl;
-        f.close();
-        return false;
-    }
-
-    json pkg_ver = json::parse(f);
-    f.close();
-    InstalledVersion installed_version = pkg_ver.template get<InstalledVersion>();
-    PackageVersion curr_version = installed_version.version();
+    PackageVersion curr_version = installed_version.value().version();
 
     optional<PackageVersion> ver = package.latest_version(os, language_version, api_version);
 
@@ -259,7 +249,7 @@ bool Manager::update(string packageName) {
         return true;
     }
 
-    for (auto file: installed_version.files) {
+    for (auto file: installed_version.value().files) {
         fs::path curr_dir = (install_dir / file.parent_path()).lexically_normal();
         fs::path curr_file = (install_dir / file).lexically_normal();
 
