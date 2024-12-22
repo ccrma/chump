@@ -63,6 +63,32 @@ struct Package {
 void to_json(json& j, const Package& p);
 void from_json(const json& j, Package& p);
 
+//-----------------------------------------------------------------------------
+// Compatible architecture for a chump PackageVersion. This should
+// generally only be for packages that contain chugins. Most packages
+// that are only .ck files will be set to ALL, as well as chugins on
+// macs built as a universal binary.
+// -----------------------------------------------------------------------------
+enum Architecture {
+    ARCH_ALL,
+    X86,
+    X86_64,
+    ARM64 // including apple silicon
+};
+
+static const map<string, Architecture> stringToArchitecture = {
+    {"all", ARCH_ALL},
+    {"x86", X86},
+    {"x86_64", X86_64},
+    {"arm64", ARM64},
+};
+
+static const map<Architecture, string> architectureToString = {
+    {ARCH_ALL, "all"},
+    {X86, "x86"},
+    {X86_64, "x86_64"},
+    {ARM64, "arm64"},
+};
 
 //-----------------------------------------------------------------------------
 // PackageVersion describes a specific version of a package. For examples,
@@ -94,6 +120,7 @@ struct PackageVersion {
     // all versions >= language_version_min are compatible
     optional<ChuckVersion> language_version_max;
     string os;
+    Architecture arch;
     vector<File> files;
 
     // Equality operator overload
@@ -145,6 +172,7 @@ struct InstalledVersion {
     // all versions >= language_version_min are compatible
     optional<ChuckVersion> language_version_max;
     string os;
+    Architecture arch;
     vector<fs::path> files;
 };
 

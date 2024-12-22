@@ -4,9 +4,10 @@
 
 #include <regex>
 
-Manager::Manager(string package_list_path, fs::path package_install_dir, ChuckVersion ck_ver, ApiVersion api_ver, string system_os, string _manifest_url, bool render_tui) {
+Manager::Manager(string package_list_path, fs::path package_install_dir, ChuckVersion ck_ver, ApiVersion api_ver, string system_os, Architecture _arch, string _manifest_url, bool render_tui) {
     chump_dir = package_install_dir;
     os = system_os;
+    arch = _arch;
     manifest_url = _manifest_url;
 
     fetch = new Fetch(render_tui);
