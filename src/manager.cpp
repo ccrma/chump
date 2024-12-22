@@ -160,64 +160,33 @@ bool Manager::install_local(fs::path pkgDefn, fs::path pkgVer, fs::path pkgZip) 
     // only supporting zip for now
     if (pkgZip.extension() != ".zip") {
         std::cerr << "[chump]: package path " << pkgZip << "is not a zip file, exiting..." << std::endl;
-    }
-
-    // parse package and version files
-    std::ifstream ver_stream(pkgVer);
-    if (!ver_stream.good()) {
-        std::cerr << "[chump]: unable to open " << pkgVer << std::endl;
-        ver_stream.close();
         return false;
     }
 
-    json pkg_ver;
-    // need to close file on failure
-    try {
-        pkg_ver = json::parse(ver_stream);
-        ver_stream.close();
-    } catch (const std::exception &e) {
-        ver_stream.close();
-        throw;
-    }
+    // attempt to open the package files
+    auto version = open_package_version_file(pkgVer);
+    if (!version) return false;
 
-    PackageVersion version = pkg_ver.template get<PackageVersion>();
-
-    std::ifstream pkg_stream(pkgDefn);
-    if (!pkg_stream.good()) {
-        std::cerr << "[chump]: unable to open " << pkgDefn << std::endl;
-        pkg_stream.close();
-        return false;
-    }
-
-    json pkg_json;
-    // need to close file on failure
-    try {
-        pkg_json = json::parse(pkg_stream);
-        pkg_stream.close();
-    } catch (const std::exception &e) {
-        pkg_stream.close();
-        throw;
-    }
-
-    Package package = pkg_json.template get<Package>();
+    optional<Package> package = open_package_file(pkgDefn);
+    if (!package) return false;
 
     // if there is already a packages/PACKAGE directory, error out and tell the user to call update
-    fs::path install_dir = packagePath(package, chump_dir);
+    fs::path install_dir = packagePath(package.value(), chump_dir);
 
     if (fs::exists(install_dir / "version.json")) {
-        std::cerr << "[chump]: the package '" << package.name << "' already exists." << std::endl;
-        std::cerr << "[chump]: uninstalling '" << package.name << "'..." << std::endl;
-        uninstall(package.name);
+        std::cerr << "[chump]: the package '" << package.value().name << "' already exists." << std::endl;
+        std::cerr << "[chump]: uninstalling '" << package.value().name << "'..." << std::endl;
+        uninstall(package.value().name);
     }
 
-    std::cerr << "[chump]: installing '" << package.name << "'..." << std::endl;
+    std::cerr << "[chump]: installing '" << package.value().name << "'..." << std::endl;
     fs::create_directory(install_dir);
     // Unzip the local file to the installed directory
     if (!unzipFile(pkgZip.string(), install_dir.string())) return false;
 
 
     // Add all files to the InstalledVersion file list
-    InstalledVersion installed_ver = InstalledVersion(package, version);
+    InstalledVersion installed_ver = InstalledVersion(package.value(), version.value());
     for (auto const& dir_entry : fs::recursive_directory_iterator(install_dir)) {
         if (fs::is_regular_file(dir_entry)) {
             installed_ver.files.push_back(fs::relative(dir_entry, install_dir));
@@ -373,28 +342,14 @@ bool Manager::uninstall(string packageName) {
         return false;
     }
 
-    // Validate that the version file exists
-    std::ifstream f(install_dir / "version.json");
+    optional<InstalledVersion> installed_ver = open_installed_version_file(install_dir / "version.json");
 
-    if (!f.good()) {
-        std::cerr << "[chump]: unable to open " << install_dir / "version.json" << std::endl;
-        return false;
-    }
+    if (!installed_ver) return false;
 
-    json pkg_ver;
-    try {
-        pkg_ver = json::parse(f);
-    } catch (const std::exception &e) {
-        f.close();
-        throw;
-    }
-
-    f.close();
-    InstalledVersion installed_ver = pkg_ver.template get<InstalledVersion>();
-    PackageVersion curr_ver = installed_ver.version();
+    PackageVersion curr_ver = installed_ver.value().version();
 
     // Remove all files associated with package
-    for (auto file: installed_ver.files) {
+    for (auto file: installed_ver.value().files) {
         fs::path filepath = file.lexically_normal();
         std::cerr << "[chump]: removing " << install_dir / filepath << std::endl;
         fs::remove(install_dir / filepath);
@@ -519,4 +474,105 @@ bool Manager::update_manifest() {
 
     std::cerr << "[chump]: manifest.json was successfully updated!" << std::endl;
     return true;
+}
+
+
+
+
+optional<Package> Manager::open_package_file(fs::path path) {
+    // parse package and version files
+    std::ifstream ver_stream(path);
+    if (!ver_stream.good()) {
+        std::cerr << "[chump]: unable to open \"" << path << "\"" << std::endl;
+        ver_stream.close();
+        return {};
+    }
+
+    json pkg_ver;
+    // need to close file on failure
+    try {
+        pkg_ver = json::parse(ver_stream);
+        ver_stream.close();
+    } catch (const std::exception &e) {
+        ver_stream.close();
+        std::cerr << "[chump]: unable to parse \"" << path << "\": " << e.what() << std::endl;
+        return {};
+    }
+
+    try {
+        Package version = pkg_ver.template get<Package>();
+        ver_stream.close();
+        return version;
+    } catch (const std::exception &e) {
+        ver_stream.close();
+        std::cerr << "[chump]: unable to cast \"" << path << "\" to Package: " << e.what() << std::endl;
+        return {};
+    }
+}
+
+
+
+
+optional<InstalledVersion> Manager::open_installed_version_file(fs::path path) {
+    // parse package and version files
+    std::ifstream ver_stream(path);
+    if (!ver_stream.good()) {
+        std::cerr << "[chump]: unable to open \"" << path << "\"" << std::endl;
+        ver_stream.close();
+        return {};
+    }
+
+    json pkg_ver;
+    // need to close file on failure
+    try {
+        pkg_ver = json::parse(ver_stream);
+        ver_stream.close();
+    } catch (const std::exception &e) {
+        ver_stream.close();
+        std::cerr << "[chump]: unable to parse \"" << path << "\": " << e.what() << std::endl;
+        return {};
+    }
+
+    try {
+        InstalledVersion version = pkg_ver.template get<InstalledVersion>();
+        ver_stream.close();
+        return version;
+    } catch (const std::exception &e) {
+        ver_stream.close();
+        std::cerr << "[chump]: unable to cast \"" << path << "\" to InstalledVersion: " << e.what() << std::endl;
+        return {};
+    }
+}
+
+
+
+optional<PackageVersion> Manager::open_package_version_file(fs::path path) {
+    // parse package and version files
+    std::ifstream ver_stream(path);
+    if (!ver_stream.good()) {
+        std::cerr << "[chump]: unable to open \"" << path << "\"" << std::endl;
+        ver_stream.close();
+        return {};
+    }
+
+    json pkg_ver;
+    // need to close file on failure
+    try {
+        pkg_ver = json::parse(ver_stream);
+        ver_stream.close();
+    } catch (const std::exception &e) {
+        ver_stream.close();
+        std::cerr << "[chump]: unable to parse \"" << path << "\": " << e.what() << std::endl;
+        return {};
+    }
+
+    try {
+        PackageVersion version = pkg_ver.template get<PackageVersion>();
+        ver_stream.close();
+        return version;
+    } catch (const std::exception &e) {
+        ver_stream.close();
+        std::cerr << "[chump]: unable to cast \"" << path << "\" to PackageVersion: " << e.what() << std::endl;
+        return {};
+    }
 }

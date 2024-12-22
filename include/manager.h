@@ -14,6 +14,7 @@
 using std::optional;
 using std::string;
 using std::tuple;
+namespace fs = std::filesystem;
 
 // only support the local path for now (to a spec json file)
 
@@ -49,7 +50,11 @@ private:
     std::string os;
     std::string manifest_url;
 
- 
+public:
+    // attempts to open json files
+    optional<Package> open_package_file(fs::path path);
+    optional<InstalledVersion> open_installed_version_file(fs::path path);
+    optional<PackageVersion> open_package_version_file(fs::path path);
 };
 
 
