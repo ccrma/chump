@@ -69,6 +69,9 @@ chumpinate_pkg_mac: mac chumpinate_ckdoc
 chumpinate_ckdoc:
 	cd chumpinate; chuck -s --chugin-path:../builddir-release/chumpinate gen-ckdoc.ck
 
+chumpinate_install_local: chumpinate_pkg_linux
+	chump install-local ./chumpinate/Chumpinate/package.json chumpinate/Chumpinate/0.1.0/Chumpinate_linux.json ./chumpinate/Chumpinate_linux.zip
+
 clean:
 ifneq ("$(wildcard builddir-release)","")
 	meson compile -C builddir-release --clean
