@@ -26,7 +26,7 @@ optional<Package> Manager::getPackage(string packageName) {
 }
 
 optional<PackageVersion> Manager::latestPackageVersion(string name) {
-    return package_list->find_latest_package_version(name, os, language_version, api_version);
+    return package_list->find_latest_package_version(name, os, arch, language_version, api_version);
 }
 
 bool Manager::install(string packageName) {
@@ -53,7 +53,7 @@ bool Manager::install(string packageName) {
             return false;
         }
     } else {
-        ver = package.latest_version(os, language_version, api_version);
+        ver = package.latest_version(os, arch, language_version, api_version);
     }
 
     if (!ver) {
@@ -229,7 +229,7 @@ bool Manager::update(string packageName) {
 
     PackageVersion curr_version = installed_version.value().version();
 
-    optional<PackageVersion> ver = package.latest_version(os, language_version, api_version);
+    optional<PackageVersion> ver = package.latest_version(os, arch, language_version, api_version);
 
     if (!ver) {
         std::cerr << "[chump]: unable to find version of package " << package.name

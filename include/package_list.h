@@ -30,6 +30,7 @@ public:
     // return latest (maybe latest && most compatible?) version of package
     optional<PackageVersion> find_latest_package_version(string name,
                                                          string operating_system,
+                                                         Architecture arch,
                                                          ChuckVersion ck_ver,
                                                          ApiVersion api_ver);
 
