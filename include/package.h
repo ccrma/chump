@@ -35,7 +35,8 @@ enum Architecture {
     ARCH_ALL,
     X86,
     X86_64,
-    ARM64 // including apple silicon
+    ARM64, // including apple silicon
+    MAC_UNIVERSAL // intel and arm64 fat binary for macOS
 };
 
 // Function declarations for JSON serialization/deserialization
@@ -83,6 +84,7 @@ static const map<string, Architecture> stringToArchitecture = {
     {"x86", X86},
     {"x86_64", X86_64},
     {"arm64", ARM64},
+    {"universal", MAC_UNIVERSAL},
 };
 
 static const map<Architecture, string> architectureToString = {
@@ -90,6 +92,7 @@ static const map<Architecture, string> architectureToString = {
     {X86, "x86"},
     {X86_64, "x86_64"},
     {ARM64, "arm64"},
+    {MAC_UNIVERSAL, "universal"},
 };
 
 //-----------------------------------------------------------------------------
