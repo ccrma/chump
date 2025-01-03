@@ -536,17 +536,17 @@ CK_DLL_QUERY( Chumpinate )
 
     QUERY->add_mfun( QUERY, package_version_setOS, "string", "os" );
     QUERY->add_arg( QUERY, "string", "os" );
-    QUERY->doc_func( QUERY, "Set version's operating system (\"mac\", \"windows\", or \"linux\"");
+    QUERY->doc_func( QUERY, "Set version's operating system (\"mac\", \"windows\", or \"linux\")");
 
     QUERY->add_mfun( QUERY, package_version_getOS, "string", "os" );
-    QUERY->doc_func( QUERY, "Get version's operating system (\"mac\", \"windows\", or \"linux\"");
+    QUERY->doc_func( QUERY, "Get version's operating system (\"mac\", \"windows\", or \"linux\")");
 
     QUERY->add_mfun( QUERY, package_version_setArch, "string", "arch" );
     QUERY->add_arg( QUERY, "string", "arch" );
-    QUERY->doc_func( QUERY, "Set version's architecture (\"x86\", \"x86_64\", \"arm64\", or \"all\"");
+    QUERY->doc_func( QUERY, "Set version's architecture (\"x86\", \"x86_64\", \"arm64\", or \"all\")");
 
     QUERY->add_mfun( QUERY, package_version_getArch, "string", "arch" );
-    QUERY->doc_func( QUERY, "Get version's architecture (\"x86\", \"x86_64\", \"arm64\", or \"all\"");
+    QUERY->doc_func( QUERY, "Get version's architecture (\"x86\", \"x86_64\", \"arm64\", or \"all\")");
 
     QUERY->add_mfun( QUERY, package_version_addFile, "string", "addFile" );
     QUERY->add_arg( QUERY, "string", "filepath");
