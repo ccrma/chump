@@ -1,3 +1,5 @@
+#include <fstream>
+
 namespace fs = std::filesystem;
 
 void populate_versions(Package *p, fs::path pkg_path);
