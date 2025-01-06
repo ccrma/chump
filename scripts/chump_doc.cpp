@@ -1,26 +1,28 @@
-#include "package_list.h"
 #include "package.h"
 #include "package_directory.h"
+#include "package_list.h"
 
-#include <sstream>
 #include <iostream>
+#include <sstream>
 
 namespace fs = std::filesystem;
-using std::string;
 using std::optional;
+using std::string;
 
 string package_doc(Package p);
 string package_idx(PackageList p);
 
 /*******************************************************************
-   * Generates documentation webpages for each package
-   *****************************************************************/
+ * Generates documentation webpages for each package
+ *****************************************************************/
 
-int main( int argc, const char ** argv ) {
+int main(int argc, const char **argv) {
   // CLI11_PARSE(app, argc, argv);
 
   if (argc != 3) {
-    std::cerr << "chump_doc must have two args: path to manifest directory and output dir" << std::endl;
+    std::cerr << "chump_doc must have two args: path to manifest directory and "
+                 "output dir"
+              << std::endl;
     return -1;
   }
 
@@ -30,7 +32,8 @@ int main( int argc, const char ** argv ) {
 
   if (!fs::exists(packages_subdir) || !fs::is_directory(packages_subdir)) {
     std::cout << "no 'packages' dir found in " << packages_path
-              << " make sure you pointed to the chump-packages repo correctly" << std::endl;
+              << " make sure you pointed to the chump-packages repo correctly"
+              << std::endl;
     return -1;
   }
   if (!fs::exists(output_dir)) {
@@ -40,8 +43,9 @@ int main( int argc, const char ** argv ) {
 
   std::vector<Package> packages;
 
-  for (auto const& path : fs::directory_iterator{packages_subdir}) {
-    if (!fs::is_directory(path)) continue;
+  for (auto const &path : fs::directory_iterator{packages_subdir}) {
+    if (!fs::is_directory(path))
+      continue;
 
     // Each directory corresponds to a package
 
@@ -51,7 +55,10 @@ int main( int argc, const char ** argv ) {
     // std::cout << pkg_path << std::endl;
 
     if (!fs::exists(pkg_path)) {
-      std::cerr << "Package definition " << pkg_path << "not found, are you in the chump-packages/packages directory?" << std::endl;
+      std::cerr
+          << "Package definition " << pkg_path
+          << "not found, are you in the chump-packages/packages directory?"
+          << std::endl;
       continue;
     }
 
@@ -66,7 +73,7 @@ int main( int argc, const char ** argv ) {
 
   fs::create_directory(output_dir / "packages");
 
-  for (auto const& p : package_list.get_packages()) {
+  for (auto const &p : package_list.get_packages()) {
     fs::path filename = p.name + ".html";
     fs::path pkg_path = output_dir / "packages" / filename;
     std::ofstream out(pkg_path);
@@ -80,7 +87,6 @@ int main( int argc, const char ** argv ) {
   out.close();
 }
 
-
 string package_doc(Package p) {
   std::stringstream ss;
 
@@ -88,9 +94,7 @@ string package_doc(Package p) {
   ss << "<title>" << p.name << "</title>";
   ss << "<body>";
 
-
   ss << "<h1>" << p.name << "</h1>";
-
 
   ss << "<p> install command: chump install " << p.name << "</p>";
 
@@ -99,18 +103,19 @@ string package_doc(Package p) {
   ss << "<p>" << p.description << "</p>";
 
   ss << "<p> Homepage: "
-     << "<a href=\"" << p.homepage << "\">" << p.homepage
-     << "</a>"
-     << "</p>";;
-  ss << "<p> Repository: " <<
-    "<a href=\"" << p.repository << "\">" << p.repository
-     << "</a>"
+     << "<a href=\"" << p.homepage << "\">" << p.homepage << "</a>"
+     << "</p>";
+  ;
+  ss << "<p> Repository: "
+     << "<a href=\"" << p.repository << "\">" << p.repository << "</a>"
      << "</p>";
 
   ss << "<p> License: " << p.license << "</p>";
 
   // Current versions (mac, windows, linux)
-  ss << "<p>" << "Current versions:" << "</p>";
+  ss << "<p>"
+     << "Current versions:"
+     << "</p>";
 
   optional<PackageVersion> linux = p.latest_version("linux");
   optional<PackageVersion> win = p.latest_version("windows");
@@ -119,17 +124,23 @@ string package_doc(Package p) {
   ss << "<table>";
   if (linux)
     ss << "<tr>"
-       << "<th>" << "linux" << "</th>"
+       << "<th>"
+       << "linux"
+       << "</th>"
        << "<th>" << linux.value().getVersionString() << "</th>"
        << "</tr>";
   if (win)
     ss << "<tr>"
-       << "<th>" << "windows" << "</th>"
+       << "<th>"
+       << "windows"
+       << "</th>"
        << "<th>" << win.value().getVersionString() << "</th>"
        << "</tr>";
   if (mac)
     ss << "<tr>"
-       << "<th>" << "mac" << "</th>"
+       << "<th>"
+       << "mac"
+       << "</th>"
        << "<th>" << mac.value().getVersionString() << "</th>"
        << "</tr>";
   ss << "</table>";
@@ -144,20 +155,23 @@ string package_idx(PackageList pkg_list) {
   std::stringstream ss;
 
   ss << "<html>";
-  ss << "<title>" << "ChuMP" << "</title>";
+  ss << "<title>"
+     << "ChuMP"
+     << "</title>";
   ss << "<body>";
 
-
-  ss << "<h1>" << "ChuMP (the ChucK Manager of Packages)" << "</h1>";
-  ss << "<h2>" << "Package Directory" << "</h2>";
+  ss << "<h1>"
+     << "ChuMP (the ChucK Manager of Packages)"
+     << "</h1>";
+  ss << "<h2>"
+     << "Package Directory"
+     << "</h2>";
 
   ss << "<table>";
-  for (auto const& p : pkg_list.get_packages()) {
+  for (auto const &p : pkg_list.get_packages()) {
     ss << "<tr>"
        << "<th>"
-       << "<a href=\"./packages/" << p.name << ".html\">"
-       << p.name
-       << "</a>"
+       << "<a href=\"./packages/" << p.name << ".html\">" << p.name << "</a>"
        << "</th>"
        << "<th>" << p.description << "</th>"
        << "</tr>";

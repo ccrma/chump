@@ -1,21 +1,21 @@
-#include "package_list.h"
 #include "package.h"
 #include "package_directory.h"
+#include "package_list.h"
 
 // #include "CLI/CLI.hpp"
 
 /*******************************************************************
-   * Generates a complete manifest.json from the chuck-packages repo
-   *****************************************************************/
+ * Generates a complete manifest.json from the chuck-packages repo
+ *****************************************************************/
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <filesystem>
 #include <vector>
 
 namespace fs = std::filesystem;
 
-int main( int argc, const char ** argv ) {
+int main(int argc, const char **argv) {
   /*****************************************************************
    * CLI Args Setup
    *****************************************************************/
@@ -24,7 +24,9 @@ int main( int argc, const char ** argv ) {
   // CLI11_PARSE(app, argc, argv);
 
   if (argc != 2) {
-    std::cerr << "generate_manifest must have one arg: path to manifest directory" << std::endl;
+    std::cerr
+        << "generate_manifest must have one arg: path to manifest directory"
+        << std::endl;
     return -1;
   }
 
@@ -33,14 +35,16 @@ int main( int argc, const char ** argv ) {
 
   if (!fs::exists(packages_subdir) || !fs::is_directory(packages_subdir)) {
     std::cout << "no 'packages' dir found in " << packages_path
-              << " make sure you pointed to the chump-packages repo correctly" << std::endl;
+              << " make sure you pointed to the chump-packages repo correctly"
+              << std::endl;
     return -1;
   }
 
   std::vector<Package> packages;
 
-  for (auto const& path : fs::directory_iterator{packages_subdir}) {
-    if (!fs::is_directory(path)) continue;
+  for (auto const &path : fs::directory_iterator{packages_subdir}) {
+    if (!fs::is_directory(path))
+      continue;
 
     // Each directory corresponds to a package
 
@@ -50,7 +54,10 @@ int main( int argc, const char ** argv ) {
     std::cerr << "Reading " << pkg_path << std::endl;
 
     if (!fs::exists(pkg_path)) {
-      std::cerr << "Package definition " << pkg_path << "not found, are you in the chump-packages/packages directory?" << std::endl;
+      std::cerr
+          << "Package definition " << pkg_path
+          << "not found, are you in the chump-packages/packages directory?"
+          << std::endl;
       continue;
     }
 
