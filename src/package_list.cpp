@@ -1,7 +1,6 @@
 
 #include "package_list.h"
 
-
 PackageList::PackageList() {
   // throw std::runtime_error("not implemented");
 }
@@ -11,7 +10,8 @@ PackageList::PackageList(fs::path filepath) {
 
   // TODO better error checks
   if (!f.good()) {
-    throw std::invalid_argument("Unable to open Package List \"" + filepath.string() + "\"");
+    throw std::invalid_argument("Unable to open Package List \"" +
+                                filepath.string() + "\"");
   }
 
   json data = json::parse(f);
@@ -20,19 +20,17 @@ PackageList::PackageList(fs::path filepath) {
   // parse all the packages
   json j_packages = data["packages"];
 
-  for (auto& j_package : j_packages) {
+  for (auto &j_package : j_packages) {
     Package p = j_package.get<Package>();
 
     packages.push_back(p);
   }
 }
 
-PackageList::PackageList(std::vector<Package> _package) {
-  packages = _package;
-}
+PackageList::PackageList(std::vector<Package> _package) { packages = _package; }
 
 optional<Package> PackageList::find_package(string name) {
-  for (auto package: packages) {
+  for (auto package : packages) {
     if (package.name == name) {
       return package;
     }
@@ -41,12 +39,10 @@ optional<Package> PackageList::find_package(string name) {
   return {};
 }
 
-optional<PackageVersion> PackageList::find_latest_package_version(string name,
-                                                                  string os,
-                                                                  ChuckVersion ck_ver,
-                                                                  ApiVersion api_ver) {
+optional<PackageVersion> PackageList::find_latest_package_version(
+    string name, string os, ChuckVersion ck_ver, ApiVersion api_ver) {
   // TODO get highest version (how do I do that?)
-  for (auto package: packages) {
+  for (auto package : packages) {
     if (package.name == name) {
       return package.latest_version(os, ck_ver, api_ver);
     }
@@ -54,12 +50,13 @@ optional<PackageVersion> PackageList::find_latest_package_version(string name,
   return {};
 }
 
-optional<PackageVersion> PackageList::find_package_version(string name, string version) {
+optional<PackageVersion> PackageList::find_package_version(string name,
+                                                           string version) {
   PackageVersion want(version);
 
-  for (auto package: packages) {
+  for (auto package : packages) {
     if (package.name == name) {
-      for (auto package_version: package.versions) {
+      for (auto package_version : package.versions) {
         if (package_version == want) {
           return package_version;
         }
@@ -69,10 +66,11 @@ optional<PackageVersion> PackageList::find_package_version(string name, string v
   return {};
 }
 
-optional<PackageVersion> PackageList::find_package_version(string name, PackageVersion version) {
-  for (auto package: packages) {
+optional<PackageVersion>
+PackageList::find_package_version(string name, PackageVersion version) {
+  for (auto package : packages) {
     if (package.name == name) {
-      for (auto package_version: package.versions) {
+      for (auto package_version : package.versions) {
         if (package_version == version) {
           return package_version;
         }
@@ -82,6 +80,4 @@ optional<PackageVersion> PackageList::find_package_version(string name, PackageV
   return {};
 }
 
-std::vector<Package> PackageList::get_packages() {
-  return packages;
-}
+std::vector<Package> PackageList::get_packages() { return packages; }

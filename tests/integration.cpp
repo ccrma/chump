@@ -1,16 +1,18 @@
-#include "manager.h"
 #include "exec.h"
 #include "fetch.h"
+#include "manager.h"
 #include "package.h"
 
-#include <filesystem>
 #include <catch2/catch_test_macros.hpp>
+#include <filesystem>
 
-std::string manifest_url = "https://ccrma.stanford.edu/~nshaheed/chump/manifest.json";
+std::string manifest_url =
+    "https://ccrma.stanford.edu/~nshaheed/chump/manifest.json";
 
 TEST_CASE("Integration Tests - install/update/uninstall") {
-  // reference: https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
-  fs::path installPath {fs::temp_directory_path() /= std::tmpnam(nullptr)};
+  // reference:
+  // https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
+  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
   fs::create_directories(installPath);
 
   std::string dataPath = "../data/manifest.json";
@@ -18,8 +20,8 @@ TEST_CASE("Integration Tests - install/update/uninstall") {
   ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
   ApiVersion langVersion = ApiVersion("9.1");
 
-  Manager* m = new Manager(dataPath, installPath, ckVersion,
-                           langVersion, "linux", manifest_url, false);
+  Manager *m = new Manager(dataPath, installPath, ckVersion, langVersion,
+                           "linux", manifest_url, false);
 
   // install package
 
@@ -33,7 +35,8 @@ TEST_CASE("Integration Tests - install/update/uninstall") {
   ckVersion = ChuckVersion("1.5.2.6");
   langVersion = ApiVersion("10.1");
 
-  m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", manifest_url, false);
+  m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux",
+                  manifest_url, false);
 
   m->update("TestPackage");
 
@@ -49,8 +52,9 @@ TEST_CASE("Integration Tests - install/update/uninstall") {
 }
 
 TEST_CASE("Integration Tests - install/update/uninstall with dirs") {
-  // reference: https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
-  fs::path installPath {fs::temp_directory_path() /= std::tmpnam(nullptr)};
+  // reference:
+  // https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
+  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
   fs::create_directories(installPath);
 
   std::string dataPath = "../data/manifest.json";
@@ -58,8 +62,8 @@ TEST_CASE("Integration Tests - install/update/uninstall with dirs") {
   ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
   ApiVersion langVersion = ApiVersion("9.1");
 
-  Manager* m = new Manager(dataPath, installPath, ckVersion,
-                           langVersion, "linux", manifest_url, false);
+  Manager *m = new Manager(dataPath, installPath, ckVersion, langVersion,
+                           "linux", manifest_url, false);
 
   // install package
 
@@ -73,12 +77,13 @@ TEST_CASE("Integration Tests - install/update/uninstall with dirs") {
   ckVersion = ChuckVersion("1.5.2.6");
   langVersion = ApiVersion("10.1");
 
-  m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", manifest_url, false);
+  m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux",
+                  manifest_url, false);
 
   m->update("TestPackageDir");
 
   REQUIRE(fs::exists(installPath / "TestPackageDir"));
-  REQUIRE(fs::exists(installPath / "TestPackageDir" / "dir" ));
+  REQUIRE(fs::exists(installPath / "TestPackageDir" / "dir"));
   REQUIRE(fs::exists(installPath / "TestPackageDir" / "dir" / "hello.ck"));
   CHECK(fs::exists(installPath / "TestPackageDir" / "version.json"));
 
@@ -100,8 +105,9 @@ TEST_CASE("Integration Tests - install/update/uninstall with dirs") {
 
 TEST_CASE("Integration Tests - install specific version") {
 
-  // reference: https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
-  fs::path installPath {fs::temp_directory_path() /= std::tmpnam(nullptr)};
+  // reference:
+  // https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
+  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
   fs::create_directories(installPath);
 
   std::string dataPath = "../data/manifest.json";
@@ -109,8 +115,8 @@ TEST_CASE("Integration Tests - install specific version") {
   ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
   ApiVersion langVersion = ApiVersion("9.1");
 
-  Manager* m = new Manager(dataPath, installPath, ckVersion,
-                           langVersion, "linux", manifest_url, false);
+  Manager *m = new Manager(dataPath, installPath, ckVersion, langVersion,
+                           "linux", manifest_url, false);
 
   m->install("TestPackage=1.0.0");
 
@@ -124,8 +130,9 @@ TEST_CASE("Integration Tests - package doesn't exist") {
   // the failure state at the end of this?
   // Follow up: should I throw an exception for a package not existing?
 
-  // reference: https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
-  fs::path installPath {fs::temp_directory_path() /= std::tmpnam(nullptr)};
+  // reference:
+  // https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
+  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
   fs::create_directories(installPath);
 
   std::string dataPath = "../data/manifest.json";
@@ -133,8 +140,8 @@ TEST_CASE("Integration Tests - package doesn't exist") {
   ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
   ApiVersion langVersion = ApiVersion("9.1");
 
-  Manager* m = new Manager(dataPath, installPath, ckVersion,
-                           langVersion, "linux", manifest_url, false);
+  Manager *m = new Manager(dataPath, installPath, ckVersion, langVersion,
+                           "linux", manifest_url, false);
 
   // install package
   m->install("DoesNotExist");
@@ -142,12 +149,13 @@ TEST_CASE("Integration Tests - package doesn't exist") {
   REQUIRE_FALSE(fs::exists(installPath / "DoesNotExist"));
 }
 
-
 TEST_CASE("Integration Tests - file doesn't exist") {
-  // If a url points to a file that doesn't exist, the package installation should fail
+  // If a url points to a file that doesn't exist, the package installation
+  // should fail
 
-  // reference: https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
-  fs::path installPath {fs::temp_directory_path() /= std::tmpnam(nullptr)};
+  // reference:
+  // https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
+  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
   fs::create_directories(installPath);
 
   std::cout << "install path: " << installPath << std::endl;
@@ -157,8 +165,8 @@ TEST_CASE("Integration Tests - file doesn't exist") {
   ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
   ApiVersion langVersion = ApiVersion("9.1");
 
-  Manager* m = new Manager(dataPath, installPath, ckVersion,
-                           langVersion, "linux", manifest_url, false);
+  Manager *m = new Manager(dataPath, installPath, ckVersion, langVersion,
+                           "linux", manifest_url, false);
 
   // install specific version of package (with file that can't be found)
   m->install("TestPackage=0.9.0");
@@ -169,8 +177,9 @@ TEST_CASE("Integration Tests - file doesn't exist") {
 
 TEST_CASE("Integration Tests - bad version input") {
 
-  // reference: https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
-  fs::path installPath {fs::temp_directory_path() /= std::tmpnam(nullptr)};
+  // reference:
+  // https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
+  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
   fs::create_directories(installPath);
 
   std::string dataPath = "../data/manifest.json";
@@ -178,8 +187,8 @@ TEST_CASE("Integration Tests - bad version input") {
   ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
   ApiVersion langVersion = ApiVersion("9.1");
 
-  Manager* m = new Manager(dataPath, installPath, ckVersion,
-                           langVersion, "linux", manifest_url, false);
+  Manager *m = new Manager(dataPath, installPath, ckVersion, langVersion,
+                           "linux", manifest_url, false);
 
   // This is incorrect
   m->install("TestPackage=vfjdklsaf1.0.0");
@@ -188,10 +197,12 @@ TEST_CASE("Integration Tests - bad version input") {
 }
 
 TEST_CASE("Integration Tests - install twice") {
-  // If a url points to a file that doesn't exist, the package installation should fail
+  // If a url points to a file that doesn't exist, the package installation
+  // should fail
 
-  // reference: https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
-  fs::path installPath {fs::temp_directory_path() /= std::tmpnam(nullptr)};
+  // reference:
+  // https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
+  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
   fs::create_directories(installPath);
 
   std::string dataPath = "../data/manifest.json";
@@ -199,8 +210,8 @@ TEST_CASE("Integration Tests - install twice") {
   ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
   ApiVersion langVersion = ApiVersion("9.1");
 
-  Manager* m = new Manager(dataPath, installPath, ckVersion,
-                           langVersion, "linux", manifest_url, false);
+  Manager *m = new Manager(dataPath, installPath, ckVersion, langVersion,
+                           "linux", manifest_url, false);
 
   // install specific version of package (with file that can't be found)
   m->install("TestPackage");
@@ -216,7 +227,7 @@ TEST_CASE("Integration Tests - install twice") {
 }
 
 TEST_CASE("Integration Tests - update manifest") {
-  fs::path installPath {fs::temp_directory_path() /= std::tmpnam(nullptr)};
+  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
   fs::create_directories(installPath);
 
   std::string dataPath = "../data/manifest.json";
@@ -224,8 +235,8 @@ TEST_CASE("Integration Tests - update manifest") {
   ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
   ApiVersion langVersion = ApiVersion("9.1");
 
-  Manager* m = new Manager(dataPath, installPath, ckVersion,
-                           langVersion, "linux", manifest_url, false);
+  Manager *m = new Manager(dataPath, installPath, ckVersion, langVersion,
+                           "linux", manifest_url, false);
 
   REQUIRE(m->update_manifest());
 }
@@ -234,18 +245,20 @@ TEST_CASE("Integration Test - wrong checksum") {
   Fetch f;
   Package p;
 
-  fs::path tmpPath {fs::temp_directory_path() /= std::tmpnam(nullptr)};
+  fs::path tmpPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
   fs::create_directories(tmpPath);
 
   // This will fail due to an incorrect checksum being provided
-  bool result = f.fetch("https://ccrma.stanford.edu/~nshaheed/chugins/test_package/1.0.0/hello.ck",
+  bool result = f.fetch("https://ccrma.stanford.edu/~nshaheed/chugins/"
+                        "test_package/1.0.0/hello.ck",
                         "./", p, tmpPath, PACKAGE_FILE, "1234");
   REQUIRE_FALSE(result);
 }
 
 TEST_CASE("Integration Test - zip files") {
-  // reference: https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
-  fs::path installPath {fs::temp_directory_path() /= std::tmpnam(nullptr)};
+  // reference:
+  // https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
+  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
   fs::create_directories(installPath);
 
   std::string dataPath = "../data/manifest.json";
@@ -253,8 +266,8 @@ TEST_CASE("Integration Test - zip files") {
   ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
   ApiVersion langVersion = ApiVersion("9.1");
 
-  Manager* m = new Manager(dataPath, installPath, ckVersion,
-                           langVersion, "linux", manifest_url, false);
+  Manager *m = new Manager(dataPath, installPath, ckVersion, langVersion,
+                           "linux", manifest_url, false);
 
   // install package
 
@@ -263,13 +276,15 @@ TEST_CASE("Integration Test - zip files") {
   REQUIRE(fs::exists(installPath / "TestPackageZip"));
   REQUIRE(fs::exists(installPath / "TestPackageZip" / "hello.ck"));
   REQUIRE(fs::exists(installPath / "TestPackageZip" / "version.json"));
-  REQUIRE_FALSE(fs::exists(installPath / "TestPackageZip" / "test_package_zip.zip"));
+  REQUIRE_FALSE(
+      fs::exists(installPath / "TestPackageZip" / "test_package_zip.zip"));
 
   // Update Package
   ckVersion = ChuckVersion("1.5.2.6");
   langVersion = ApiVersion("10.1");
 
-  m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux", manifest_url, false);
+  m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux",
+                  manifest_url, false);
 
   m->update("TestPackageZip");
 
@@ -277,5 +292,6 @@ TEST_CASE("Integration Test - zip files") {
   REQUIRE(fs::exists(installPath / "TestPackageZip" / "hello.ck"));
   REQUIRE(fs::exists(installPath / "TestPackageZip" / "_data" / "hello.ck"));
   REQUIRE(fs::exists(installPath / "TestPackageZip" / "version.json"));
-  REQUIRE_FALSE(fs::exists(installPath / "TestPackageZip" / "test_package_zip.zip"));
+  REQUIRE_FALSE(
+      fs::exists(installPath / "TestPackageZip" / "test_package_zip.zip"));
 }

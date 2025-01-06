@@ -4,34 +4,32 @@
 
 #include <regex>
 
-#include <openssl/sha.h>
-#include <openssl/evp.h>
-#include <fstream>
-#include <iostream>
-#include <sstream>
 #include <algorithm>
 #include <cctype>
+#include <fstream>
+#include <iostream>
+#include <openssl/evp.h>
+#include <openssl/sha.h>
+#include <sstream>
 
 #include <mz.h>
 #include <unzip.h>
 
 #ifdef _WIN32
-#include <windows.h>
 #include <Shlobj.h>
 #include <io.h> // for _isatty()
-#else // not windows
+#include <windows.h>
+#else               // not windows
 #include <unistd.h> // for isatty()
-#endif // #ifdef _WIN32
-
+#endif              // #ifdef _WIN32
 
 using std::map;
-
 
 // Returns the path to the directory where a package will be installed
 // TODO expand to other OS
 fs::path packagePath(Package p, fs::path install_dir) {
-    fs::path package_dir = install_dir / p.name;
-    return package_dir;
+  fs::path package_dir = install_dir / p.name;
+  return package_dir;
 }
 
 fs::path chumpDir() {
@@ -53,60 +51,61 @@ std::string whichOS() {
 #elif defined(__linux__)
   return "linux";
 #else
-    std::cerr << "[chump]: unknown operating system" << std::endl;
-    return "";
+  std::cerr << "[chump]: unknown operating system" << std::endl;
+  return "";
 #endif
 }
 
 // Get user's home directory.
 std::filesystem::path getHomeDirectory() {
-    std::filesystem::path home_dir;
+  std::filesystem::path home_dir;
 
 #ifdef _WIN32
-    // Windows-specific code to get the user's home directory
-    TCHAR szPath[MAX_PATH];
-    if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_PROFILE, NULL, 0, szPath))) {
-        home_dir = szPath;
-    } else {
-        // If SHGetFolderPath fails, fallback to using environment variables
-        const char* home_env = std::getenv("USERPROFILE");
-        if (home_env != nullptr)
-            home_dir = home_env;
-        else
-            throw std::runtime_error("Failed to get user's home directory");
-    }
-#else
-    // Unix-like systems
-    const char* home_env = std::getenv("HOME");
+  // Windows-specific code to get the user's home directory
+  TCHAR szPath[MAX_PATH];
+  if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_PROFILE, NULL, 0, szPath))) {
+    home_dir = szPath;
+  } else {
+    // If SHGetFolderPath fails, fallback to using environment variables
+    const char *home_env = std::getenv("USERPROFILE");
     if (home_env != nullptr)
-        home_dir = home_env;
+      home_dir = home_env;
     else
-        throw std::runtime_error("Failed to get user's home directory");
+      throw std::runtime_error("Failed to get user's home directory");
+  }
+#else
+  // Unix-like systems
+  const char *home_env = std::getenv("HOME");
+  if (home_env != nullptr)
+    home_dir = home_env;
+  else
+    throw std::runtime_error("Failed to get user's home directory");
 #endif
 
-    return home_dir;
+  return home_dir;
 }
 
 tuple<string, optional<string>> parsePackageName(string packageName) {
-    std::regex pattern("(.*)=(.*)"); // Regular expression to match "name=version" or just "name"
-    std::smatch matches;
-    string name;
-    optional<string> version;
+  std::regex pattern(
+      "(.*)=(.*)"); // Regular expression to match "name=version" or just "name"
+  std::smatch matches;
+  string name;
+  optional<string> version;
 
-    if (std::regex_match(packageName, matches, pattern)) {
-      name = matches[1]; // The part before '='
-      version = matches[2]; // The part after '='
-    } else {
-      name = packageName;
-    }
+  if (std::regex_match(packageName, matches, pattern)) {
+    name = matches[1];    // The part before '='
+    version = matches[2]; // The part after '='
+  } else {
+    name = packageName;
+  }
 
-    return {name, version};
+  return {name, version};
 }
 
 // https://stackoverflow.com/questions/62503197/check-if-path-contains-another-in-c
-bool is_subpath(const fs::path& path, const fs::path& base)
-{
-  if (path == base) return true; // edge case
+bool is_subpath(const fs::path &path, const fs::path &base) {
+  if (path == base)
+    return true; // edge case
 
   // Need to convert these paths to absolute or otherwise
   // there's inconsistencies between windows and unix.
@@ -114,64 +113,68 @@ bool is_subpath(const fs::path& path, const fs::path& base)
   return !rel.empty() && rel.native()[0] != '.';
 }
 
-
 // Convert a filename to a sha 256 hash.
 // https://docs.openssl.org/3.0/man3/EVP_DigestInit/#examples
 // Do I know what's really going on here? Sort of...
 std::string hash_file(fs::path filename) {
-    std::ifstream file(filename, std::ios::binary);
-    if (!file) {
-      throw std::runtime_error("Failed to open file: " + filename.string());
-    }
+  std::ifstream file(filename, std::ios::binary);
+  if (!file) {
+    throw std::runtime_error("Failed to open file: " + filename.string());
+  }
 
-    EVP_MD_CTX* md5Context = EVP_MD_CTX_new();
-    EVP_MD_CTX_init(md5Context);
-    EVP_DigestInit_ex(md5Context, EVP_sha256(), nullptr);
+  EVP_MD_CTX *md5Context = EVP_MD_CTX_new();
+  EVP_MD_CTX_init(md5Context);
+  EVP_DigestInit_ex(md5Context, EVP_sha256(), nullptr);
 
-    const size_t bufferSize = 4096;
-    char buffer[bufferSize];
-    while (!file.eof()) {
-        file.read(buffer, bufferSize);
-        EVP_DigestUpdate(md5Context, buffer, file.gcount());
-    }
+  const size_t bufferSize = 4096;
+  char buffer[bufferSize];
+  while (!file.eof()) {
+    file.read(buffer, bufferSize);
+    EVP_DigestUpdate(md5Context, buffer, file.gcount());
+  }
 
-    unsigned char result[EVP_MAX_MD_SIZE];
-    unsigned int hash_len;
+  unsigned char result[EVP_MAX_MD_SIZE];
+  unsigned int hash_len;
 
-    EVP_DigestFinal_ex(md5Context, result, &hash_len);
-    file.close();
+  EVP_DigestFinal_ex(md5Context, result, &hash_len);
+  file.close();
 
-    EVP_MD_CTX_free(md5Context);
+  EVP_MD_CTX_free(md5Context);
 
-    std::stringstream ss;
-    for(unsigned int i = 0; i < hash_len; ++i)
-    {
-        ss << std::hex << std::setw(2) << std::setfill('0') << (int)result[i];
-    }
+  std::stringstream ss;
+  for (unsigned int i = 0; i < hash_len; ++i) {
+    ss << std::hex << std::setw(2) << std::setfill('0') << (int)result[i];
+  }
 
-    string hashed = ss.str();
-    return hashed;
+  string hashed = ss.str();
+  return hashed;
 }
 
 bool validate_manifest(fs::path manifest_path) {
   if (!fs::exists(manifest_path)) {
-      std::cerr << "[chump]: unable to find manifest.json..." << std::endl;
-      std::cerr << "[chump]: hint: try updating the chump package list (`chump list -u`)" << std::endl;
+    std::cerr << "[chump]: unable to find manifest.json..." << std::endl;
+    std::cerr << "[chump]: hint: try updating the chump package list (`chump "
+                 "list -u`)"
+              << std::endl;
     return false;
   }
 
   try {
     PackageList p(manifest_path);
   } catch (const std::exception &e) {
-    std::cerr << "[chump]: failed to validate manifest.json with the error: " << e.what() << std::endl;
-    std::cerr << "[chump]: hint: try updating the chump package list (`chump list -u`)" << std::endl;
+    std::cerr << "[chump]: failed to validate manifest.json with the error: "
+              << e.what() << std::endl;
+    std::cerr << "[chump]: hint: try updating the chump package list (`chump "
+                 "list -u`)"
+              << std::endl;
     return false;
   }
 
   return true;
 }
 
-// Convert a FileType enum to the appropriate dir to store it in inside a package dir
+// Convert a FileType enum to the appropriate dir to store it in inside a
+// package dir
 fs::path fileTypeToDir(FileType f) {
   fs::path empty;
 
@@ -193,78 +196,78 @@ fs::path fileTypeToDir(FileType f) {
   }
 }
 
+bool unzipFile(const std::string &zipPath, const std::string &outputDir) {
+  unzFile zipFile = unzOpen(zipPath.c_str());
+  if (zipFile == nullptr) {
+    std::cerr << "[chump]: error opening ZIP file: " << zipPath << std::endl;
+    return false;
+  }
 
-bool unzipFile(const std::string& zipPath, const std::string& outputDir) {
-    unzFile zipFile = unzOpen(zipPath.c_str());
-    if (zipFile == nullptr) {
-        std::cerr << "[chump]: error opening ZIP file: " << zipPath << std::endl;
+  // Iterate through each file in the ZIP archive
+  int result = unzGoToFirstFile(zipFile);
+  while (result == UNZ_OK) {
+    // Get file info
+    unz_file_info64 fileInfo;
+    char filename[256];
+    unzGetCurrentFileInfo64(zipFile, &fileInfo, filename, sizeof(filename),
+                            nullptr, 0, nullptr, 0);
+
+    std::string fullPath = outputDir + "/" + filename;
+
+    // Check if it's a directory and create it if necessary
+    if (filename[strlen(filename) - 1] == '/') {
+      std::filesystem::create_directories(fullPath);
+    } else {
+      std::cerr << "[chump]: installing \"" << fullPath << "\"" << std::endl;
+      // Extract file
+      unzOpenCurrentFile(zipFile);
+
+      fs::path dirs = fs::path(fullPath).parent_path();
+      fs::create_directories(dirs);
+
+      FILE *outFile = fopen(fullPath.c_str(), "wb");
+      if (outFile == nullptr) {
+        std::cerr << "[chump]: error opening output file: " << fullPath
+                  << std::endl;
+        unzCloseCurrentFile(zipFile);
+        unzClose(zipFile);
         return false;
+      }
+
+      char buffer[8192];
+      int bytesRead;
+      while ((bytesRead = unzReadCurrentFile(zipFile, buffer, sizeof(buffer))) >
+             0) {
+        fwrite(buffer, 1, bytesRead, outFile);
+      }
+
+      fclose(outFile);
+      unzCloseCurrentFile(zipFile);
+
+      if (bytesRead < 0) {
+        std::cerr << "[chump]: error reading ZIP file: " << filename
+                  << std::endl;
+        unzClose(zipFile);
+        return false;
+      }
     }
 
-    // Iterate through each file in the ZIP archive
-    int result = unzGoToFirstFile(zipFile);
-    while (result == UNZ_OK) {
-        // Get file info
-        unz_file_info64 fileInfo;
-        char filename[256];
-        unzGetCurrentFileInfo64(zipFile, &fileInfo, filename, sizeof(filename), nullptr, 0, nullptr, 0);
+    // Move to the next file in the ZIP
+    result = unzGoToNextFile(zipFile);
+  }
 
-        std::string fullPath = outputDir + "/" + filename;
+  // Close the ZIP file
+  unzClose(zipFile);
 
-        // Check if it's a directory and create it if necessary
-        if (filename[strlen(filename) - 1] == '/') {
-            std::filesystem::create_directories(fullPath);
-        } else {
-            std::cerr << "[chump]: installing \"" << fullPath << "\"" << std::endl;
-            // Extract file
-            unzOpenCurrentFile(zipFile);
-
-            fs::path dirs = fs::path(fullPath).parent_path();
-            fs::create_directories(dirs);
-
-            FILE* outFile = fopen(fullPath.c_str(), "wb");
-            if (outFile == nullptr) {
-                std::cerr << "[chump]: error opening output file: " << fullPath << std::endl;
-                unzCloseCurrentFile(zipFile);
-                unzClose(zipFile);
-                return false;
-            }
-
-            char buffer[8192];
-            int bytesRead;
-            while ((bytesRead = unzReadCurrentFile(zipFile, buffer, sizeof(buffer))) > 0) {
-                fwrite(buffer, 1, bytesRead, outFile);
-            }
-
-            fclose(outFile);
-            unzCloseCurrentFile(zipFile);
-
-            if (bytesRead < 0) {
-                std::cerr << "[chump]: error reading ZIP file: " << filename << std::endl;
-                unzClose(zipFile);
-                return false;
-            }
-        }
-
-        // Move to the next file in the ZIP
-        result = unzGoToNextFile(zipFile);
-    }
-
-    // Close the ZIP file
-    unzClose(zipFile);
-
-    return true;
+  return true;
 }
 
-
 // tolower
-string to_lower( const string & str )
-{
-    string s = str;
-    std::transform( s.begin(), s.end(), s.begin(),
-                    [](unsigned char c){ return std::tolower(c); } );
-    return s;
-
+string to_lower(const string &str) {
+  string s = str;
+  std::transform(s.begin(), s.end(), s.begin(),
+                 [](unsigned char c) { return std::tolower(c); });
+  return s;
 }
 
 // Try to open a verison.json file
@@ -304,8 +307,6 @@ optional<InstalledVersion> getInstalledVersion(fs::path dir) {
   return installed_version;
 }
 
-
-
 //-----------------------------------------------------------------------------
 // name: ck_isatty() | 1.5.0.5 (ge) added
 // desc: are we output to a TTY (teletype, character by character)
@@ -313,34 +314,29 @@ optional<InstalledVersion> getInstalledVersion(fs::path dir) {
 //       suppress printing ANSI escapes codes, e.g., color codes
 //       to the output stream
 //-----------------------------------------------------------------------------
-t_CKBOOL ck_isatty( int fd )
-{
+t_CKBOOL ck_isatty(int fd) {
 #if defined(__PLATFORM_WINDOWS__)
-    return _isatty( fd ) != 0;
+  return _isatty(fd) != 0;
 #else
-    return isatty( fd ) != 0;
+  return isatty(fd) != 0;
 #endif
 }
 //-----------------------------------------------------------------------------
 // get a general sense if currently outputting to TTY
 //-----------------------------------------------------------------------------
-t_CKBOOL ck_isatty()
-{
-    // let's test stderr, since much of chuck operates over it
+t_CKBOOL ck_isatty() {
+  // let's test stderr, since much of chuck operates over it
 #if defined(__PLATFORM_WINDOWS__)
-    return ck_isatty( _fileno(stderr) );
+  return ck_isatty(_fileno(stderr));
 #elif defined(__PLATFORM_EMSCRIPTEN__)
-    // emscripten always seems to return TRUE for isatty()
-    // but then ioctl() does not seem to be working / implemented
-    // so returning FALSE for now | use chuck param TTY_WIDTH_HINT
-    return FALSE;
+  // emscripten always seems to return TRUE for isatty()
+  // but then ioctl() does not seem to be working / implemented
+  // so returning FALSE for now | use chuck param TTY_WIDTH_HINT
+  return FALSE;
 #else
-    return ck_isatty( fileno(stderr) );
+  return ck_isatty(fileno(stderr));
 #endif
 }
-
-
-
 
 //-----------------------------------------------------------------------------
 // static instantiation
@@ -348,130 +344,129 @@ t_CKBOOL ck_isatty()
 t_CKBOOL TC::isEnabled = TRUE;
 t_CKBOOL TC::globalBypass = TRUE;
 
-
 //-----------------------------------------------------------------------------
 // on/off switches
 //-----------------------------------------------------------------------------
-//void TC::on() { isEnabled = TRUE; }
-//void TC::off() { isEnabled = FALSE; }
+// void TC::on() { isEnabled = TRUE; }
+// void TC::off() { isEnabled = FALSE; }
 //-----------------------------------------------------------------------------
-// a more global disable, overriding on() for the text transformation and TC::set*()
-// the former will bypass and return the input without modification;
+// a more global disable, overriding on() for the text transformation and
+// TC::set*() the former will bypass and return the input without modification;
 // the latter will return empty strings.
 // does not affect sequences constructed manually outside of TC
-// FYI this option is typically used on systems with no color terminal capabilities
-// also see command line flags --color --no-color
+// FYI this option is typically used on systems with no color terminal
+// capabilities also see command line flags --color --no-color
 //-----------------------------------------------------------------------------
-void TC::globalDisableOverride( t_CKBOOL setTrueToEngage )
-{
-    // set flag, as long as this is true, TC will always bypass,
-    // regardless of on() and off() and isEnabled state
-    globalBypass = setTrueToEngage;
+void TC::globalDisableOverride(t_CKBOOL setTrueToEngage) {
+  // set flag, as long as this is true, TC will always bypass,
+  // regardless of on() and off() and isEnabled state
+  globalBypass = setTrueToEngage;
 }
-
 
 //-----------------------------------------------------------------------------
 // get bold escape sequence
 //-----------------------------------------------------------------------------
-std::string TC::bold( const std::string & text )
-{
-    if( globalBypass || !isEnabled ) return text;
-    return TC::bold() + text + TC::reset();
+std::string TC::bold(const std::string &text) {
+  if (globalBypass || !isEnabled)
+    return text;
+  return TC::bold() + text + TC::reset();
 }
-
 
 //-----------------------------------------------------------------------------
 // get color escape sequences
 //-----------------------------------------------------------------------------
-std::string TC::green( const std::string & text, t_CKBOOL bold )
-{
-    if( globalBypass || !isEnabled ) return text;
-    return TC::set(FG_GREEN) + (bold?TC::bold():"") + text + TC::reset();
+std::string TC::green(const std::string &text, t_CKBOOL bold) {
+  if (globalBypass || !isEnabled)
+    return text;
+  return TC::set(FG_GREEN) + (bold ? TC::bold() : "") + text + TC::reset();
 }
 
-std::string TC::orange( const std::string & text, t_CKBOOL bold )
-{
-    if( globalBypass || !isEnabled ) return text;
-    return std::string( "\033[38;5;208m" ) + (bold?TC::bold():"") + text + TC::reset();
+std::string TC::orange(const std::string &text, t_CKBOOL bold) {
+  if (globalBypass || !isEnabled)
+    return text;
+  return std::string("\033[38;5;208m") + (bold ? TC::bold() : "") + text +
+         TC::reset();
 }
 
-std::string TC::blue( const std::string & text, t_CKBOOL bold )
-{
-    if( globalBypass || !isEnabled ) return text;
-    return std::string( "\033[38;5;39m" ) + (bold?TC::bold():"") + text + TC::reset();
+std::string TC::blue(const std::string &text, t_CKBOOL bold) {
+  if (globalBypass || !isEnabled)
+    return text;
+  return std::string("\033[38;5;39m") + (bold ? TC::bold() : "") + text +
+         TC::reset();
 }
 
-std::string TC::red( const std::string & text, t_CKBOOL bold )
-{
-    if( globalBypass || !isEnabled ) return text;
-    return TC::set(FG_RED) + (bold?TC::bold():"") + text + TC::reset();
+std::string TC::red(const std::string &text, t_CKBOOL bold) {
+  if (globalBypass || !isEnabled)
+    return text;
+  return TC::set(FG_RED) + (bold ? TC::bold() : "") + text + TC::reset();
 }
 
-std::string TC::yellow( const std::string & text, t_CKBOOL bold )
-{
-    if( globalBypass || !isEnabled ) return text;
-    return TC::set(FG_YELLOW) + (bold?TC::bold():"") + text + TC::reset();
+std::string TC::yellow(const std::string &text, t_CKBOOL bold) {
+  if (globalBypass || !isEnabled)
+    return text;
+  return TC::set(FG_YELLOW) + (bold ? TC::bold() : "") + text + TC::reset();
 }
 
-std::string TC::magenta( const std::string & text, t_CKBOOL bold )
-{
-    if( globalBypass || !isEnabled ) return text;
-    return std::string( "\033[38;5;170m" ) + (bold?TC::bold():"") + text + TC::reset();
+std::string TC::magenta(const std::string &text, t_CKBOOL bold) {
+  if (globalBypass || !isEnabled)
+    return text;
+  return std::string("\033[38;5;170m") + (bold ? TC::bold() : "") + text +
+         TC::reset();
 }
 
 // set custom color
-std::string TC::color( TC::TerminalCode code, const std::string & text, t_CKBOOL bold )
-{
-    if( globalBypass || !isEnabled ) return text;
-    return TC::set(code) + (bold?TC::bold():"") + text + TC::reset();
+std::string TC::color(TC::TerminalCode code, const std::string &text,
+                      t_CKBOOL bold) {
+  if (globalBypass || !isEnabled)
+    return text;
+  return TC::set(code) + (bold ? TC::bold() : "") + text + TC::reset();
 }
 
-std::string TC::set_green( t_CKBOOL bold )
-{
-    if( globalBypass || !isEnabled ) return "";
-    return TC::set(FG_GREEN) + (bold?TC::bold():"");
+std::string TC::set_green(t_CKBOOL bold) {
+  if (globalBypass || !isEnabled)
+    return "";
+  return TC::set(FG_GREEN) + (bold ? TC::bold() : "");
 }
 
-std::string TC::set_orange( t_CKBOOL bold )
-{
-    if( globalBypass || !isEnabled ) return "";
-    return std::string( "\033[38;5;208m" ) + (bold?TC::bold():"");
+std::string TC::set_orange(t_CKBOOL bold) {
+  if (globalBypass || !isEnabled)
+    return "";
+  return std::string("\033[38;5;208m") + (bold ? TC::bold() : "");
 }
 
-std::string TC::set_blue( t_CKBOOL bold )
-{
-    if( globalBypass || !isEnabled ) return "";
-    return std::string( "\033[38;5;39m" ) + (bold?TC::bold():"");
+std::string TC::set_blue(t_CKBOOL bold) {
+  if (globalBypass || !isEnabled)
+    return "";
+  return std::string("\033[38;5;39m") + (bold ? TC::bold() : "");
 }
-
 
 //-----------------------------------------------------------------------------
 // set*() methods -- returns escape sequences o insert into output
 //-----------------------------------------------------------------------------
 // set a terminal code
-std::string TC::set( TerminalCode code )
-{
-    if( globalBypass || !isEnabled ) return "";
-    return std::string("\033[") + std::to_string(code) + "m";
+std::string TC::set(TerminalCode code) {
+  if (globalBypass || !isEnabled)
+    return "";
+  return std::string("\033[") + std::to_string(code) + "m";
 }
 
 // set using an integer
-std::string TC::seti( t_CKUINT code )
-{
-    if( globalBypass || !isEnabled ) return "";
-    return std::string("\033[") + std::to_string(code) + "m";
+std::string TC::seti(t_CKUINT code) {
+  if (globalBypass || !isEnabled)
+    return "";
+  return std::string("\033[") + std::to_string(code) + "m";
 }
 
 // set foreground default color
-std::string TC::set_fg_default()
-{
-    if( globalBypass || !isEnabled ) return "";
-    return TC::set(FG_DEFAULT);
+std::string TC::set_fg_default() {
+  if (globalBypass || !isEnabled)
+    return "";
+  return TC::set(FG_DEFAULT);
 }
 
 // set background default color
-std::string TC::set_bg_default()
-{
-    if( globalBypass || !isEnabled ) return "";
-    return TC::set(BG_DEFAULT);
+std::string TC::set_bg_default() {
+  if (globalBypass || !isEnabled)
+    return "";
+  return TC::set(BG_DEFAULT);
 }

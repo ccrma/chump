@@ -1,6 +1,6 @@
+#include <chrono>
 #include <filesystem>
 #include <iostream>
-#include <chrono>
 #include <sstream>
 
 #include "fetch.h"
@@ -9,16 +9,11 @@
 #include <openssl/sha.h>
 
 #define CHUMP_PROGRESS_BAR_WIDTH 50
-#define CHUMP_PROGRESS_BAR_WIDTH_EXTRA (CHUMP_PROGRESS_BAR_WIDTH+50)
+#define CHUMP_PROGRESS_BAR_WIDTH_EXTRA (CHUMP_PROGRESS_BAR_WIDTH + 50)
 
+Fetch::Fetch() { render = false; }
 
-Fetch::Fetch() {
-  render = false;
-}
-
-Fetch::Fetch(bool render_tui) {
-  render = render_tui;
-}
+Fetch::Fetch(bool render_tui) { render = render_tui; }
 
 // struct to pass progress data to libcurl progress callback
 struct curl_progress {
@@ -27,67 +22,69 @@ struct curl_progress {
 };
 
 // Callback function to update progress
-int progressCallback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow) {
-    if (!clientp) {
-      std::cerr << "[chump]: progress callback recieved empty clientp" << std::endl;
-      return -1;
-    }
-    // metadata for the progress bar
+int progressCallback(void *clientp, double dltotal, double dlnow,
+                     double ultotal, double ulnow) {
+  if (!clientp) {
+    std::cerr << "[chump]: progress callback recieved empty clientp"
+              << std::endl;
+    return -1;
+  }
+  // metadata for the progress bar
 
-    // Calculate progress percentage
-    double progress = (dlnow > 0) ? ((double)dlnow / (double)dltotal) : 0.0;
+  // Calculate progress percentage
+  double progress = (dlnow > 0) ? ((double)dlnow / (double)dltotal) : 0.0;
 
-    int bar_width = CHUMP_PROGRESS_BAR_WIDTH; // Width of the progress bar
-    int filled_width = progress * bar_width;
+  int bar_width = CHUMP_PROGRESS_BAR_WIDTH; // Width of the progress bar
+  int filled_width = progress * bar_width;
 
-    // Get the current time point
-    auto currentTime = std::chrono::system_clock::now();
+  // Get the current time point
+  auto currentTime = std::chrono::system_clock::now();
 
-    // Get the duration since the epoch
-    auto durationSinceEpoch = currentTime.time_since_epoch();
+  // Get the duration since the epoch
+  auto durationSinceEpoch = currentTime.time_since_epoch();
 
-    // Convert the duration to milliseconds
-    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(durationSinceEpoch);
+  // Convert the duration to milliseconds
+  auto milliseconds =
+      std::chrono::duration_cast<std::chrono::milliseconds>(durationSinceEpoch);
 
-    // Extract the milliseconds component
-    long long milliseconds_count = milliseconds.count() % 1000;
+  // Extract the milliseconds component
+  long long milliseconds_count = milliseconds.count() % 1000;
 
-    string line;
+  string line;
 
-    if (milliseconds_count < 250) {
-      line = "=>";
-    } else if (milliseconds_count < 500) {
-      line = "=v";
-    } else if (milliseconds_count < 750) {
-      line = "=<";
-    } else {
-      line = "=^";
-    }
+  if (milliseconds_count < 250) {
+    line = "=>";
+  } else if (milliseconds_count < 500) {
+    line = "=v";
+  } else if (milliseconds_count < 750) {
+    line = "=<";
+  } else {
+    line = "=^";
+  }
 
-    line = TC::blue(line, TRUE);
+  line = TC::blue(line, TRUE);
 
-    line += " [";
-    for (int i = 0; i < bar_width; i++) {
-        if (i < filled_width)
-          line += TC::green("=",TRUE);
-        else if (i == filled_width)
-          line += TC::orange("v",TRUE);
-        else
-          line += " ";
-    }
-    line += string("] ") + std::to_string( (int)(progress * 100 + .5) ) + "%";
-    std::cerr << "\r" << line.c_str();
+  line += " [";
+  for (int i = 0; i < bar_width; i++) {
+    if (i < filled_width)
+      line += TC::green("=", TRUE);
+    else if (i == filled_width)
+      line += TC::orange("v", TRUE);
+    else
+      line += " ";
+  }
+  line += string("] ") + std::to_string((int)(progress * 100 + .5)) + "%";
+  std::cerr << "\r" << line.c_str();
 
-    return 0;
+  return 0;
 }
 
 //*******************************************
 // Download file to proper package directory.
 // Return true on success, False on failure.
 //*******************************************
-bool Fetch::fetch(std::string url, fs::path dir,
-                  Package package, fs::path temp_dir,
-                  FileType file_type, string checksum) {
+bool Fetch::fetch(std::string url, fs::path dir, Package package,
+                  fs::path temp_dir, FileType file_type, string checksum) {
   if (!isURL(url)) {
     std::cerr << "[chump]: not a URL!" << std::endl;
     return false;
@@ -96,7 +93,7 @@ bool Fetch::fetch(std::string url, fs::path dir,
   fs::path ft_dir = fileTypeToDir(file_type);
 
   // If the file is in a directory, create it
-  fs::create_directory(temp_dir / ft_dir );
+  fs::create_directory(temp_dir / ft_dir);
   fs::create_directory(temp_dir / ft_dir / dir);
 
   std::string package_name = package.name;
@@ -125,7 +122,6 @@ bool Fetch::fetch(std::string url, fs::path dir,
   // Initialize libcurl
   curl = curl_easy_init();
 
-
   if (curl) {
     // Set URL
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
@@ -151,8 +147,9 @@ bool Fetch::fetch(std::string url, fs::path dir,
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
 
     // Perform the request
-    string line = TC::orange("down-chucking package",TRUE) + " ";
-    line += TC::bold(package.name) + TC::orange(" ├─ ",TRUE) + filename.string() + "\n";
+    string line = TC::orange("down-chucking package", TRUE) + " ";
+    line += TC::bold(package.name) + TC::orange(" ├─ ", TRUE) +
+            filename.string() + "\n";
     std::cerr << line;
 
     res = curl_easy_perform(curl);
@@ -162,7 +159,8 @@ bool Fetch::fetch(std::string url, fs::path dir,
     fclose(fp);
 
     if (res != CURLE_OK) {
-      std::cerr << "[chump]: failed to download: " << curl_easy_strerror(res) << std::endl;
+      std::cerr << "[chump]: failed to download: " << curl_easy_strerror(res)
+                << std::endl;
       return false;
     }
 
@@ -179,21 +177,25 @@ bool Fetch::fetch(std::string url, fs::path dir,
     return false;
   }
 
-  std::string line = string("   └─[") + TC::green("OK",TRUE) + "] " + TC::blue(filename.string());
-  std::cerr << "\r" << std::left << std::setw(CHUMP_PROGRESS_BAR_WIDTH_EXTRA) << line << std::endl;
+  std::string line = string("   └─[") + TC::green("OK", TRUE) + "] " +
+                     TC::blue(filename.string());
+  std::cerr << "\r" << std::left << std::setw(CHUMP_PROGRESS_BAR_WIDTH_EXTRA)
+            << line << std::endl;
 
   return true;
 }
 
 // Callback function to write data into a file
 size_t Fetch::write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
-    size_t written = fwrite(ptr, size, nmemb, stream);
-    return written;
+  size_t written = fwrite(ptr, size, nmemb, stream);
+  return written;
 }
 
 bool Fetch::isURL(std::string path) {
   // https://www.geeksforgeeks.org/check-if-an-url-is-valid-or-not-using-regular-expression/#
-  const std::regex pattern("((http|https)://)(www.)?[a-zA-Z0-9@:%._\\+~#?&//=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%._\\+~#?&//=]*)");
+  const std::regex pattern(
+      "((http|https)://)(www.)?[a-zA-Z0-9@:%._\\+~#?&//"
+      "=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%._\\+~#?&//=]*)");
 
   return regex_match(path, pattern);
 }
@@ -211,7 +213,7 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
 
   fs::path tempFilePath = dir / "manifest.json";
 
-  #ifdef _MSC_VER
+#ifdef _MSC_VER
   fp = _wfopen(tempFilePath.c_str(), L"wb");
 #else
   fp = fopen(tempFilePath.string().c_str(), "wb");
@@ -257,7 +259,8 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
     fclose(fp);
 
     if (res != CURLE_OK) {
-      std::cerr << "[chump]: failed to download: " << curl_easy_strerror(res) << std::endl;
+      std::cerr << "[chump]: failed to download: " << curl_easy_strerror(res)
+                << std::endl;
       return false;
     }
 
