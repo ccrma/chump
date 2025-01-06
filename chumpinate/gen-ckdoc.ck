@@ -8,8 +8,10 @@
 
 @import "Chumpinate"
 
-    // instantiate a CKDoc object
-    CKDoc doc; // documentation orchestra
+<<< "Generating Chumpinate CKDoc..." >>>;
+
+// instantiate a CKDoc object
+CKDoc doc; // documentation orchestra
 // set the examples root
 "../_examples/" = > doc.examplesRoot;
 

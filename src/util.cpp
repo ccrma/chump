@@ -11,6 +11,9 @@
 #include <openssl/evp.h>
 #include <openssl/sha.h>
 #include <sstream>
+#include <algorithm>
+#include <cctype>
+#include <system_error>
 
 #include <mz.h>
 #include <unzip.h>
@@ -51,8 +54,19 @@ std::string whichOS() {
 #elif defined(__linux__)
   return "linux";
 #else
-  std::cerr << "[chump]: unknown operating system" << std::endl;
-  return "";
+    throw std::system_error(EINVAL, std::generic_category(), "[chump]: unknown operating system");  
+#endif
+}
+
+Architecture whichArch() {
+#if defined(__x86_64__) || defined(_M_X64)
+    return X86_64;
+#elif defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)
+    return X86;
+#elif defined(__aarch64__) || defined(_M_ARM64)
+    return ARM64;
+#else // this shouldn't happen but whoops if it does
+    throw std::system_error(EINVAL, std::generic_category(), "[chump]: chump does not support this system architecture");
 #endif
 }
 

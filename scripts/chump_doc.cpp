@@ -16,12 +16,7 @@ string package_idx(PackageList p);
  * Generates documentation webpages for each package
  *****************************************************************/
 
-int main(int argc, const char **argv) {
-  /*****************************************************************
-   * CLI Args Setup
-   *****************************************************************/
-  // CLI::App app;
-
+int main( int argc, const char ** argv ) {
   // CLI11_PARSE(app, argc, argv);
 
   if (argc != 3) {

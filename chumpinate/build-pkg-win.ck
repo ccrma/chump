@@ -33,7 +33,8 @@ PackageVersion ver("Chumpinate", version);
 
 "1.5.4.0" = > ver.languageVersionMin;
 
-"windows" = > ver.os;
+"windows"=> ver.os;
+"x86_64" => ver.arch;
 
 // The chugin file
 ver.addFile("../builddir-release/chumpinate/Chumpinate.chug");

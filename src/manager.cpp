@@ -4,24 +4,21 @@
 
 #include <regex>
 
-Manager::Manager(string package_list_path, fs::path package_install_dir,
-                 ChuckVersion ck_ver, ApiVersion api_ver, string system_os,
-                 string _manifest_url, bool render_tui) {
-  chump_dir = package_install_dir;
-  os = system_os;
-  manifest_url = _manifest_url;
+Manager::Manager(string package_list_path, fs::path package_install_dir, ChuckVersion ck_ver, ApiVersion api_ver, string system_os, Architecture _arch, string _manifest_url, bool render_tui) {
+    chump_dir = package_install_dir;
+    os = system_os;
+    arch = _arch;
+    manifest_url = _manifest_url;
 
-  fetch = new Fetch(render_tui);
+    fetch = new Fetch(render_tui);
 
-  // really only used to update manifest without needed to properly
-  // parse the existing manifest.
-  if (package_list_path == "")
-    package_list = new PackageList();
-  else
-    package_list = new PackageList(package_list_path);
+    // really only used to update manifest without needed to properly
+    // parse the existing manifest.
+    if (package_list_path == "") package_list = new PackageList();
+    else package_list = new PackageList(package_list_path);
 
-  language_version = ck_ver;
-  api_version = api_ver;
+    language_version = ck_ver;
+    api_version = api_ver;
 }
 
 optional<Package> Manager::getPackage(string packageName) {
@@ -29,13 +26,35 @@ optional<Package> Manager::getPackage(string packageName) {
 }
 
 optional<PackageVersion> Manager::latestPackageVersion(string name) {
-  return package_list->find_latest_package_version(name, os, language_version,
-                                                   api_version);
+    return package_list->find_latest_package_version(name, os, arch, language_version, api_version);
 }
 
 bool Manager::install(string packageName) {
-  // parse packages here
-  auto [name, version_string] = parsePackageName(packageName);
+    // parse packages here
+    auto [name, version_string] = parsePackageName(packageName);
+
+    // lookup package name (default to latest version)
+    auto pkg = package_list->find_package(name);
+
+    if (!pkg) {
+        std::cerr << "[chump]: package " << packageName << " not found." << std::endl;
+        return false;
+    }
+
+    Package package = pkg.value();
+
+    optional<PackageVersion> ver;
+    if (version_string) {
+        try {
+            PackageVersion pkgver(version_string.value());
+            ver = package.version(pkgver, os, language_version, api_version);
+        } catch (std::invalid_argument& e) {
+            std::cerr << "[chump]: " << e.what() << '\n';
+            return false;
+        }
+    } else {
+        ver = package.latest_version(os, arch, language_version, api_version);
+    }
 
   // lookup package name (default to latest version)
   auto pkg = package_list->find_package(name);
@@ -260,8 +279,7 @@ bool Manager::update(string packageName) {
 
   PackageVersion curr_version = installed_version.value().version();
 
-  optional<PackageVersion> ver =
-      package.latest_version(os, language_version, api_version);
+    optional<PackageVersion> ver = package.latest_version(os, arch, language_version, api_version);
 
   if (!ver) {
     std::cerr << "[chump]: unable to find version of package " << package.name

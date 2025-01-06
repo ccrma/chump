@@ -189,33 +189,64 @@ int main(int argc, const char **argv) {
       cerr << "(run `chump --help` for more information)" << endl;
       return 1;
     }
-    // print usage
-    printUsage();
-    // peace out
-    return 0;
-  } else if (subcommand == "info") {
-    // check
-    if (info_package_name == "") {
-      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
-           << TC::orange(" requires additional argument...", TRUE) << endl;
-      cerr << "(run `chump --help` for more information)" << endl;
-      return 1;
-    } else if (n_targets != 1) {
-      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
-           << TC::orange(" has too many arguments, follows the form 'chump "
-                         "info <package-name>'...",
-                         TRUE)
-           << endl;
-      cerr << "(run `chump --help` for more information)" << endl;
-      return 1;
+
+    /****************************************************************
+     * Chump setup
+     ****************************************************************/
+
+    // get chump dir
+    fs::path path = chumpDir();
+    // create it
+    fs::create_directories(path);
+    // manager pointer
+    Manager * manager = NULL;
+
+    // build manager and run command
+    fs::path pkg_path = chumpDir() / "manifest.json";
+    // URL to the manifest file
+    std::string manifest_url = "https://ccrma.stanford.edu/~nshaheed/chump/manifest.json";
+
+    // info package name
+    string info_package_name = parser.getCommandTarget( "info" );
+    // list -i
+    bool installed_flag = parser.getCommandOption( "list", "-i", "--installed" );
+    // update package list
+    bool update_package_list = parser.getCommandOption( "list", "--update-list", "-u" );
+    // install package names
+    vector<string> install_package_names = parser.getCommandTargets();
+    // uninstall package names
+    vector<string> uninstall_package_names = parser.getCommandTargets();
+    // update package name
+    string update_package_name = parser.getCommandTarget( "update" );
+
+    // if the manifest isn't loading properly, only allow `chump list -u`.
+    // this is an escape hatch, because failing to parse manifest.json will
+    // result in an exception and the program won't continue.
+    if( !validate_manifest(pkg_path) )
+    {
+        // exit if we're not updating the manifest
+        if( !update_package_list ) return -1;
+
+        // create manager
+        manager = new Manager( "", path, ChuckVersion::makeSystemVersion(),
+                               ApiVersion::makeSystemVersion(), whichOS(),
+                               whichArch(), manifest_url, true);
+        // update manifest file
+        manager->update_manifest();
+        // return
+        return 1;
     }
 
-    // get optional package
-    optional<Package> pkg = manager->getPackage(info_package_name);
-    // check
-    if (!pkg) {
-      std::cerr << "unable to find package " << info_package_name << std::endl;
-      return 1;
+    try {
+        // create manager
+        manager = new Manager( pkg_path.string(), path, ChuckVersion::makeSystemVersion(),
+                               ApiVersion::makeSystemVersion(), whichOS(), whichArch(),
+                               manifest_url, true );
+    } catch (const std::exception &e) {
+        // print error message
+        std::cerr << e.what() << std::endl;
+        // done
+        return 1;
     }
     std::cout << pkg.value() << std::endl;
   } else if (subcommand == "list") {

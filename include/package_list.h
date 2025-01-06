@@ -25,12 +25,18 @@ public:
   PackageList(std::vector<Package> _packages);
 
 public:
-  optional<Package> find_package(string name);
-  // return latest (maybe latest && most compatible?) version of package
-  optional<PackageVersion> find_latest_package_version(string name,
-                                                       string operating_system,
-                                                       ChuckVersion ck_ver,
-                                                       ApiVersion api_ver);
+    optional<Package> find_package(string name);
+    // return latest (maybe latest && most compatible?) version of package
+    optional<PackageVersion> find_latest_package_version(string name,
+                                                         string operating_system,
+                                                         Architecture arch,
+                                                         ChuckVersion ck_ver,
+                                                         ApiVersion api_ver);
+
+    // return specific version of package
+    optional<PackageVersion> find_package_version(string name, string version);
+    optional<PackageVersion> find_package_version(string name, PackageVersion version);
+    std::vector<Package> get_packages();
 
   // return specific version of package
   optional<PackageVersion> find_package_version(string name, string version);
