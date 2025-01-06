@@ -54,6 +54,17 @@ win win32 win64: build-release-win
 test:
 	meson test -C builddir-release -v chump:
 
+# use clang format for c++ code
+format:
+	clang-format --style=llvm -i tests/*.cpp
+	clang-format --style=llvm -i src/*.cpp
+	clang-format --style=llvm -i chump-cli/*.cpp
+	clang-format --style=llvm -i chumpinate/*.cpp
+	clang-format --style=llvm -i include/*.h
+	clang-format --style=llvm -i scripts/*.h
+	clang-format --style=llvm -i scripts/*.cpp
+
+
 clean:
 ifneq ("$(wildcard builddir-release)","")
 	meson compile -C builddir-release --clean
