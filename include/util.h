@@ -13,6 +13,7 @@ namespace fs = std::filesystem;
 fs::path packagePath(Package p, fs::path install_dir);
 
 string whichOS();
+Architecture whichArch();
 
 fs::path getHomeDirectory();
 

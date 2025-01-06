@@ -129,6 +129,9 @@ CK_DLL_MFUN( package_version_getCkVerMax );
 CK_DLL_MFUN( package_version_setOS );
 CK_DLL_MFUN( package_version_getOS );
 
+CK_DLL_MFUN( package_version_setArch );
+CK_DLL_MFUN( package_version_getArch );
+
 CK_DLL_MFUN( package_version_addFile );
 CK_DLL_MFUN( package_version_addFile_dir );
 
@@ -158,138 +161,138 @@ t_CKINT package_version_data_offset = 0;
 class PackageChuginate
 {
 public:
-  // constructor
-  PackageChuginate( )
-  {
-  }
-
-  PackageChuginate( string _name )
-  {
-    name = _name;
-  }
-
-  // for chugins extending UGen
-  SAMPLE tick( SAMPLE in )
-  {
-    // default: this passes whatever input is patched into chugin
-    return in;
-  }
-
-  string setName( string _name ) {
-    name = _name;
-    return _name;
-  }
-
-  string getName() {
-    return name;
-  }
-
-  string setAuthor( string _author ) {
-    authors = {_author};
-    return _author;
-  }
-
-  vector<string> setAuthors( vector<string> _authors ) {
-    authors = _authors;
-    return _authors;
-  }
-
-  vector<string> getAuthors() {
-    return authors;
-  }
-
-  string setHomepage( string _homepage) {
-    homepage = _homepage;
-    return _homepage;
-  }
-
-  string getHomepage() {
-    return homepage.value_or("");
-  }
-
-  string setRepository( string _repository ) {
-    repository = _repository;
-    return _repository;
-  }
-
-  string getRepository() {
-    return repository.value_or("");
-  }
-
-  string setLicense( string _license ) {
-    license = _license;
-    return _license;
-  }
-
-  string getLicense() {
-    return license.value_or("");
-  }
-
-  string setDescription( string _description ) {
-    description = _description;
-    return _description;
-  }
-
-  string getDescription() {
-    return description.value_or("");
-  }
-
-  vector<string> setKeywords( vector<string> _keywords ) {
-    keywords = _keywords;
-    return _keywords;
-  }
-
-  vector<string> getKeywords() {
-    return keywords;
-  }
-
-  t_CKINT generatePackageDefinition( fs::path json_path ) {
-    json j = {
-      {"name", name}
-    };
-
-    if (authors.size() > 0) j["authors"] = authors;
-    else j["authors"] = "";
-
-    if (homepage) j["homepage"] = homepage.value();
-    else j["homepage"] = "";
-
-    if (repository) j["repository"] = repository.value();
-    else j["respository"] = "";
-
-    if (license) j["license"] = license.value();
-    else j["license"] = "";
-
-    if (description) j["description"] = description.value();
-    else j["description"] = "";
-
-    if (keywords.size() > 0) j["keywords"] = keywords;
-    else j["keywords"] = {};
-
-    if (fs::exists(json_path) && !fs::is_directory(json_path)) {
-      std::cerr << "Path " << json_path << " exists, but is not a directory" << std::endl;
-      return false;
+    // constructor
+    PackageChuginate( )
+    {
     }
 
-    fs::create_directory(json_path / name);
-    std::ofstream o(json_path / name / "package.json");
-    o << std::setw(4) << j << std::endl;
-    o.close();
+    PackageChuginate( string _name )
+    {
+        name = _name;
+    }
 
-    return true;
-  }
+    // for chugins extending UGen
+    SAMPLE tick( SAMPLE in )
+    {
+        // default: this passes whatever input is patched into chugin
+        return in;
+    }
+
+    string setName( string _name ) {
+        name = _name;
+        return _name;
+    }
+
+    string getName() {
+        return name;
+    }
+
+    string setAuthor( string _author ) {
+        authors = {_author};
+        return _author;
+    }
+
+    vector<string> setAuthors( vector<string> _authors ) {
+        authors = _authors;
+        return _authors;
+    }
+
+    vector<string> getAuthors() {
+        return authors;
+    }
+
+    string setHomepage( string _homepage) {
+        homepage = _homepage;
+        return _homepage;
+    }
+
+    string getHomepage() {
+        return homepage.value_or("");
+    }
+
+    string setRepository( string _repository ) {
+        repository = _repository;
+        return _repository;
+    }
+
+    string getRepository() {
+        return repository.value_or("");
+    }
+
+    string setLicense( string _license ) {
+        license = _license;
+        return _license;
+    }
+
+    string getLicense() {
+        return license.value_or("");
+    }
+
+    string setDescription( string _description ) {
+        description = _description;
+        return _description;
+    }
+
+    string getDescription() {
+        return description.value_or("");
+    }
+
+    vector<string> setKeywords( vector<string> _keywords ) {
+        keywords = _keywords;
+        return _keywords;
+    }
+
+    vector<string> getKeywords() {
+        return keywords;
+    }
+
+    t_CKINT generatePackageDefinition( fs::path json_path ) {
+        json j = {
+            {"name", name}
+        };
+
+        if (authors.size() > 0) j["authors"] = authors;
+        else j["authors"] = "";
+
+        if (homepage) j["homepage"] = homepage.value();
+        else j["homepage"] = "";
+
+        if (repository) j["repository"] = repository.value();
+        else j["respository"] = "";
+
+        if (license) j["license"] = license.value();
+        else j["license"] = "";
+
+        if (description) j["description"] = description.value();
+        else j["description"] = "";
+
+        if (keywords.size() > 0) j["keywords"] = keywords;
+        else j["keywords"] = {};
+
+        if (fs::exists(json_path) && !fs::is_directory(json_path)) {
+            std::cerr << "Path " << json_path << " exists, but is not a directory" << std::endl;
+            return false;
+        }
+
+        fs::create_directory(json_path / name);
+        std::ofstream o(json_path / name / "package.json");
+        o << std::setw(4) << j << std::endl;
+        o.close();
+
+        return true;
+    }
 
 
 private:
-  // instance data
-  t_CKFLOAT m_param;
-  string name;
-  vector<string> authors;
-  optional<string> homepage;
-  optional<string> repository;
-  optional<string> license;
-  optional<string> description;
-  vector<string> keywords;
+    // instance data
+    t_CKFLOAT m_param;
+    string name;
+    vector<string> authors;
+    optional<string> homepage;
+    optional<string> repository;
+    optional<string> license;
+    optional<string> description;
+    vector<string> keywords;
 };
 
 
@@ -331,9 +334,9 @@ CK_DLL_QUERY( Chumpinate )
     QUERY->begin_class( QUERY, "Package", "Object" );
 
     QUERY->doc_class( QUERY, "Package definition. This class describes "
-        "all metadata associated with a package: description, author, "
-        "license, etc."
-    );
+                      "all metadata associated with a package: description, author, "
+                      "license, etc."
+                      );
 
     QUERY->add_ex( QUERY, "build-pkg-win.ck");
     QUERY->add_ex( QUERY, "build-pkg-mac.ck");
@@ -361,7 +364,7 @@ CK_DLL_QUERY( Chumpinate )
     QUERY->add_mfun( QUERY, package_setAuthor, "string[]", "authors" );
     QUERY->add_arg( QUERY, "string", "author" );
     QUERY->doc_func( QUERY, "Set the package author (if there are "
-                    "multiple authors, use 'pkg.authors(...)')");
+                     "multiple authors, use 'pkg.authors(...)')");
 
     QUERY->add_mfun( QUERY, package_setAuthors, "string[]", "authors" );
     QUERY->add_arg( QUERY, "string[]", "authors" );
@@ -408,7 +411,7 @@ CK_DLL_QUERY( Chumpinate )
     QUERY->add_mfun( QUERY, package_generatePackageDefinition, "int", "generatePackageDefinition" );
     QUERY->add_arg( QUERY, "string", "path" );
     QUERY->doc_func( QUERY, "Generates a 'package.json' file. Chump needs "
-                    "this to find your package and display metadata about it.");
+                     "this to find your package and display metadata about it.");
 
     // this reserves a variable in the ChucK internal class to store
     // referene to the c++ class we defined above
@@ -429,9 +432,9 @@ CK_DLL_QUERY( Chumpinate )
     QUERY->begin_class( QUERY, "PackageVersion", "Object" );
 
     QUERY->doc_class( QUERY, "PackageVersion describes a specific "
-                     "version of your package: this includes all files, "
-                     "version number, etc."
-    );
+                      "version of your package: this includes all files, "
+                      "version number, etc."
+                      );
 
     QUERY->add_ex( QUERY, "build-pkg-win.ck");
     QUERY->add_ex( QUERY, "build-pkg-mac.ck");
@@ -446,8 +449,8 @@ CK_DLL_QUERY( Chumpinate )
     QUERY->add_arg( QUERY, "string", "pkg_name" );
     QUERY->add_arg( QUERY, "string", "version" );
     QUERY->doc_func( QUERY, "Create a version of 'pkg_name', using a version string. "
-                    "This version string must follow the semantic versioning format "
-                    "major.minor.patch (i.e. \"1.3.12\") ");
+                     "This version string must follow the semantic versioning format "
+                     "major.minor.patch (i.e. \"1.3.12\") ");
 
 
     QUERY->add_ctor( QUERY, package_version_ctor_ints );
@@ -456,7 +459,7 @@ CK_DLL_QUERY( Chumpinate )
     QUERY->add_arg( QUERY, "int", "minor" );
     QUERY->add_arg( QUERY, "int", "patch" );
     QUERY->doc_func( QUERY, "Create a version of 'pkg_name', integers "
-                    "correspond to major.minor.patch semantic versioning.");
+                     "correspond to major.minor.patch semantic versioning.");
 
     // register the destructor (probably no need to change)
     QUERY->add_dtor( QUERY, package_version_dtor );
@@ -464,43 +467,43 @@ CK_DLL_QUERY( Chumpinate )
     QUERY->add_mfun( QUERY, package_version_setVersion_string, "string", "version" );
     QUERY->add_arg( QUERY, "string", "version" );
     QUERY->doc_func( QUERY, "Set package version, string must follow the semantic versioning format "
-                    "major.minor.patch (i.e. \"1.3.12\") ");
+                     "major.minor.patch (i.e. \"1.3.12\") ");
 
     QUERY->add_mfun( QUERY, package_version_setVersion_ints, "string", "version" );
     QUERY->add_arg( QUERY, "int", "major" );
     QUERY->add_arg( QUERY, "int", "minor" );
     QUERY->add_arg( QUERY, "int", "patch" );
     QUERY->doc_func( QUERY, "Set package version, follows the semantic versioning format "
-                    "major.minor.patch (i.e. \"1.3.12\") ");
+                     "major.minor.patch (i.e. \"1.3.12\") ");
 
     QUERY->add_mfun( QUERY, package_version_getVersion, "string", "version" );
     QUERY->doc_func( QUERY, "Set version, follows the semantic versioning format "
-                    "major.minor.patch (i.e. \"1.3.12\") ");
+                     "major.minor.patch (i.e. \"1.3.12\") ");
 
     QUERY->add_mfun( QUERY, package_version_setApi_ints, "string", "apiVersion" );
     QUERY->add_arg( QUERY, "int", "major" );
     QUERY->add_arg( QUERY, "int", "minor" );
     QUERY->doc_func( QUERY, "Set required ChucK API version. Chugins will only load with "
-                    "a specific API version. If your package is only .ck files, this "
-                    "shouldn't be set as it restricts which versions of ChucK "
-                    "can install this package");
+                     "a specific API version. If your package is only .ck files, this "
+                     "shouldn't be set as it restricts which versions of ChucK "
+                     "can install this package");
 
 
     QUERY->add_mfun( QUERY, package_version_setApi_string, "string", "apiVersion" );
     QUERY->add_arg( QUERY, "string", "version" );
     QUERY->doc_func( QUERY, "Set required ChucK API version. Chugins will only load with a specific "
-                    "API version. If your package is only .ck files, this shouldn't be set "
-                    "as it restricts which versions of ChucK can install this package");
+                     "API version. If your package is only .ck files, this shouldn't be set "
+                     "as it restricts which versions of ChucK can install this package");
 
     QUERY->add_mfun( QUERY, package_version_getApi, "string", "apiVersion" );
     QUERY->doc_func( QUERY, "Get required ChucK API version. Chugins will only load with a specific "
-                    "API version. If your package is only .ck files, this shouldn't be set "
-                    "as it restricts which versions of ChucK can install this package");
+                     "API version. If your package is only .ck files, this shouldn't be set "
+                     "as it restricts which versions of ChucK can install this package");
 
     QUERY->add_mfun( QUERY, package_version_setCkVerMin_string, "string", "languageVersionMin" );
     QUERY->add_arg( QUERY, "string", "version" );
     QUERY->doc_func( QUERY, "Set oldest compatible ChucK version. Follows the semantic versioning "
-                    "scheme mega.major.minor.patch (i.e. \"1.5.4.2\")");
+                     "scheme mega.major.minor.patch (i.e. \"1.5.4.2\")");
 
     QUERY->add_mfun( QUERY, package_version_setCkVerMin_ints, "string", "languageVersionMin");
     QUERY->add_arg( QUERY, "int", "mega" );
@@ -508,16 +511,16 @@ CK_DLL_QUERY( Chumpinate )
     QUERY->add_arg( QUERY, "int", "minor" );
     QUERY->add_arg( QUERY, "int", "patch" );
     QUERY->doc_func( QUERY, "Set oldest compatible ChucK version. Follows the semantic versioning "
-                    "scheme mega.major.minor.patch (i.e. \"1.5.4.2\")");
+                     "scheme mega.major.minor.patch (i.e. \"1.5.4.2\")");
 
     QUERY->add_mfun( QUERY, package_version_getCkVerMin, "string", "languageVersionMin" );
     QUERY->doc_func( QUERY, "Gets oldest compatible ChucK version. Follows the semantic versioning "
-                    "scheme mega.major.minor.patch (i.e. \"1.5.4.2\")");
+                     "scheme mega.major.minor.patch (i.e. \"1.5.4.2\")");
 
     QUERY->add_mfun( QUERY, package_version_setCkVerMax_string, "string", "languageVersionMax" );
     QUERY->add_arg( QUERY, "string", "version" );
     QUERY->doc_func( QUERY, "Set newest compatible ChucK version. Follows the semantic versioning "
-                    "scheme mega.major.minor.patch (i.e. \"1.5.4.2\")");
+                     "scheme mega.major.minor.patch (i.e. \"1.5.4.2\")");
 
     QUERY->add_mfun( QUERY, package_version_setCkVerMax_ints, "string", "languageVersionMax" );
     QUERY->add_arg( QUERY, "int", "mega" );
@@ -525,87 +528,94 @@ CK_DLL_QUERY( Chumpinate )
     QUERY->add_arg( QUERY, "int", "minor" );
     QUERY->add_arg( QUERY, "int", "patch" );
     QUERY->doc_func( QUERY, "Set newest compatible ChucK version. Follows the semantic versioning "
-                    "scheme mega.major.minor.patch (i.e. \"1.5.4.2\")");
+                     "scheme mega.major.minor.patch (i.e. \"1.5.4.2\")");
 
     QUERY->add_mfun( QUERY, package_version_getCkVerMax, "string", "languageVersionMax" );
     QUERY->doc_func( QUERY, "Get newest compatible ChucK version. Follows the semantic versioning "
-                    "scheme mega.major.minor.patch (i.e. \"1.5.4.2\")");
+                     "scheme mega.major.minor.patch (i.e. \"1.5.4.2\")");
 
     QUERY->add_mfun( QUERY, package_version_setOS, "string", "os" );
     QUERY->add_arg( QUERY, "string", "os" );
-    QUERY->doc_func( QUERY, "Set version's operating system (\"mac\", \"windows\", or \"linux\"");
+    QUERY->doc_func( QUERY, "Set version's operating system (\"mac\", \"windows\", or \"linux\")");
 
     QUERY->add_mfun( QUERY, package_version_getOS, "string", "os" );
-    QUERY->doc_func( QUERY, "Get version's operating system (\"mac\", \"windows\", or \"linux\"");
+    QUERY->doc_func( QUERY, "Get version's operating system (\"mac\", \"windows\", or \"linux\")");
+
+    QUERY->add_mfun( QUERY, package_version_setArch, "string", "arch" );
+    QUERY->add_arg( QUERY, "string", "arch" );
+    QUERY->doc_func( QUERY, "Set version's architecture (\"x86\", \"x86_64\", \"arm64\", or \"all\")");
+
+    QUERY->add_mfun( QUERY, package_version_getArch, "string", "arch" );
+    QUERY->doc_func( QUERY, "Get version's architecture (\"x86\", \"x86_64\", \"arm64\", or \"all\")");
 
     QUERY->add_mfun( QUERY, package_version_addFile, "string", "addFile" );
     QUERY->add_arg( QUERY, "string", "filepath");
     QUERY->doc_func( QUERY, "Add file to list of files. This will be stored at the package "
-                    "directory's top level (./)");
+                     "directory's top level (./)");
 
     QUERY->add_mfun( QUERY, package_version_addFile_dir, "void", "addFile" );
     QUERY->add_arg( QUERY, "string", "filepath");
     QUERY->add_arg( QUERY, "string", "pkg_dir");
     QUERY->doc_func( QUERY, "Add file to list of files. This will be stored in the directory "
-                    "./pkg_dir");
+                     "./pkg_dir");
 
     QUERY->add_mfun( QUERY, package_version_addDataFile, "void", "addDataFile" );
     QUERY->add_arg( QUERY, "string", "filepath");
     QUERY->doc_func( QUERY, "Add data file to list of files. This will be stored in the directory "
-                    "./_data");
+                     "./_data");
 
     QUERY->add_mfun( QUERY, package_version_addDataFile_dir, "void", "addDataFile" );
     QUERY->add_arg( QUERY, "string", "filepath");
     QUERY->add_arg( QUERY, "string", "pkg_dir");
     QUERY->doc_func( QUERY, "Add data file to list of files. This will be stored in the directory "
-                    "./_data/pkg_dir");
+                     "./_data/pkg_dir");
 
     QUERY->add_mfun( QUERY, package_version_addExampleFile, "void", "addExampleFile" );
     QUERY->add_arg( QUERY, "string", "filepath");
     QUERY->doc_func( QUERY, "Add example file to list of files. This will be stored in the "
-                    "directory ./_examples");
+                     "directory ./_examples");
 
     QUERY->add_mfun( QUERY, package_version_addExampleFile_dir, "void", "addExampleFile" );
     QUERY->add_arg( QUERY, "string", "filepath");
     QUERY->add_arg( QUERY, "string", "pkg_dir");
     QUERY->doc_func( QUERY, "Add example file to list of files. This will be stored in the "
-                    "directory ./_examples/pkg_dir");
+                     "directory ./_examples/pkg_dir");
 
     QUERY->add_mfun( QUERY, package_version_addDocsFile, "void", "addDocsFile" );
     QUERY->add_arg( QUERY, "string", "filepath");
     QUERY->doc_func( QUERY, "Add docs file to list of files. This will be stored in the directory "
-                    "./_docs");
+                     "./_docs");
 
     QUERY->add_mfun( QUERY, package_version_addDocsFile_dir, "void", "addDocsFile" );
     QUERY->add_arg( QUERY, "string", "filepath");
     QUERY->add_arg( QUERY, "string", "pkg_dir");
     QUERY->doc_func( QUERY, "Add docs file to list of files. This will be stored in the directory "
-                    "./_docs/pkg_dir");
+                     "./_docs/pkg_dir");
 
     QUERY->add_mfun( QUERY, package_version_addDepsFile, "void", "addDepsFile" );
     QUERY->add_arg( QUERY, "string", "filepath");
     QUERY->doc_func( QUERY, "Add dependency file to list of files. This will be stored in the "
-                    "directory ./_deps");
+                     "directory ./_deps");
 
     QUERY->add_mfun( QUERY, package_version_addDepsFile_dir, "void", "addDepsFile" );
     QUERY->add_arg( QUERY, "string", "filepath");
     QUERY->add_arg( QUERY, "string", "pkg_dir");
     QUERY->doc_func( QUERY, "Add dependency file to list of files. This will be stored in the "
-                    "directory ./_deps/pkg_dir");
+                     "directory ./_deps/pkg_dir");
 
     QUERY->add_mfun( QUERY, package_version_createZip, "int", "generateVersion" );
     QUERY->add_arg( QUERY, "string", "dir");
     QUERY->add_arg( QUERY, "string", "filename");
     QUERY->add_arg( QUERY, "string", "url");
     QUERY->doc_func( QUERY, "Combine all files in a version definition into a single zip file that "
-                    "can be used by chump to install a package. 'url' is the url that the "
-                    "zip file will be accessible at.");
+                     "can be used by chump to install a package. 'url' is the url that the "
+                     "zip file will be accessible at.");
 
     QUERY->add_mfun( QUERY, package_version_generateVersionDefinition, "int", "generateVersionDefinition" );
     QUERY->add_arg( QUERY, "string", "filename");
     QUERY->add_arg( QUERY, "string", "pkg_dir");
     QUERY->doc_func( QUERY, "Create a 'version.json' that has all the metadata necessary to install "
-                    "a specific package version");
+                     "a specific package version");
 
     // this reserves a variable in the ChucK internal class to store
     // referene to the c++ class we defined above
@@ -639,16 +649,16 @@ CK_DLL_CTOR( package_ctor )
 
 CK_DLL_CTOR(package_ctor_name )
 {
-  // get the offset where we'll store our internal c++ class pointer
-  OBJ_MEMBER_INT( SELF, package_data_offset ) = 0;
+    // get the offset where we'll store our internal c++ class pointer
+    OBJ_MEMBER_INT( SELF, package_data_offset ) = 0;
 
-  std::string name = GET_NEXT_STRING_SAFE(ARGS);
+    std::string name = GET_NEXT_STRING_SAFE(ARGS);
 
-  // instantiate our internal c++ class representation
-  PackageChuginate * c_obj = new PackageChuginate( name );
+    // instantiate our internal c++ class representation
+    PackageChuginate * c_obj = new PackageChuginate( name );
 
-  // store the pointer in the ChucK object member
-  OBJ_MEMBER_INT( SELF, package_data_offset ) = (t_CKINT)c_obj;
+    // store the pointer in the ChucK object member
+    OBJ_MEMBER_INT( SELF, package_data_offset ) = (t_CKINT)c_obj;
 }
 
 
@@ -702,9 +712,9 @@ CK_DLL_MFUN( package_setAuthors ){
     Chuck_ArrayInt * args = (Chuck_ArrayInt *) GET_NEXT_OBJECT(ARGS);
 
     if(args == NULL) {
-      fprintf( stderr, "Package.authors(): argument 'authors' is null\n" );
-      RETURN->v_object = 0;
-      return;
+        fprintf( stderr, "Package.authors(): argument 'authors' is null\n" );
+        RETURN->v_object = 0;
+        return;
     }
 
     std::vector<std::string> args_vector;
@@ -712,10 +722,10 @@ CK_DLL_MFUN( package_setAuthors ){
     t_CKINT size = API->object->array_int_size(args);
 
     for (int i = 0; i < size; i++) {
-      t_CKUINT arg = API->object->array_int_get_idx(args, i);
-      Chuck_String* arg_str = (Chuck_String*)arg;
+        t_CKUINT arg = API->object->array_int_get_idx(args, i);
+        Chuck_String* arg_str = (Chuck_String*)arg;
 
-      args_vector.push_back(API->object->str(arg_str));
+        args_vector.push_back(API->object->str(arg_str));
     }
 
     c_obj->setAuthors( args_vector );
@@ -732,13 +742,13 @@ CK_DLL_MFUN( package_getAuthors ){
     std::vector<string> vals = c_obj->getAuthors();
 
 
-   // populate array
+    // populate array
     for (auto val : vals) {
-      Chuck_String* val_ckstr = API->object->create_string(
-          VM, val.c_str(), false);
+        Chuck_String* val_ckstr = API->object->create_string(
+                                                             VM, val.c_str(), false);
 
-      // OBJ_MEMBER_INT(val_ckstr, package_data_offset) = (t_CKINT)val_ckstri;
-      API->object->array_int_push_back(arr, (t_CKINT)val_ckstr);
+        // OBJ_MEMBER_INT(val_ckstr, package_data_offset) = (t_CKINT)val_ckstri;
+        API->object->array_int_push_back(arr, (t_CKINT)val_ckstr);
     }
 
     RETURN->v_object = (Chuck_Object*) arr;
@@ -820,9 +830,9 @@ CK_DLL_MFUN( package_setKeywords ){
     Chuck_ArrayInt * args = (Chuck_ArrayInt *) GET_NEXT_OBJECT(ARGS);
 
     if(args == NULL) {
-      fprintf( stderr, "Package.authors(): argument 'keywords' is null\n" );
-      RETURN->v_object = 0;
-      return;
+        fprintf( stderr, "Package.authors(): argument 'keywords' is null\n" );
+        RETURN->v_object = 0;
+        return;
     }
 
     std::vector<std::string> args_vector;
@@ -830,10 +840,10 @@ CK_DLL_MFUN( package_setKeywords ){
     t_CKINT size = API->object->array_int_size(args);
 
     for (int i = 0; i < size; i++) {
-      t_CKUINT arg = API->object->array_int_get_idx(args, i);
-      Chuck_String* arg_str = (Chuck_String*)arg;
+        t_CKUINT arg = API->object->array_int_get_idx(args, i);
+        Chuck_String* arg_str = (Chuck_String*)arg;
 
-      args_vector.push_back(API->object->str(arg_str));
+        args_vector.push_back(API->object->str(arg_str));
     }
 
     c_obj->setKeywords( args_vector );
@@ -849,31 +859,31 @@ CK_DLL_MFUN( package_getKeywords ){
     std::vector<string> vals = c_obj->getKeywords();
 
 
-   // populate array
+    // populate array
     for (auto val : vals) {
-      Chuck_String* val_ckstr = API->object->create_string(
-          VM, val.c_str(), false);
+        Chuck_String* val_ckstr = API->object->create_string(
+                                                             VM, val.c_str(), false);
 
-      // OBJ_MEMBER_INT(val_ckstr, package_data_offset) = (t_CKINT)val_ckstri;
-      API->object->array_int_push_back(arr, (t_CKINT)val_ckstr);
+        // OBJ_MEMBER_INT(val_ckstr, package_data_offset) = (t_CKINT)val_ckstri;
+        API->object->array_int_push_back(arr, (t_CKINT)val_ckstr);
     }
 
     RETURN->v_object = (Chuck_Object*) arr;
 }
 
 CK_DLL_MFUN( package_generatePackageDefinition ){
-  PackageChuginate * c_obj = (PackageChuginate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageChuginate * c_obj = (PackageChuginate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  string arg1 = GET_NEXT_STRING_SAFE( ARGS );
+    string arg1 = GET_NEXT_STRING_SAFE( ARGS );
 
-  t_CKINT val;
-  try {
-    val = c_obj->generatePackageDefinition( arg1 );
-  } catch (const std::exception &e) {
-    API->vm->throw_exception( e.what(), "", SHRED);
-  }
+    t_CKINT val;
+    try {
+        val = c_obj->generatePackageDefinition( arg1 );
+    } catch (const std::exception &e) {
+        API->vm->throw_exception( e.what(), "", SHRED);
+    }
 
-  RETURN->v_int = val;
+    RETURN->v_int = val;
 }
 
 
@@ -889,332 +899,348 @@ CK_DLL_MFUN( package_generatePackageDefinition ){
 class PackageVersionChumpinate
 {
 public:
-  // constructor
-  PackageVersionChumpinate( )
-  {
-  }
-
-  PackageVersionChumpinate( string _pkg_name, string _ver )
-  {
-    PackageVersion p(_ver);
-    ver = p;
-
-    package_name = _pkg_name;
-  }
-
-  PackageVersionChumpinate( string _pkg_name, int major, int minor, int patch )
-  {
-    PackageVersion p(major, minor, patch);
-    ver = p;
-
-    package_name = _pkg_name;
-  }
-
-  // set parameter example
-  t_CKFLOAT setParam( t_CKFLOAT p )
-  {
-    m_param = p;
-    return p;
-  }
-
-  // get parameter example
-  t_CKFLOAT getParam() { return m_param; }
-
-  string setVersion( string _ver ) {
-    PackageVersion p(_ver);
-    ver = p;
-    return p.getVersionString();
-  }
-
-  string setVersion( int major, int minor, int patch ) {
-    PackageVersion p(major, minor, patch);
-    ver = p;
-    return p.getVersionString();
-  }
-
-  string getVersion() {
-    return ver.getVersionString();
-  }
-
-  string setApiVersion( string _ver ) {
-    ApiVersion p(_ver);
-    api_ver = p;
-    return p.getVersionString();
-  }
-
-  string setApiVersion( int major, int minor ) {
-    ApiVersion p(major, minor);
-    api_ver = p;
-    return p.getVersionString();
-  }
-
-  string getApiVersion() {
-    return api_ver.value().getVersionString();
-  }
-
-  string setMinCkVersion( string _ver) {
-    ChuckVersion min_ver(_ver);
-
-    language_version_min = min_ver;
-    return min_ver.getVersionString();
-  }
-
-  string setMinCkVersion( int mega, int major, int minor, int patch) {
-    ChuckVersion min_ver(mega, major, minor, patch);
-
-    language_version_min = min_ver;
-    return min_ver.getVersionString();
-  }
-
-  string getMinCkVersion() {
-    return language_version_min.value().getVersionString();
-  }
-
-  string setMaxCkVersion( string _ver) {
-    ChuckVersion max_ver(_ver);
-
-    language_version_max = max_ver;
-    return max_ver.getVersionString();
-  }
-
-  string setMaxCkVersion( int mega, int major, int minor, int patch) {
-    ChuckVersion max_ver(mega, major, minor, patch);
-
-    language_version_max = max_ver;
-    return max_ver.getVersionString();
-  }
-
-  string getMaxCkVersion() {
-    return language_version_max.value().getVersionString();
-  }
-
-  string setOS( string _os ) {
-    os = _os;
-    return _os;
-  }
-
-  string getOS() {
-    return os.value();
-  }
-
-  void addFile(fs::path file, fs::path dir, FileType file_type) {
-    fs::path destination;
-
-    if (!fs::exists(file)) {
-      std::cerr << "File " << file << " doesn't exist!" << std::endl;
+    // constructor
+    PackageVersionChumpinate( )
+    {
     }
 
-    switch (file_type) {
-    case PACKAGE_FILE:
-      destination = dir / file.filename();
-      break;
-    case DATA_FILE:
-      destination = "./_data" / dir / file.filename();
-      break;
-    case EXAMPLE_FILE:
-      destination = "./_examples" / dir / file.filename();
-      break;
-    case DOCS_FILE:
-      destination = "./_docs" / dir / file.filename();
-      break;
-    case DEPS_FILE:
-      destination = "./_deps" / dir / file.filename();
-      break;
-    case ZIP_FILE:
-      return;
-    default:
-      return;
+    PackageVersionChumpinate( string _pkg_name, string _ver )
+    {
+        PackageVersion p(_ver);
+        ver = p;
+
+        package_name = _pkg_name;
     }
 
-    files.push_back(file);
-    file_destinations.push_back(destination.lexically_normal());
-  }
+    PackageVersionChumpinate( string _pkg_name, int major, int minor, int patch )
+    {
+        PackageVersion p(major, minor, patch);
+        ver = p;
 
-  t_CKINT createZip(fs::path package_dir, fs::path filename, fs::path url) {
-    // TODO validate that it's a url
-    url_zip = url;
-
-    // create directory
-    fs::create_directory(package_dir);
-
-    // TODO zip up file list
-    fs::path zip_filepath = package_dir / filename;
-
-    zip_filepath.replace_extension("zip");
-
-    zipFile zf = zipOpen(zip_filepath.string().c_str(), APPEND_STATUS_CREATE);
-
-    if (zf == NULL)
-      return false;
-
-    // TODO rename "success"
-    bool _return = true;
-
-    // iterate through all files in different file directories and add them to the .zip file
-    // for (auto file: files) {
-    for (std::size_t i = 0; i < files.size(); i++) {
-      if (!addFileToZip(zf, files[i], file_destinations[i])) {
-        std::cerr << "error opening file " << files[i] << std::endl;
-        _return = false;
-      }
+        package_name = _pkg_name;
     }
 
-    if (zipClose(zf, NULL))
-      return false;
-
-    if (!_return)
-      return false;
-
-    // Generate checksum
-    zip_checksum = hash_file(zip_filepath);
-
-    return true;
-  }
-
-  t_CKINT addFileToZip( zipFile zf, fs::path filepath, fs::path destination) {
-    std::fstream file(filepath.c_str(), std::ios::binary | std::ios::in);
-
-    t_CKINT _return = true;
-
-    if (file.is_open()) {
-      file.seekg(0, std::ios::end);
-      long size = file.tellg();
-      file.seekg(0, std::ios::beg);
-
-      std::vector<char> buffer(size);
-      if (size == 0 || file.read(&buffer[0], size)) {
-        tm_zip lastWriteTime = getLastWriteTime(filepath);
-        zip_fileinfo zfi;
-        zfi.tmz_date = lastWriteTime;
-
-        // Some builds of minizip-ng can't actually compress
-        // (depending on availability of dependencies). In that
-        // case we simply use zip as a wrapper so we only have to
-        // deal with one file.
-        #ifdef MZ_ZIP_NO_COMPRESSION
-        int compression_level = MZ_COMPRESS_METHOD_STORE;
-        #else
-        int compression_level = MZ_COMPRESS_LEVEL_DEFAULT;
-        #endif
-
-        int zip_status = zipOpenNewFileInZip(zf, destination.string().c_str(), &zfi, NULL, 0, NULL, 0, NULL, Z_DEFLATED, compression_level);
-        if (zip_status == ZIP_OK)
-          {
-            if (zipWriteInFileInZip(zf, size == 0 ? "" : &buffer[0], size))
-              _return = false;
-
-            if (zipCloseFileInZip(zf))
-              _return = false;
-          }
-          else {
-            std::cerr << "zip file failed to add: " << zip_status << std::endl;
-            _return = false;
-          }
-      }
-      file.close();
+    // set parameter example
+    t_CKFLOAT setParam( t_CKFLOAT p )
+    {
+        m_param = p;
+        return p;
     }
 
-    return _return;
-  }
+    // get parameter example
+    t_CKFLOAT getParam() { return m_param; }
 
-  tm_zip getLastWriteTime(const fs::path& filepath) {
-    // Get last write time as a filesystem time point
-    auto ftime = fs::last_write_time(filepath);
+    string setVersion( string _ver ) {
+        PackageVersion p(_ver);
+        ver = p;
+        return p.getVersionString();
+    }
 
-    // Convert filesystem time to time_t
-    auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
-                  ftime - fs::file_time_type::clock::now() + std::chrono::system_clock::now());
-    std::time_t cftime = std::chrono::system_clock::to_time_t(sctp);
+    string setVersion( int major, int minor, int patch ) {
+        PackageVersion p(major, minor, patch);
+        ver = p;
+        return p.getVersionString();
+    }
 
-    // Convert time_t to tm struct
-    std::tm tm;
-#ifdef _WIN32
-    localtime_s(&tm, &cftime);
+    string getVersion() {
+        return ver.getVersionString();
+    }
+
+    string setApiVersion( string _ver ) {
+        ApiVersion p(_ver);
+        api_ver = p;
+        return p.getVersionString();
+    }
+
+    string setApiVersion( int major, int minor ) {
+        ApiVersion p(major, minor);
+        api_ver = p;
+        return p.getVersionString();
+    }
+
+    string getApiVersion() {
+        return api_ver.value().getVersionString();
+    }
+
+    string setMinCkVersion( string _ver) {
+        ChuckVersion min_ver(_ver);
+
+        language_version_min = min_ver;
+        return min_ver.getVersionString();
+    }
+
+    string setMinCkVersion( int mega, int major, int minor, int patch) {
+        ChuckVersion min_ver(mega, major, minor, patch);
+
+        language_version_min = min_ver;
+        return min_ver.getVersionString();
+    }
+
+    string getMinCkVersion() {
+        return language_version_min.value().getVersionString();
+    }
+
+    string setMaxCkVersion( string _ver) {
+        ChuckVersion max_ver(_ver);
+
+        language_version_max = max_ver;
+        return max_ver.getVersionString();
+    }
+
+    string setMaxCkVersion( int mega, int major, int minor, int patch) {
+        ChuckVersion max_ver(mega, major, minor, patch);
+
+        language_version_max = max_ver;
+        return max_ver.getVersionString();
+    }
+
+    string getMaxCkVersion() {
+        return language_version_max.value().getVersionString();
+    }
+
+    string setOS( string _os ) {
+        os = _os;
+        return _os;
+    }
+
+    string getOS() {
+        return os.value();
+    }
+
+    string setArch( string _arch ) {
+        arch = _arch;
+        return _arch;
+    }
+
+    string getArch() {
+        return arch.value();
+    }
+
+    void addFile(fs::path file, fs::path dir, FileType file_type) {
+        fs::path destination;
+
+        if (!fs::exists(file)) {
+            std::cerr << "File " << file << " doesn't exist!" << std::endl;
+        }
+
+        switch (file_type) {
+        case PACKAGE_FILE:
+            destination = dir / file.filename();
+            break;
+        case DATA_FILE:
+            destination = "./_data" / dir / file.filename();
+            break;
+        case EXAMPLE_FILE:
+            destination = "./_examples" / dir / file.filename();
+            break;
+        case DOCS_FILE:
+            destination = "./_docs" / dir / file.filename();
+            break;
+        case DEPS_FILE:
+            destination = "./_deps" / dir / file.filename();
+            break;
+        case ZIP_FILE:
+            return;
+        default:
+            return;
+        }
+
+        files.push_back(file);
+        file_destinations.push_back(destination.lexically_normal());
+    }
+
+    t_CKINT createZip(fs::path package_dir, fs::path filename, fs::path url) {
+        // TODO validate that it's a url
+        url_zip = url;
+
+        // create directory
+        fs::create_directory(package_dir);
+
+        // TODO zip up file list
+        fs::path zip_filepath = package_dir / filename;
+
+        zip_filepath.replace_extension("zip");
+
+        zipFile zf = zipOpen(zip_filepath.string().c_str(), APPEND_STATUS_CREATE);
+
+        if (zf == NULL)
+            return false;
+
+        // TODO rename "success"
+        bool _return = true;
+
+        // iterate through all files in different file directories and add them to the .zip file
+        // for (auto file: files) {
+        for (std::size_t i = 0; i < files.size(); i++) {
+            if (!addFileToZip(zf, files[i], file_destinations[i])) {
+                std::cerr << "error opening file " << files[i] << std::endl;
+                _return = false;
+            }
+        }
+
+        if (zipClose(zf, NULL))
+            return false;
+
+        if (!_return)
+            return false;
+
+        // Generate checksum
+        zip_checksum = hash_file(zip_filepath);
+
+        return true;
+    }
+
+    t_CKINT addFileToZip( zipFile zf, fs::path filepath, fs::path destination) {
+        std::fstream file(filepath.c_str(), std::ios::binary | std::ios::in);
+
+        t_CKINT _return = true;
+
+        if (file.is_open()) {
+            file.seekg(0, std::ios::end);
+            long size = file.tellg();
+            file.seekg(0, std::ios::beg);
+
+            std::vector<char> buffer(size);
+            if (size == 0 || file.read(&buffer[0], size)) {
+                tm_zip lastWriteTime = getLastWriteTime(filepath);
+                zip_fileinfo zfi;
+                zfi.tmz_date = lastWriteTime;
+
+                // Some builds of minizip-ng can't actually compress
+                // (depending on availability of dependencies). In that
+                // case we simply use zip as a wrapper so we only have to
+                // deal with one file.
+#ifdef MZ_ZIP_NO_COMPRESSION
+                int compression_level = MZ_COMPRESS_METHOD_STORE;
 #else
-    localtime_r(&cftime, &tm);
+                int compression_level = MZ_COMPRESS_LEVEL_DEFAULT;
 #endif
 
-    // Map std::tm to tm_zip format
-    tm_zip result;
-    result.tm_sec  = tm.tm_sec;
-    result.tm_min  = tm.tm_min;
-    result.tm_hour = tm.tm_hour;
-    result.tm_mday = tm.tm_mday;
-    result.tm_mon  = tm.tm_mon;
-    result.tm_year = tm.tm_year + 1900; // Adjust for tm_zip's expected year range
+                int zip_status = zipOpenNewFileInZip(zf, destination.string().c_str(), &zfi, NULL, 0, NULL, 0, NULL, Z_DEFLATED, compression_level);
+                if (zip_status == ZIP_OK)
+                {
+                    if (zipWriteInFileInZip(zf, size == 0 ? "" : &buffer[0], size))
+                        _return = false;
 
-    return result;
-  }
+                    if (zipCloseFileInZip(zf))
+                        _return = false;
+                }
+                else {
+                    std::cerr << "zip file failed to add: " << zip_status << std::endl;
+                    _return = false;
+                }
+            }
+            file.close();
+        }
 
-  t_CKINT generateVersionDefinition( fs::path filename, fs::path pkg_dir ) {
-    json j = {
-      {"version", ver.getVersionString()}
-    };
-
-    if (api_ver) {
-      j["api_version"] = api_ver.value();
+        return _return;
     }
 
-    if (language_version_min) {
-      j["language_version_min"] = language_version_min.value();
-    } else {
-      throw std::invalid_argument("field PackageVersion.language_version_min must be set");
+    tm_zip getLastWriteTime(const fs::path& filepath) {
+        // Get last write time as a filesystem time point
+        auto ftime = fs::last_write_time(filepath);
+
+        // Convert filesystem time to time_t
+        auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+                                                                                      ftime - fs::file_time_type::clock::now() + std::chrono::system_clock::now());
+        std::time_t cftime = std::chrono::system_clock::to_time_t(sctp);
+
+        // Convert time_t to tm struct
+        std::tm tm;
+#ifdef _WIN32
+        localtime_s(&tm, &cftime);
+#else
+        localtime_r(&cftime, &tm);
+#endif
+
+        // Map std::tm to tm_zip format
+        tm_zip result;
+        result.tm_sec  = tm.tm_sec;
+        result.tm_min  = tm.tm_min;
+        result.tm_hour = tm.tm_hour;
+        result.tm_mday = tm.tm_mday;
+        result.tm_mon  = tm.tm_mon;
+        result.tm_year = tm.tm_year + 1900; // Adjust for tm_zip's expected year range
+
+        return result;
     }
 
-    if (language_version_max) {
-      j["language_version_min"] = language_version_max.value();
+    t_CKINT generateVersionDefinition( fs::path filename, fs::path pkg_dir ) {
+        json j = {
+            {"version", ver.getVersionString()}
+        };
+
+        if (api_ver) {
+            j["api_version"] = api_ver.value();
+        }
+
+        if (language_version_min) {
+            j["language_version_min"] = language_version_min.value();
+        } else {
+            throw std::invalid_argument("field PackageVersion.language_version_min must be set");
+        }
+
+        if (language_version_max) {
+            j["language_version_min"] = language_version_max.value();
+        }
+
+        if (os) {
+            j["os"] = os.value();
+        } else {
+            throw std::invalid_argument("field PackageVersion.os must be set ('windows', 'linux', 'mac', or 'any'");
+        }
+
+        if (arch) {
+            j["arch"] = arch.value();
+        } else {
+            throw std::invalid_argument("field PackageVersion.arch must be set ('x86', 'x86_64', 'arm64', or 'all'");
+        }
+
+        File f;
+        f.url = url_zip.string();
+        f.local_dir = "./";
+        f.file_type = ZIP_FILE;
+        f.checksum = zip_checksum;
+
+        vector<File> fs = {f};
+
+        j["files"] = fs;
+
+        fs::path json_dir = pkg_dir / package_name / ver.getVersionString();
+        fs::create_directory(json_dir);
+
+        if (filename.extension() != ".json") {
+            filename.replace_extension("json");
+        }
+
+
+        std::ofstream o(json_dir / filename);
+        o << std::setw(4) << j << std::endl;
+        o.close();
+
+        return true;
     }
-
-    if (os) {
-      j["os"] = os.value();
-    } else {
-      throw std::invalid_argument("field PackageVersion.os must be set ('windows', 'linux', 'mac', or ány'");
-    }
-
-    File f;
-    f.url = url_zip.string();
-    f.local_dir = "./";
-    f.file_type = ZIP_FILE;
-    f.checksum = zip_checksum;
-
-    vector<File> fs = {f};
-
-    j["files"] = fs;
-
-    fs::path json_dir = pkg_dir / package_name / ver.getVersionString();
-    fs::create_directory(json_dir);
-
-    if (filename.extension() != ".json") {
-      filename.replace_extension("json");
-    }
-
-
-    std::ofstream o(json_dir / filename);
-    o << std::setw(4) << j << std::endl;
-    o.close();
-
-    return true;
-  }
 
 private:
-  // instance data
-  t_CKFLOAT m_param;
+    // instance data
+    t_CKFLOAT m_param;
 
-  PackageVersion ver;
-  optional<ApiVersion> api_ver;
-  optional<ChuckVersion> language_version_min;
-  optional<ChuckVersion> language_version_max;
-  optional<string> os;
+    PackageVersion ver;
+    optional<ApiVersion> api_ver;
+    optional<ChuckVersion> language_version_min;
+    optional<ChuckVersion> language_version_max;
+    optional<string> os;
+    optional<string> arch;
 
-  vector<fs::path> files; // the actual paths of the files to be zipped
-  vector<fs::path> file_destinations; // the package-relative paths of the files to be zipped
-  vector<FileType> files_types;
+    vector<fs::path> files; // the actual paths of the files to be zipped
+    vector<fs::path> file_destinations; // the package-relative paths of the files to be zipped
+    vector<FileType> files_types;
 
-  // path to the url where the zipped package can be downloaded
-  fs::path url_zip;
-  string zip_checksum;
+    // path to the url where the zipped package can be downloaded
+    fs::path url_zip;
+    string zip_checksum;
 
-  string package_name; // Name of package (i.e. 'Chumpinate')
+    string package_name; // Name of package (i.e. 'Chumpinate')
 };
 
 
@@ -1235,43 +1261,43 @@ CK_DLL_CTOR( package_version_ctor )
 
 
 CK_DLL_CTOR( package_version_ctor_string ) {
-  // get the offset where we'll store our internal c++ class pointer
-  OBJ_MEMBER_INT( SELF, package_version_data_offset ) = 0;
+    // get the offset where we'll store our internal c++ class pointer
+    OBJ_MEMBER_INT( SELF, package_version_data_offset ) = 0;
 
-  std::string pkg_name = GET_NEXT_STRING_SAFE(ARGS);
-  std::string ver_arg = GET_NEXT_STRING_SAFE(ARGS);
+    std::string pkg_name = GET_NEXT_STRING_SAFE(ARGS);
+    std::string ver_arg = GET_NEXT_STRING_SAFE(ARGS);
 
-  // instantiate our internal c++ class representation
-  PackageVersionChumpinate * c_obj;
-  try {
-    c_obj = new PackageVersionChumpinate( pkg_name, ver_arg );
-  } catch (const std::exception &e) {
-    API->vm->throw_exception( e.what(), "", SHRED);
-  }
+    // instantiate our internal c++ class representation
+    PackageVersionChumpinate * c_obj;
+    try {
+        c_obj = new PackageVersionChumpinate( pkg_name, ver_arg );
+    } catch (const std::exception &e) {
+        API->vm->throw_exception( e.what(), "", SHRED);
+    }
 
-  // store the pointer in the ChucK object member
-  OBJ_MEMBER_INT( SELF, package_version_data_offset ) = (t_CKINT)c_obj;
+    // store the pointer in the ChucK object member
+    OBJ_MEMBER_INT( SELF, package_version_data_offset ) = (t_CKINT)c_obj;
 }
 
 CK_DLL_CTOR( package_version_ctor_ints ) {
-  // get the offset where we'll store our internal c++ class pointer
-  OBJ_MEMBER_INT( SELF, package_version_data_offset ) = 0;
+    // get the offset where we'll store our internal c++ class pointer
+    OBJ_MEMBER_INT( SELF, package_version_data_offset ) = 0;
 
-  std::string pkg_name = GET_NEXT_STRING_SAFE(ARGS);
-  t_CKINT ver_major = GET_NEXT_INT(ARGS);
-  t_CKINT ver_minor = GET_NEXT_INT(ARGS);
-  t_CKINT ver_patch = GET_NEXT_INT(ARGS);
+    std::string pkg_name = GET_NEXT_STRING_SAFE(ARGS);
+    t_CKINT ver_major = GET_NEXT_INT(ARGS);
+    t_CKINT ver_minor = GET_NEXT_INT(ARGS);
+    t_CKINT ver_patch = GET_NEXT_INT(ARGS);
 
-  // instantiate our internal c++ class representation
-  PackageVersionChumpinate * c_obj;
-  try {
-    c_obj = new PackageVersionChumpinate( pkg_name, ver_major, ver_minor, ver_patch );
-  } catch (const std::exception &e) {
-    API->vm->throw_exception( e.what(), "", SHRED);
-  }
+    // instantiate our internal c++ class representation
+    PackageVersionChumpinate * c_obj;
+    try {
+        c_obj = new PackageVersionChumpinate( pkg_name, ver_major, ver_minor, ver_patch );
+    } catch (const std::exception &e) {
+        API->vm->throw_exception( e.what(), "", SHRED);
+    }
 
-  // store the pointer in the ChucK object member
-  OBJ_MEMBER_INT( SELF, package_version_data_offset ) = (t_CKINT)c_obj;
+    // store the pointer in the ChucK object member
+    OBJ_MEMBER_INT( SELF, package_version_data_offset ) = (t_CKINT)c_obj;
 }
 
 
@@ -1316,248 +1342,266 @@ CK_DLL_MFUN(package_version_getParam)
 
 
 CK_DLL_MFUN( package_version_setVersion_string ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  string version = GET_NEXT_STRING_SAFE( ARGS );
+    string version = GET_NEXT_STRING_SAFE( ARGS );
 
-  string val = c_obj->setVersion(version);
+    string val = c_obj->setVersion(version);
 
-  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+    RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
 }
 
 
 CK_DLL_MFUN( package_version_setVersion_ints ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  t_CKINT major = GET_NEXT_INT( ARGS );
-  t_CKINT minor = GET_NEXT_INT( ARGS );
-  t_CKINT patch = GET_NEXT_INT( ARGS );
+    t_CKINT major = GET_NEXT_INT( ARGS );
+    t_CKINT minor = GET_NEXT_INT( ARGS );
+    t_CKINT patch = GET_NEXT_INT( ARGS );
 
-  string val = c_obj->setVersion(major, minor, patch);
+    string val = c_obj->setVersion(major, minor, patch);
 
-  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+    RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
 }
 
 CK_DLL_MFUN( package_version_getVersion ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  string val = c_obj->getVersion();
+    string val = c_obj->getVersion();
 
-  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+    RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
 }
 
 CK_DLL_MFUN( package_version_setApi_string ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_version_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_version_data_offset );
 
-  string version = GET_NEXT_STRING_SAFE( ARGS );
+    string version = GET_NEXT_STRING_SAFE( ARGS );
 
-  string val = c_obj->setApiVersion(version);
+    string val = c_obj->setApiVersion(version);
 
-  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+    RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
 }
 
 CK_DLL_MFUN( package_version_setApi_ints ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  t_CKINT major = GET_NEXT_INT( ARGS );
-  t_CKINT minor = GET_NEXT_INT( ARGS );
+    t_CKINT major = GET_NEXT_INT( ARGS );
+    t_CKINT minor = GET_NEXT_INT( ARGS );
 
-  string val = c_obj->setApiVersion(major, minor);
+    string val = c_obj->setApiVersion(major, minor);
 
-  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+    RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
 }
 
 CK_DLL_MFUN( package_version_getApi ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  string val = c_obj->getApiVersion();
+    string val = c_obj->getApiVersion();
 
-  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+    RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
 }
 
 CK_DLL_MFUN( package_version_setCkVerMin_string ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  string version = GET_NEXT_STRING_SAFE( ARGS );
+    string version = GET_NEXT_STRING_SAFE( ARGS );
 
-  string val = c_obj->setMinCkVersion(version);
+    string val = c_obj->setMinCkVersion(version);
 
-  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+    RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
 }
 
 CK_DLL_MFUN( package_version_setCkVerMin_ints ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  int mega = GET_NEXT_INT( ARGS );
-  int major = GET_NEXT_INT( ARGS );
-  int minor = GET_NEXT_INT( ARGS );
-  int patch = GET_NEXT_INT( ARGS );
+    int mega = GET_NEXT_INT( ARGS );
+    int major = GET_NEXT_INT( ARGS );
+    int minor = GET_NEXT_INT( ARGS );
+    int patch = GET_NEXT_INT( ARGS );
 
-  string val = c_obj->setMinCkVersion(mega, major, minor, patch);
+    string val = c_obj->setMinCkVersion(mega, major, minor, patch);
 
-  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+    RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
 }
 
 CK_DLL_MFUN( package_version_getCkVerMin ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  string val = c_obj->getMinCkVersion();
+    string val = c_obj->getMinCkVersion();
 
-  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+    RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
 }
 
 CK_DLL_MFUN( package_version_setCkVerMax_string ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  string version = GET_NEXT_STRING_SAFE( ARGS );
+    string version = GET_NEXT_STRING_SAFE( ARGS );
 
-  string val = c_obj->setMaxCkVersion(version);
+    string val = c_obj->setMaxCkVersion(version);
 
-  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+    RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
 }
 
 CK_DLL_MFUN( package_version_setCkVerMax_ints ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  int mega = GET_NEXT_INT( ARGS );
-  int major = GET_NEXT_INT( ARGS );
-  int minor = GET_NEXT_INT( ARGS );
-  int patch = GET_NEXT_INT( ARGS );
+    int mega = GET_NEXT_INT( ARGS );
+    int major = GET_NEXT_INT( ARGS );
+    int minor = GET_NEXT_INT( ARGS );
+    int patch = GET_NEXT_INT( ARGS );
 
-  string val = c_obj->setMaxCkVersion(mega, major, minor, patch);
+    string val = c_obj->setMaxCkVersion(mega, major, minor, patch);
 
-  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+    RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
 }
 
 CK_DLL_MFUN( package_version_getCkVerMax ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  string val = c_obj->getMaxCkVersion();
+    string val = c_obj->getMaxCkVersion();
 
-  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+    RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
 }
 
 CK_DLL_MFUN( package_version_setOS ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  string os = GET_NEXT_STRING_SAFE( ARGS );
+    string os = GET_NEXT_STRING_SAFE( ARGS );
 
-  string val = c_obj->setOS(os);
+    string val = c_obj->setOS(os);
 
-  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+    RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
 }
 
 CK_DLL_MFUN( package_version_getOS ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  string val = c_obj->getOS();
+    string val = c_obj->getOS();
 
-  RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+    RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+}
+
+CK_DLL_MFUN( package_version_setArch ) {
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+    string arch = GET_NEXT_STRING_SAFE( ARGS );
+
+    string val = c_obj->setArch(arch);
+
+    RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
+}
+
+CK_DLL_MFUN( package_version_getArch ) {
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+
+    string val = c_obj->getArch();
+
+    RETURN->v_string = (Chuck_String*)API->object->create_string(VM, val.c_str(), false);
 }
 
 CK_DLL_MFUN( package_version_addFile ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  string file = GET_NEXT_STRING_SAFE( ARGS );
+    string file = GET_NEXT_STRING_SAFE( ARGS );
 
-  c_obj->addFile(file, "./", PACKAGE_FILE);
+    c_obj->addFile(file, "./", PACKAGE_FILE);
 }
 
 CK_DLL_MFUN( package_version_addFile_dir ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  string file = GET_NEXT_STRING_SAFE( ARGS );
-  string dir = GET_NEXT_STRING_SAFE( ARGS );
+    string file = GET_NEXT_STRING_SAFE( ARGS );
+    string dir = GET_NEXT_STRING_SAFE( ARGS );
 
-  c_obj->addFile(file, dir, PACKAGE_FILE);
+    c_obj->addFile(file, dir, PACKAGE_FILE);
 }
 
 CK_DLL_MFUN( package_version_addDataFile ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  string file = GET_NEXT_STRING_SAFE( ARGS );
+    string file = GET_NEXT_STRING_SAFE( ARGS );
 
-  c_obj->addFile(file, "./", DATA_FILE);
+    c_obj->addFile(file, "./", DATA_FILE);
 }
 
 CK_DLL_MFUN( package_version_addDataFile_dir ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  string file = GET_NEXT_STRING_SAFE( ARGS );
-  string dir = GET_NEXT_STRING_SAFE( ARGS );
+    string file = GET_NEXT_STRING_SAFE( ARGS );
+    string dir = GET_NEXT_STRING_SAFE( ARGS );
 
-  c_obj->addFile(file, dir, DATA_FILE);
+    c_obj->addFile(file, dir, DATA_FILE);
 }
 
 CK_DLL_MFUN( package_version_addExampleFile ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  string file = GET_NEXT_STRING_SAFE( ARGS );
+    string file = GET_NEXT_STRING_SAFE( ARGS );
 
-  c_obj->addFile(file, "./", EXAMPLE_FILE);
+    c_obj->addFile(file, "./", EXAMPLE_FILE);
 }
 
 CK_DLL_MFUN( package_version_addExampleFile_dir ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  string file = GET_NEXT_STRING_SAFE( ARGS );
-  string dir = GET_NEXT_STRING_SAFE( ARGS );
+    string file = GET_NEXT_STRING_SAFE( ARGS );
+    string dir = GET_NEXT_STRING_SAFE( ARGS );
 
-  c_obj->addFile(file, dir, EXAMPLE_FILE);
+    c_obj->addFile(file, dir, EXAMPLE_FILE);
 }
 
 CK_DLL_MFUN( package_version_addDocsFile ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  string file = GET_NEXT_STRING_SAFE( ARGS );
+    string file = GET_NEXT_STRING_SAFE( ARGS );
 
-  c_obj->addFile(file, "./", DOCS_FILE);
+    c_obj->addFile(file, "./", DOCS_FILE);
 }
 
 CK_DLL_MFUN( package_version_addDocsFile_dir ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  string file = GET_NEXT_STRING_SAFE( ARGS );
-  string dir = GET_NEXT_STRING_SAFE( ARGS );
+    string file = GET_NEXT_STRING_SAFE( ARGS );
+    string dir = GET_NEXT_STRING_SAFE( ARGS );
 
-  c_obj->addFile(file, dir, DOCS_FILE);
+    c_obj->addFile(file, dir, DOCS_FILE);
 }
 
 CK_DLL_MFUN( package_version_addDepsFile ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  string file = GET_NEXT_STRING_SAFE( ARGS );
+    string file = GET_NEXT_STRING_SAFE( ARGS );
 
-  c_obj->addFile(file, "./", DEPS_FILE);
+    c_obj->addFile(file, "./", DEPS_FILE);
 }
 
 CK_DLL_MFUN( package_version_addDepsFile_dir ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  string file = GET_NEXT_STRING_SAFE( ARGS );
-  string dir = GET_NEXT_STRING_SAFE( ARGS );
+    string file = GET_NEXT_STRING_SAFE( ARGS );
+    string dir = GET_NEXT_STRING_SAFE( ARGS );
 
-  c_obj->addFile(file, dir, DEPS_FILE);
+    c_obj->addFile(file, dir, DEPS_FILE);
 }
 
 CK_DLL_MFUN( package_version_createZip ) {
-  PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
+    PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  string package_dir = GET_NEXT_STRING_SAFE( ARGS );
-  string filename = GET_NEXT_STRING_SAFE( ARGS );
-  string url = GET_NEXT_STRING_SAFE( ARGS );
+    string package_dir = GET_NEXT_STRING_SAFE( ARGS );
+    string filename = GET_NEXT_STRING_SAFE( ARGS );
+    string url = GET_NEXT_STRING_SAFE( ARGS );
 
-  c_obj->createZip(package_dir, filename, url);
+    c_obj->createZip(package_dir, filename, url);
 }
 CK_DLL_MFUN( package_version_generateVersionDefinition ) {
     PackageVersionChumpinate * c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT( SELF, package_data_offset );
 
-  string filename = GET_NEXT_STRING_SAFE( ARGS );
-  string pkg_dir = GET_NEXT_STRING_SAFE( ARGS );
+    string filename = GET_NEXT_STRING_SAFE( ARGS );
+    string pkg_dir = GET_NEXT_STRING_SAFE( ARGS );
 
-  try {
-    c_obj->generateVersionDefinition(filename, pkg_dir);
-  } catch (const std::exception &e) {
-    API->vm->throw_exception( e.what(), "", SHRED);
-  }
+    try {
+        c_obj->generateVersionDefinition(filename, pkg_dir);
+    } catch (const std::exception &e) {
+        API->vm->throw_exception( e.what(), "", SHRED);
+    }
 }

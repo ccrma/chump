@@ -32,7 +32,8 @@ PackageVersion ver("Chumpinate", version);
 
 "1.5.4.0" => ver.languageVersionMin;
 
-"mac"=> ver.os;
+"mac" => ver.os;
+"universal" => ver.arch;
 
 // The chugin file
 ver.addFile("../builddir-release/chumpinate/Chumpinate.chug");

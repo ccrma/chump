@@ -36,23 +36,41 @@ install:
 coverage: build-debug
 	ninja coverage -C builddir-debug
 
-.PHONY: mac osx linux linux-oss linux-jack linux-alsa linux-all
-mac osx linux linux-oss linux-jack linux-alsa linux-all: build-release
+.PHONY: linux linux-oss linux-jack linux-alsa linux-all
+linux linux-oss linux-jack linux-alsa linux-all: build-release
 	meson compile -C builddir-release
+
+.PHONY: mac osx
+mac osx: mac-universal
 
 linux-debug: build-debug
 	meson compile -C builddir-debug
 
 mac-universal: build-mac-x86_64 build-mac-arm64
 	lipo -create -output chump builddir-x86-64/chump-cli/chump builddir-arm64/chump-cli/chump
+	lipo -create -output Chumpinate.chug builddir-x86-64/chumpinate/Chumpinate.chug builddir-arm64/chumpinate/Chumpinate.chug
 
 .PHONY: win win32 win64
 win win32 win64: build-release-win
 	meson compile -C builddir-release
 
-# (mac/linux) remove system installed ChuGL and install local ChuGL
 test:
 	meson test -C builddir-release -v chump:
+
+chumpinate_pkg_linux: linux chumpinate_ckdoc
+	cd chumpinate; chuck -s build-pkg-linux.ck
+
+chumpinate_pkg_win: win chumpinate_ckdoc
+	cd chumpinate; chuck -s build-pkg-win.ck
+
+chumpinate_pkg_mac: mac chumpinate_ckdoc
+	cd chumpinate; chuck -s build-pkg-mac.ck
+
+chumpinate_ckdoc:
+	cd chumpinate; chuck -s --chugin-path:../builddir-release/chumpinate gen-ckdoc.ck
+
+chumpinate_install_local: chumpinate_pkg_linux
+	chump install-local ./chumpinate/Chumpinate/package.json chumpinate/Chumpinate/0.1.0/Chumpinate_linux.json ./chumpinate/Chumpinate_linux.zip
 
 clean:
 ifneq ("$(wildcard builddir-release)","")

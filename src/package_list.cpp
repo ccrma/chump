@@ -43,15 +43,16 @@ optional<Package> PackageList::find_package(string name) {
 
 optional<PackageVersion> PackageList::find_latest_package_version(string name,
                                                                   string os,
+                                                                  Architecture arch,
                                                                   ChuckVersion ck_ver,
                                                                   ApiVersion api_ver) {
-  // TODO get highest version (how do I do that?)
-  for (auto package: packages) {
-    if (package.name == name) {
-      return package.latest_version(os, ck_ver, api_ver);
+    // TODO get highest version (how do I do that?)
+    for (auto package: packages) {
+        if (package.name == name) {
+            return package.latest_version(os, arch, ck_ver, api_ver);
+        }
     }
-  }
-  return {};
+    return {};
 }
 
 optional<PackageVersion> PackageList::find_package_version(string name, string version) {

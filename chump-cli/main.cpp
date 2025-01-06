@@ -164,7 +164,7 @@ int main( int argc, const char ** argv )
         // create manager
         manager = new Manager( "", path, ChuckVersion::makeSystemVersion(),
                                ApiVersion::makeSystemVersion(), whichOS(),
-                               manifest_url, true);
+                               whichArch(), manifest_url, true);
         // update manifest file
         manager->update_manifest();
         // return
@@ -174,7 +174,8 @@ int main( int argc, const char ** argv )
     try {
         // create manager
         manager = new Manager( pkg_path.string(), path, ChuckVersion::makeSystemVersion(),
-                               ApiVersion::makeSystemVersion(), whichOS(), manifest_url, true );
+                               ApiVersion::makeSystemVersion(), whichOS(), whichArch(),
+                               manifest_url, true );
     } catch (const std::exception &e) {
         // print error message
         std::cerr << e.what() << std::endl;

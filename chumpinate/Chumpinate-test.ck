@@ -36,6 +36,9 @@ PackageVersion ver("test-pkg", "1.0.0");
 "linux" => ver.os;
 <<< ver.os() >>>;
 
+"x86_64" => ver.arch;
+<<< ver.arch() >>>;
+
 
 // Add a bunch of files that are found in this version of the pkg
 ver.addFile("./test.txt");

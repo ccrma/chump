@@ -25,6 +25,20 @@ namespace fs = std::filesystem;
 struct PackageVersion;
 struct File;
 
+//-----------------------------------------------------------------------------
+// Compatible architecture for a chump PackageVersion. This should
+// generally only be for packages that contain chugins. Most packages
+// that are only .ck files will be set to ALL, as well as chugins on
+// macs built as a universal binary.
+// -----------------------------------------------------------------------------
+enum Architecture {
+    ARCH_ALL,
+    X86,
+    X86_64,
+    ARM64, // including apple silicon
+    MAC_UNIVERSAL // intel and arm64 fat binary for macOS
+};
+
 // Function declarations for JSON serialization/deserialization
 void to_json(json& j, const PackageVersion& p);
 void from_json(const json& j, PackageVersion& p);
@@ -53,7 +67,7 @@ struct Package {
     friend std::ostream& operator<<(std::ostream& os, const Package& pkg);
 
     // Automatically find highest version package compatible with your system.
-    optional<PackageVersion> latest_version(string os, ChuckVersion language_ver, ApiVersion api_ver);
+    optional<PackageVersion> latest_version(string os, Architecture arch, ChuckVersion language_ver, ApiVersion api_ver);
     optional<PackageVersion> latest_version(string os);
 
     optional<PackageVersion> version(PackageVersion ver, string os, ChuckVersion language_ver, ApiVersion api_ver);
@@ -63,6 +77,23 @@ struct Package {
 void to_json(json& j, const Package& p);
 void from_json(const json& j, Package& p);
 
+
+
+static const map<string, Architecture> stringToArchitecture = {
+    {"all", ARCH_ALL},
+    {"x86", X86},
+    {"x86_64", X86_64},
+    {"arm64", ARM64},
+    {"universal", MAC_UNIVERSAL},
+};
+
+static const map<Architecture, string> architectureToString = {
+    {ARCH_ALL, "all"},
+    {X86, "x86"},
+    {X86_64, "x86_64"},
+    {ARM64, "arm64"},
+    {MAC_UNIVERSAL, "universal"},
+};
 
 //-----------------------------------------------------------------------------
 // PackageVersion describes a specific version of a package. For examples,
@@ -76,12 +107,12 @@ struct PackageVersion {
     PackageVersion(string version);
     PackageVersion(int major, int minor, int patch);
     PackageVersion(string version, string language_version_min,
-                   string api_version, string os, vector<File> files);
+                   string api_version, string os, Architecture arch, vector<File> files);
     PackageVersion(string version, string language_version_min,
-                   string os, vector<File> files);
+                   string os, Architecture arch, vector<File> files);
     PackageVersion(string version, string language_version_min,
                    string language_version_max, string api_version,
-                   string os, vector<File> files);
+                   string os, Architecture arch, vector<File> files);
 
     int major, minor, patch;
 
@@ -94,6 +125,7 @@ struct PackageVersion {
     // all versions >= language_version_min are compatible
     optional<ChuckVersion> language_version_max;
     string os;
+    Architecture arch;
     vector<File> files;
 
     // Equality operator overload
@@ -145,6 +177,7 @@ struct InstalledVersion {
     // all versions >= language_version_min are compatible
     optional<ChuckVersion> language_version_max;
     string os;
+    Architecture arch;
     vector<fs::path> files;
 };
 

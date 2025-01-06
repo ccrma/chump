@@ -21,7 +21,7 @@ namespace fs = std::filesystem;
 class Manager {
 public:
     // constructor
-    Manager(std::string package_list_path, fs::path package_install_dir, ChuckVersion ck_ver, ApiVersion api_ver, std::string system_os, std::string manifest_url, bool render_tui);
+    Manager(std::string package_list_path, fs::path package_install_dir, ChuckVersion ck_ver, ApiVersion api_ver, std::string system_os, Architecture arch, std::string manifest_url, bool render_tui);
 
 public:
     // return a list of all packages (installed and available)
@@ -48,6 +48,7 @@ private:
     ApiVersion api_version;
     fs::path chump_dir;
     std::string os;
+    Architecture arch;
     std::string manifest_url;
 
 public:
