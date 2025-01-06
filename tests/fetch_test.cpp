@@ -2,7 +2,6 @@
 #include "package.h"
 #include <catch2/catch_test_macros.hpp>
 
-
 TEST_CASE("Check if a string is a valid URL", "[Fetch]") {
   Fetch f(false);
 
@@ -15,8 +14,8 @@ TEST_CASE("Check if a string is a valid URL", "[Fetch]") {
 
   // This is find for now, but something to reconsider
   CHECK_FALSE(f.isURL("www.example.com")); // Missing protocol
-  CHECK_FALSE(f.isURL("invalid-url")); // Not a URL format
-  CHECK_FALSE(f.isURL("path/to/file.json"));  
+  CHECK_FALSE(f.isURL("invalid-url"));     // Not a URL format
+  CHECK_FALSE(f.isURL("path/to/file.json"));
 }
 
 TEST_CASE("Fetch::fetch() tests") {
