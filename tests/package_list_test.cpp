@@ -106,4 +106,14 @@ TEST_CASE("Find Package Version") {
         pkglist.find_package_version("Butt", "1.2.0");
     REQUIRE_FALSE(version.has_value());
   }
+
+  SECTION("Mac universal successfully find package") {
+    optional<PackageVersion> version = pkglist.find_latest_package_version(
+        "Butt", "mac", arch, ChuckVersion("1.5.2.1"), ApiVersion("9.0"));
+
+    REQUIRE(version.has_value());
+    REQUIRE(version.value().major == 1);
+    REQUIRE(version.value().minor == 0);
+    REQUIRE(version.value().patch == 0);
+  }
 }

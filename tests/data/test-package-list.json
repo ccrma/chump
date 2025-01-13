@@ -56,6 +56,29 @@
                     ]
                 },
                 {
+                    "version": "1.0.0",
+                    "api_version": {
+                        "major": 9,
+                        "minor": 0
+                    },
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 1
+                    },
+                    "os": "mac",
+                    "arch": "universal",
+                    "files": [
+                        {
+                            "url": "https://ccrma.stanford.edu/~nshaheed/chugins/Hydra/linux/butt.chug",
+                            "local_dir": "./",
+                            "file_type": "package",
+                            "checksum": "1234"
+                        }
+                    ]
+                },
+                {
                     "version": "0.9.1",
                     "api_version": {
                         "major": 8,

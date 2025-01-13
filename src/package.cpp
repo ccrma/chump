@@ -334,8 +334,16 @@ optional<PackageVersion> Package::latest_version(string os, Architecture arch,
       continue;
     if (language_version < ck_min_ver)
       continue;
-    if (version.arch != ARCH_ALL && version.arch != arch)
-      continue;
+
+    // special cases for macos universal binaries and ARCH_ANY
+    if (version.arch != ARCH_ALL && version.arch != arch) {
+      // The version is a different arch and it's not a mac universal binary
+      if (version.arch != MAC_UNIVERSAL) continue;
+
+      // The version is a mac universal binary and our arch is not a mac arch
+      if (version.arch == MAC_UNIVERSAL && (arch != X86_64 && arch != ARM64))
+	continue;
+    }
 
     if (version.language_version_max) {
       ChuckVersion ck_max_ver(version.language_version_max.value());
