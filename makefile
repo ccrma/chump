@@ -33,6 +33,9 @@ build-mac-arm64: setup-mac-arm64
 install:
 	meson install -C builddir-release
 
+install-mac:
+	meson install -C builddir-arm64
+
 coverage: build-debug
 	ninja coverage -C builddir-debug
 

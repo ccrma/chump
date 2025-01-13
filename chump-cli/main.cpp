@@ -282,9 +282,9 @@ int main(int argc, const char **argv) {
       }
     }
   } else if (subcommand == "update") {
-    if (n_targets != 0) {
+    if (n_targets != 1) {
       cerr << "[chump]: " << TC::blue(subcommand, TRUE)
-           << TC::orange(" does not support subcommands...", TRUE) << endl;
+           << TC::orange(" requires additional argument...", TRUE) << endl;
       cerr << "(run `chump --help` for more information)" << endl;
       return 1;
     }
