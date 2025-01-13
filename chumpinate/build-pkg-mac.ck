@@ -36,7 +36,7 @@ PackageVersion ver("Chumpinate", version);
 "universal" => ver.arch;
 
 // The chugin file
-ver.addFile("../builddir-release/chumpinate/Chumpinate.chug");
+ver.addFile("../Chumpinate.chug");
 
 // These build files are examples as well
 ver.addExampleFile("build-pkg-win.ck");

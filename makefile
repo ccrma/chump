@@ -47,8 +47,9 @@ linux-debug: build-debug
 	meson compile -C builddir-debug
 
 mac-universal: build-mac-x86_64 build-mac-arm64
-	lipo -create -output chump builddir-x86-64/chump-cli/chump builddir-arm64/chump-cli/chump
-	lipo -create -output Chumpinate.chug builddir-x86-64/chumpinate/Chumpinate.chug builddir-arm64/chumpinate/Chumpinate.chug
+	pwd
+	lipo -create -output chump ./builddir-x86_64/chump-cli/chump ./builddir-arm64/chump-cli/chump
+	lipo -create -output Chumpinate.chug builddir-x86_64/chumpinate/Chumpinate.chug builddir-arm64/chumpinate/Chumpinate.chug
 
 .PHONY: win win32 win64
 win win32 win64: build-release-win
@@ -56,6 +57,9 @@ win win32 win64: build-release-win
 
 test:
 	meson test -C builddir-release -v chump:
+
+test-mac:
+	meson test -C builddir-arm64 -v chump:
 
 # use clang format for c++ code
 format:
