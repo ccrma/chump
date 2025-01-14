@@ -96,6 +96,7 @@ endif
 ifneq ("$(wildcard builddir-debug)","")
 	meson compile -C builddir-debug --clean
 endif
+	rm -rf chump Chumpinate.chug
 
 clean-all:
-	rm -rf builddir-release builddir-debug builddir-x86_64 builddir-arm64
+	rm -rf builddir-release builddir-debug builddir-x86_64 builddir-arm64 chump Chumpinate.chug
