@@ -1,5 +1,5 @@
 --- meson.build	2025-01-13 21:23:59
-+++ meson.build-NOPE	2025-01-13 21:24:36
++++ meson.build	2025-01-13 21:24:36
 @@ -109,13 +109,17 @@
    margs += '-DHAVE_BZIP2'
  endif
