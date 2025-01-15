@@ -26,6 +26,9 @@ void printPackages(Manager *mgr);
 
 void printPackage(Package pkg) { std::cout << pkg << std::endl; }
 
+void printAllPackages(Manager *mgr);
+void printInstalledPackages(Manager *mgr);
+
 // https://stackoverflow.com/questions/19580877/how-to-truncate-a-string-formating-c
 std::string truncate(std::string str, size_t width, bool show_ellipsis = true) {
   if (str.length() > width) {
@@ -40,7 +43,16 @@ std::string truncate(std::string str, size_t width, bool show_ellipsis = true) {
   return str;
 }
 
+// Function used in the `chump list` command
 void printPackages(Manager *mgr, bool print_installed) {
+  if (print_installed)
+    printInstalledPackages(mgr);
+  else
+    printAllPackages(mgr);
+}
+
+// Print all packages, regardless of whether they're installed or not
+void printAllPackages(Manager *mgr) {
   vector<Package> packages = mgr->listPackages();
 
   std::cout << std::left << std::setw(20) << "Name"
@@ -56,9 +68,6 @@ void printPackages(Manager *mgr, bool print_installed) {
   std::cout << std::setfill(' ');
 
   for (Package p : packages) {
-    if (print_installed && !mgr->is_installed(p))
-      continue;
-
     optional<PackageVersion> latest = mgr->latestPackageVersion(p.name);
 
     string latest_version = "N/A";
@@ -71,6 +80,56 @@ void printPackages(Manager *mgr, bool print_installed) {
               << "| " << std::setw(12) << latest_version << "| "
               << std::setw(12) << installed << "| " << std::setw(12)
               << truncate(p.description, 100, true) << std::endl;
+  }
+}
+
+// Print only installed packages (and relevant information such as install path)
+void printInstalledPackages(Manager *mgr) {
+  vector<Package> packages = mgr->listPackages();
+
+  // get maximum package path length
+  int max_path_len = string("Install Path").length();
+  for (Package p : packages) {
+    // skip if not installed
+    if (!mgr->is_installed(p))
+      continue;
+
+    int curr_path_len = mgr->install_path(p).string().length();
+
+    max_path_len = std::max(max_path_len, curr_path_len);
+  }
+
+  std::cout << std::left << std::setw(20) << "Name"
+            << "| " << std::setw(12) << "Latest Ver."
+            << "| " << std::setw(max_path_len + 1) << "Install Path"
+            << "| " << std::setw(12) << "Description" << std::endl;
+
+  std::cout << std::setfill('-'); // in-between line from header to table
+
+  std::cout << std::right << std::setw(21) << "|" << std::setw(14) << "|"
+            << std::setw(max_path_len + 3) << "|" << std::setw(14) << ""
+            << std::endl;
+
+  std::cout << std::setfill(' ');
+
+  for (Package p : packages) {
+    if (!mgr->is_installed(p))
+      continue;
+
+    optional<PackageVersion> latest = mgr->latestPackageVersion(p.name);
+    string install_path = mgr->install_path(p).string();
+
+    string latest_version = "N/A";
+    if (latest)
+      latest_version = latest.value().getVersionString();
+
+    // string installed = mgr->is_installed(p) ? "yes" : "no";
+
+    std::cout << std::left << std::setw(20) << truncate(p.name, 17, true)
+              << "| " << std::setw(12) << latest_version << "| "
+              << std::setw(max_path_len + 1) << install_path << "| "
+              << std::setw(12) << truncate(p.description, 100, true)
+              << std::endl;
   }
 }
 

@@ -39,6 +39,7 @@ public:
   bool update_manifest(); // Download a new package manifest
 
   bool is_installed(Package pkg);
+  fs::path install_path(Package pkg);
 
 public:
   // the fetcher implementation
