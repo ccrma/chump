@@ -20,6 +20,7 @@ using std::vector;
 
 // indent string
 static const string INDENT = "    ";
+const string VERSION = "v0.0.1";
 
 // function prototypes
 void printUsage();
@@ -112,6 +113,12 @@ int main(int argc, const char **argv) {
     // print usage
     printUsage();
     // peace out
+    return 0;
+  }
+  if (parser.getChumpOption("--version", "-v")) {
+    // print version no.
+    cerr << "chump " + TC::orange(VERSION, TRUE) << endl;
+    // give up the ghost
     return 0;
   }
 
@@ -452,6 +459,8 @@ void printUsage() {
        << "                       └─ zzzzz...." << endl;
   cerr << INDENT << "  └─" << TC::blue(" dim", TRUE)
        << "                           └─ what's there?" << endl;
+  cerr << endl;
+  cerr << "chump version: " + TC::orange(VERSION, TRUE) << endl;
   cerr << endl;
 }
 
