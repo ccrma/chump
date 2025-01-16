@@ -181,6 +181,8 @@ struct InstalledVersion {
   string os;
   Architecture arch;
   vector<fs::path> files;
+
+  string getVersionString() const;
 };
 
 // Function declarations for JSON serialization/deserialization

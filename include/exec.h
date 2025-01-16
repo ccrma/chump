@@ -8,6 +8,7 @@
 #include <thread>
 #include <tuple>
 #include <vector>
+#include <filesystem>
 
 #include "manager.h"
 #include "util.h"
@@ -19,6 +20,8 @@
 #endif
 
 using std::endl;
+
+namespace fs = std::filesystem;
 
 std::string printLogo();
 void printPackage(Package pkg);
@@ -89,24 +92,38 @@ void printInstalledPackages(Manager *mgr) {
 
   // get maximum package path length
   int max_path_len = string("Install Path").length();
+  int max_ver_len = string("Ver.").length();
+
+  // get the character width of the longest install path and version string
   for (Package p : packages) {
     // skip if not installed
     if (!mgr->is_installed(p))
       continue;
 
-    int curr_path_len = mgr->install_path(p).string().length();
+    fs::path install_path = mgr->install_path(p);
+    int curr_path_len = install_path.string().length();
 
     max_path_len = std::max(max_path_len, curr_path_len);
+
+    optional<InstalledVersion> installed_version =
+      mgr->open_installed_version_file(install_path / "version.json");
+
+    if (installed_version) {
+      string version = installed_version.value().getVersionString();
+      int curr_ver_len = version.length();
+
+      max_ver_len = std::max(max_ver_len, curr_ver_len);
+    }
   }
 
   std::cout << std::left << std::setw(20) << "Name"
-            << "| " << std::setw(12) << "Latest Ver."
+            << "| " << std::setw(max_ver_len) << "Ver."
             << "| " << std::setw(max_path_len + 1) << "Install Path"
             << "| " << std::setw(12) << "Description" << std::endl;
 
   std::cout << std::setfill('-'); // in-between line from header to table
 
-  std::cout << std::right << std::setw(21) << "|" << std::setw(14) << "|"
+  std::cout << std::right << std::setw(21) << "|" << std::setw(max_ver_len + 3) << "|"
             << std::setw(max_path_len + 3) << "|" << std::setw(14) << ""
             << std::endl;
 
@@ -116,18 +133,18 @@ void printInstalledPackages(Manager *mgr) {
     if (!mgr->is_installed(p))
       continue;
 
-    optional<PackageVersion> latest = mgr->latestPackageVersion(p.name);
-    string install_path = mgr->install_path(p).string();
+    fs::path install_path = mgr->install_path(p);
 
-    string latest_version = "N/A";
-    if (latest)
-      latest_version = latest.value().getVersionString();
+    optional<InstalledVersion> installed_version =
+      mgr->open_installed_version_file(install_path / "version.json");
 
-    // string installed = mgr->is_installed(p) ? "yes" : "no";
+    string version = "N/A";
+    if (installed_version)
+      version = installed_version.value().getVersionString();
 
     std::cout << std::left << std::setw(20) << truncate(p.name, 17, true)
-              << "| " << std::setw(12) << latest_version << "| "
-              << std::setw(max_path_len + 1) << install_path << "| "
+              << "| " << std::setw(max_ver_len + 1) << version << "| "
+              << std::setw(max_path_len + 1) << install_path.string() << "| "
               << std::setw(12) << truncate(p.description, 100, true)
               << std::endl;
   }

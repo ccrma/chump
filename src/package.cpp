@@ -490,6 +490,13 @@ Package InstalledVersion::package() {
   return pkg;
 }
 
+string InstalledVersion::getVersionString() const {
+  std::ostringstream stringStream;
+  stringStream << major << "." << minor << "." << patch;
+
+  return stringStream.str();
+}
+
 void to_json(json &j, const InstalledVersion &p) {
   j = json{
       {"name", p.name},
