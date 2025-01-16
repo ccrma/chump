@@ -1,5 +1,6 @@
 #include <cctype>
 #include <chrono>
+#include <filesystem>
 #include <iomanip>
 #include <iostream>
 #include <random>
@@ -8,7 +9,6 @@
 #include <thread>
 #include <tuple>
 #include <vector>
-#include <filesystem>
 
 #include "manager.h"
 #include "util.h"
@@ -57,6 +57,8 @@ void printPackages(Manager *mgr, bool print_installed) {
 // Print all packages, regardless of whether they're installed or not
 void printAllPackages(Manager *mgr) {
   vector<Package> packages = mgr->listPackages();
+  // sort package list lexicographically
+  std::sort(packages.begin(), packages.end());
 
   std::cout << std::left << std::setw(20) << "Name"
             << "| " << std::setw(12) << "Latest Ver."
@@ -89,6 +91,8 @@ void printAllPackages(Manager *mgr) {
 // Print only installed packages (and relevant information such as install path)
 void printInstalledPackages(Manager *mgr) {
   vector<Package> packages = mgr->listPackages();
+  // sort package list lexicographically
+  std::sort(packages.begin(), packages.end());
 
   // get maximum package path length
   int max_path_len = string("Install Path").length();
@@ -106,7 +110,7 @@ void printInstalledPackages(Manager *mgr) {
     max_path_len = std::max(max_path_len, curr_path_len);
 
     optional<InstalledVersion> installed_version =
-      mgr->open_installed_version_file(install_path / "version.json");
+        mgr->open_installed_version_file(install_path / "version.json");
 
     if (installed_version) {
       string version = installed_version.value().getVersionString();
@@ -117,14 +121,14 @@ void printInstalledPackages(Manager *mgr) {
   }
 
   std::cout << std::left << std::setw(20) << "Name"
-            << "| " << std::setw(max_ver_len) << "Ver."
+            << "| " << std::setw(max_ver_len + 1) << "Ver."
             << "| " << std::setw(max_path_len + 1) << "Install Path"
             << "| " << std::setw(12) << "Description" << std::endl;
 
   std::cout << std::setfill('-'); // in-between line from header to table
 
-  std::cout << std::right << std::setw(21) << "|" << std::setw(max_ver_len + 3) << "|"
-            << std::setw(max_path_len + 3) << "|" << std::setw(14) << ""
+  std::cout << std::right << std::setw(21) << "|" << std::setw(max_ver_len + 3)
+            << "|" << std::setw(max_path_len + 3) << "|" << std::setw(14) << ""
             << std::endl;
 
   std::cout << std::setfill(' ');
@@ -136,7 +140,7 @@ void printInstalledPackages(Manager *mgr) {
     fs::path install_path = mgr->install_path(p);
 
     optional<InstalledVersion> installed_version =
-      mgr->open_installed_version_file(install_path / "version.json");
+        mgr->open_installed_version_file(install_path / "version.json");
 
     string version = "N/A";
     if (installed_version)

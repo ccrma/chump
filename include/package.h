@@ -61,6 +61,8 @@ struct Package {
 
   // Equality operator overload
   bool operator==(const Package &other) const;
+  // Less-than operator (for sorting)
+  bool operator<(const Package &other) const;
 
   // Output stream operator overload
   friend std::ostream &operator<<(std::ostream &os, const Package &pkg);

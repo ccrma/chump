@@ -15,6 +15,11 @@ bool Package::operator==(const Package &other) const {
          (keywords == other.keywords) && (versions == other.versions);
 }
 
+// Less-than operator (for sorting)
+bool Package::operator<(const Package &other) const {
+  return name < other.name;
+}
+
 PackageVersion::PackageVersion() {}
 
 PackageVersion::PackageVersion(string version) { setVersionString(version); }
