@@ -1,3 +1,4 @@
+#define NOMINMAX // to get std::min/std::max working on windows
 #include <cctype>
 #include <chrono>
 #include <filesystem>
