@@ -167,7 +167,8 @@ std::string hash_file(fs::path filename) {
 
 bool validate_manifest(fs::path manifest_path) {
   if (!fs::exists(manifest_path)) {
-    std::cerr << "[chump]: unable to find manifest.json..." << std::endl;
+    std::cerr << "[chump]: unable to find package list (manifest.json)..."
+              << std::endl;
     std::cerr << "[chump]: hint: try updating the chump package list (`chump "
                  "list -u`)"
               << std::endl;

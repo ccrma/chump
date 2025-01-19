@@ -153,6 +153,31 @@ int main(int argc, const char **argv) {
   // update package name
   string update_package_name = parser.getCommandTarget("update");
 
+  // the subcommand
+  string subcommand = parser.command().name();
+  size_t n_targets = parser.getCommandTargets().size();
+
+  // if there's no subcommand then print error message
+  if (subcommand == "") {
+    cerr << "[chump]: " << TC::orange("insufficient arguments...", TRUE)
+         << endl;
+    cerr << "(run `chump --help` for more information)" << endl;
+    return 0;
+  }
+
+  // validate subcommand is real and error out. this needs to be done before the
+  // manifest is validated
+  if (subcommand != "help" && subcommand != "list" && subcommand != "info" &&
+      subcommand != "install" && subcommand != "install-local" &&
+      subcommand != "uninstall" && subcommand != "update" &&
+      subcommand != "logo") {
+    cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+         << TC::orange(" is not a valid chump command...", TRUE) << endl;
+    cerr << "(run `chump --help` for more information)" << endl;
+
+    return 0;
+  }
+
   // if the manifest isn't loading properly, only allow `chump list -u`.
   // this is an escape hatch, because failing to parse manifest.json will
   // result in an exception and the program won't continue.
@@ -183,11 +208,6 @@ int main(int argc, const char **argv) {
     // done
     return 1;
   }
-
-  // the subcommand
-  string subcommand = parser.command().name();
-  size_t n_targets = parser.getCommandTargets().size();
-  // size_t n_options = parser.getCommandOptions().size();
 
   // match subcommands
   if (subcommand == "help") {
