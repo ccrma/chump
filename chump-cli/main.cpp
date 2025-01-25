@@ -136,6 +136,7 @@ int main(int argc, const char **argv) {
   // build manager and run command
   fs::path pkg_path = chumpDir() / "manifest.json";
   // URL to the manifest file
+
   std::string manifest_url =
       "https://ccrma.stanford.edu/~nshaheed/chump/manifest.json";
 
@@ -178,12 +179,14 @@ int main(int argc, const char **argv) {
     return 0;
   }
 
+
   // if the manifest isn't loading properly, only allow `chump list -u`.
   // this is an escape hatch, because failing to parse manifest.json will
   // result in an exception and the program won't continue.
   if (!validate_manifest(pkg_path)) {
-    // exit if we're not updating the manifest
-    if (!update_package_list)
+
+    // either 'chump list -u' is called, or 'manifest.json' doesn't exist
+    if (!update_package_list && fs::exists(pkg_path))
       return -1;
 
     // create manager
