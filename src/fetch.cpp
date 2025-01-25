@@ -1,6 +1,7 @@
 #include <chrono>
 #include <filesystem>
 #include <iostream>
+#include <math.h>
 #include <sstream>
 
 #include "fetch.h"
@@ -31,8 +32,9 @@ int progressCallback(void *clientp, double dltotal, double dlnow,
   }
   // metadata for the progress bar
 
-  // Calculate progress percentage
-  double progress = (dlnow > 0) ? ((double)dlnow / (double)dltotal) : 0.0;
+  double progress = 0;
+  if (dltotal >= 1.0)
+    progress = (dlnow > 0) ? ((double)dlnow / (double)dltotal) : 0.0;
 
   int bar_width = CHUMP_PROGRESS_BAR_WIDTH; // Width of the progress bar
   int filled_width = progress * bar_width;
@@ -73,7 +75,9 @@ int progressCallback(void *clientp, double dltotal, double dlnow,
     else
       line += " ";
   }
-  line += string("] ") + std::to_string((int)(progress * 100 + .5)) + "%";
+
+  line += string("] ") + std::to_string((int)(progress * 100 + .5)) +
+          "%           ";
   std::cerr << "\r" << line.c_str();
 
   return 0;

@@ -179,7 +179,6 @@ int main(int argc, const char **argv) {
     return 0;
   }
 
-
   // if the manifest isn't loading properly, only allow `chump list -u`.
   // this is an escape hatch, because failing to parse manifest.json will
   // result in an exception and the program won't continue.
