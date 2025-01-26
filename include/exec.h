@@ -32,6 +32,7 @@ void printPackage(Package pkg) { std::cout << pkg << std::endl; }
 
 void printAllPackages(Manager *mgr);
 void printInstalledPackages(Manager *mgr);
+void printPackagesMultiLine(Manager *mgr, bool print_installed);
 
 // https://stackoverflow.com/questions/19580877/how-to-truncate-a-string-formating-c
 std::string truncate(std::string str, size_t width, bool show_ellipsis = true) {
@@ -49,10 +50,56 @@ std::string truncate(std::string str, size_t width, bool show_ellipsis = true) {
 
 // Function used in the `chump list` command
 void printPackages(Manager *mgr, bool print_installed) {
-  if (print_installed)
-    printInstalledPackages(mgr);
-  else
-    printAllPackages(mgr);
+  printPackagesMultiLine(mgr, print_installed);
+  // if (print_installed)
+  //   printInstalledPackages(mgr);
+  // else
+  //   printAllPackages(mgr);
+}
+
+void printPackagesMultiLine(Manager *mgr, bool print_installed) {
+  vector<Package> packages = mgr->listPackages();
+  // sort package list lexicographically
+  std::sort(packages.begin(), packages.end());
+
+  for (Package p : packages) {
+    if (print_installed && !mgr->is_installed(p))
+      continue;
+
+    optional<PackageVersion> latest = mgr->latestPackageVersion(p.name);
+
+    string latest_version = "Not available on this OS";
+    if (latest)
+      latest_version = latest.value().getVersionString();
+
+    string installed = mgr->is_installed(p) ? "yes" : "no";
+
+    fs::path install_path = mgr->install_path(p);
+    int curr_path_len = install_path.string().length();
+
+    optional<InstalledVersion> installed_version =
+        mgr->open_installed_version_file(install_path / "version.json");
+
+    std::cout << TC::bold(p.name) << std::endl;
+
+    if (installed_version) {
+      std::cout << " ├─ " << TC::blue("Installed Version: ", TRUE)
+                << installed_version.value().getVersionString() << std::endl;
+    }
+    std::cout << " ├─ " << TC::blue("Latest Version: ", TRUE) << latest_version
+              << std::endl;
+    if (!p.keywords.empty()) {
+      std::cout << " ├─ " << TC::blue("Keywords: ", TRUE) << "[";
+      std::cout << p.keywords[0];
+
+      for (size_t i = 1; i < p.keywords.size(); ++i) {
+        std::cout << ", " << p.keywords[i];
+      }
+      std::cout << "]" << std::endl;
+    }
+    std::cout << " └─ " << TC::blue("Description: ", TRUE) << p.description
+              << std::endl;
+  }
 }
 
 // Print all packages, regardless of whether they're installed or not

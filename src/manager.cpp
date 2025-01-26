@@ -559,7 +559,7 @@ optional<InstalledVersion> Manager::open_installed_version_file(fs::path path) {
   // parse package and version files
   std::ifstream ver_stream(path);
   if (!ver_stream.good()) {
-    std::cerr << "[chump]: unable to open \"" << path << "\"" << std::endl;
+    // std::cerr << "[chump]: unable to open \"" << path << "\"" << std::endl;
     ver_stream.close();
     return {};
   }
