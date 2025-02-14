@@ -1155,8 +1155,8 @@ public:
         int compression_level = MZ_COMPRESS_METHOD_STORE;
 #else
         int compression_level = MZ_COMPRESS_METHOD_STORE;
-        // we are not doing any compression right now for consistency with builds
-        // int compression_level = MZ_COMPRESS_LEVEL_DEFAULT;
+        // we are not doing any compression right now for consistency with
+        // builds int compression_level = MZ_COMPRESS_LEVEL_DEFAULT;
 #endif
 
         int zip_status =

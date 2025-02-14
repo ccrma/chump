@@ -99,7 +99,8 @@ protected:
 int main(int argc, const char **argv) {
 #ifdef _WIN32
   // Windows cmd lines (powershell and cmd) need to be set up to handle utf8
-  // Set console code page to UTF-8 so console known how to interpret string data
+  // Set console code page to UTF-8 so console known how to interpret string
+  // data
   SetConsoleOutputCP(CP_UTF8);
 
   // Enable buffering to prevent VS from chopping up UTF-8 byte sequences
