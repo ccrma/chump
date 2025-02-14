@@ -1,4 +1,4 @@
-@import "Chumpinate"
+@import "Chumpinate.chug"
 
 // Our package version
 "0.1.0" => string version;
