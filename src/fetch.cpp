@@ -224,7 +224,8 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
 #endif
 
   if (!fp) {
-    std::cerr << "[chump]: error opening file for writing" << std::endl;
+    std::cerr << "[chump]: error opening file for writing manifest.json"
+              << std::endl;
     return false;
   }
 
@@ -245,13 +246,6 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
     data.packageName = "manifest";
     data.fileName = "manifest.json";
 
-    // Set the progress callback function
-    if (render) {
-      curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &data);
-      curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progressCallback);
-    }
-    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
-
     // We don't want to write the error to a file if the request fails
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
 
@@ -263,8 +257,8 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
     fclose(fp);
 
     if (res != CURLE_OK) {
-      std::cerr << "[chump]: failed to download: " << curl_easy_strerror(res)
-                << std::endl;
+      std::cerr << "[chump]: failed to download manifest.json: "
+                << curl_easy_strerror(res) << std::endl;
       return false;
     }
 
@@ -274,8 +268,8 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
   }
 
   std::cerr << std::endl;
-  std::cerr << "[chump]: successfully downloaded manifest.json!" << std::endl;
-  // std::cerr << "hash: " << hash_file(tempFilePath) << std::endl;
+  // std::cerr << "[chump]: successfully downloaded manifest.json!" <<
+  // std::endl; std::cerr << "hash: " << hash_file(tempFilePath) << std::endl;
 
   return true;
 }

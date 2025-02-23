@@ -238,7 +238,8 @@ TEST_CASE("Integration Tests - update manifest") {
   Manager *m = new Manager(dataPath, installPath, ckVersion, langVersion,
                            "linux", X86_64, manifest_url, false);
 
-  REQUIRE(m->update_manifest());
+  // should update in constructor so won't change anything
+  REQUIRE_FALSE(m->update_manifest());
 }
 
 TEST_CASE("Integration Test - wrong checksum") {

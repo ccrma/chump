@@ -144,9 +144,6 @@ int main(int argc, const char **argv) {
   string info_package_name = parser.getCommandTarget("info");
   // list -i
   bool installed_flag = parser.getCommandOption("list", "-i", "--installed");
-  // update package list
-  bool update_package_list =
-      parser.getCommandOption("list", "--update-list", "-u");
   // install package names
   vector<string> install_package_names = parser.getCommandTargets();
   // uninstall package names
@@ -179,39 +176,7 @@ int main(int argc, const char **argv) {
     return 0;
   }
 
-  // if the manifest isn't loading properly, only allow `chump list -u`.
-  // this is an escape hatch, because failing to parse manifest.json will
-  // result in an exception and the program won't continue.
-  if (!validate_manifest(pkg_path)) {
-
-    // either 'chump list -u' is called, or 'manifest.json' doesn't exist
-    if (!update_package_list && fs::exists(pkg_path))
-      return -1;
-
-    // create manager
-    manager = new Manager("", path, ChuckVersion::makeSystemVersion(),
-                          ApiVersion::makeSystemVersion(), whichOS(),
-                          whichArch(), manifest_url, true);
-    // update manifest file
-    manager->update_manifest();
-    // return
-    return 1;
-  }
-
-  try {
-    // create manager
-    manager =
-        new Manager(pkg_path.string(), path, ChuckVersion::makeSystemVersion(),
-                    ApiVersion::makeSystemVersion(), whichOS(), whichArch(),
-                    manifest_url, true);
-  } catch (const std::exception &e) {
-    // print error message
-    std::cerr << e.what() << std::endl;
-    // done
-    return 1;
-  }
-
-  // match subcommands
+  // help subcommand doesn't need manager initialization
   if (subcommand == "help") {
     if (n_targets != 0) {
       cerr << "[chump]: " << TC::blue(subcommand, TRUE)
@@ -223,7 +188,28 @@ int main(int argc, const char **argv) {
     printUsage();
     // peace out
     return 0;
-  } else if (subcommand == "info") {
+  }
+
+  try {
+    // create manager
+    manager =
+        new Manager(pkg_path.string(), path, ChuckVersion::makeSystemVersion(),
+                    ApiVersion::makeSystemVersion(), whichOS(), whichArch(),
+                    manifest_url, true);
+
+    if (!validate_manifest(pkg_path)) {
+      throw std::invalid_argument("Manifest file (" + pkg_path.string() +
+                                  "/manifest.json) is invalid");
+    }
+  } catch (const std::exception &e) {
+    // print error message
+    std::cerr << e.what() << std::endl;
+    // done
+    return 1;
+  }
+
+  // match subcommands
+  if (subcommand == "info") {
     // check
     if (info_package_name == "") {
       cerr << "[chump]: " << TC::blue(subcommand, TRUE)
@@ -256,13 +242,7 @@ int main(int argc, const char **argv) {
       return 1;
     }
 
-    if (update_package_list) {
-      // update manifest
-      manager->update_manifest();
-    } else {
-      // print list
-      printPackages(manager, installed_flag);
-    }
+    printPackages(manager, installed_flag);
   } else if (subcommand == "install") {
     // check
     if (install_package_names.size() == 0) {
@@ -446,8 +426,6 @@ void printUsage() {
        << "                             list available packages" << endl;
   cerr << INDENT << "  └─" << TC::blue(" --installed/-i", TRUE)
        << "                └─ list only installed packages" << endl;
-  cerr << INDENT << "  └─" << TC::blue(" --update-list/-u", TRUE)
-       << "              └─ update list of available packages" << endl;
   cerr << INDENT << TC::blue("info", TRUE)
        << " <package>                   display information about <package>"
        << endl;

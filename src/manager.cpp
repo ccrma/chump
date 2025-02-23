@@ -14,15 +14,15 @@ Manager::Manager(string package_list_path, fs::path package_install_dir,
 
   fetch = new Fetch(render_tui);
 
-  // really only used to update manifest without needed to properly
-  // parse the existing manifest.
-  if (package_list_path == "")
-    package_list = new PackageList();
-  else
-    package_list = new PackageList(package_list_path);
-
   language_version = ck_ver;
   api_version = api_ver;
+
+  // always try to update manifest
+  update_manifest();
+
+  // really only used to update manifest without needed to properly
+  // parse the existing manifest.
+  package_list = new PackageList(package_list_path);
 }
 
 optional<Package> Manager::getPackage(string packageName) {
@@ -495,7 +495,7 @@ bool Manager::update_manifest() {
     ++curr_manifest_iter;
   }
 
-  if ((temp_manifest_iter != end) || (curr_manifest_iter == end)) {
+  if ((temp_manifest_iter != end) || (curr_manifest_iter != end)) {
     are_equal = false;
   }
 
@@ -503,8 +503,10 @@ bool Manager::update_manifest() {
   curr_manifest.close();
 
   if (are_equal) {
-    std::cerr << "[chump]: current manifest is up-to-date, doing nothing"
-              << std::endl;
+    // since this is now being updated every time chump is called (except for
+    // help), we are now being silent. std::cerr << "[chump]: current manifest
+    // is up-to-date, doing nothing"
+    //           << std::endl;
     return false;
   }
 
