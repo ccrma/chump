@@ -13,6 +13,10 @@
 #include <string>
 #include <vector>
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 namespace fs = std::filesystem;
 using std::cerr;
 using std::string;
@@ -93,6 +97,15 @@ protected:
 // desc: command line chuck entry point
 //-----------------------------------------------------------------------------
 int main(int argc, const char **argv) {
+#ifdef _WIN32
+  // Windows cmd lines (powershell and cmd) need to be set up to handle utf8
+  // Set console code page to UTF-8 so console known how to interpret string
+  // data
+  SetConsoleOutputCP(CP_UTF8);
+
+  // Enable buffering to prevent VS from chopping up UTF-8 byte sequences
+  setvbuf(stdout, nullptr, _IOFBF, 1000);
+#endif
   // check if we output to TTY (teletype interactive terminal)
   // if not disable color teriminal to avoid outputing
   // ANSI escape codes to the output stream, which would
