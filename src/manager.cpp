@@ -259,6 +259,17 @@ bool Manager::update(string packageName) {
   optional<InstalledVersion> installed_version =
       open_installed_version_file(install_dir / "version.json");
 
+  if (!installed_version) {
+    std::cerr << "[chump]: the version definition '"
+              << install_dir / "version.json" << "' does not exist."
+              << std::endl;
+    std::cerr << "[chump]: try removing the directory " << install_dir
+              << std::endl;
+    std::cerr << "[chump]: and then calling 'chump install '" << packageName
+              << "'\n";
+    return false;
+  }
+
   PackageVersion curr_version = installed_version.value().version();
 
   optional<PackageVersion> ver =
