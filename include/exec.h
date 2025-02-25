@@ -91,6 +91,9 @@ void printPackagesMultiLine(Manager *mgr, bool print_installed) {
       } else {
         std::cout << std::endl;
       }
+
+      std::cout << " │  └─ " << TC::green("Install Path: ", TRUE)
+		<< install_path << std::endl;
     }
 
     std::cout << " ├─ " << TC::blue("Latest Version: ", TRUE) << latest_version
