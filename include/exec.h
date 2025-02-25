@@ -84,8 +84,15 @@ void printPackagesMultiLine(Manager *mgr, bool print_installed) {
 
     if (installed_version) {
       std::cout << " ├─ " << TC::green("Installed Version: ", TRUE)
-                << installed_version.value().getVersionString() << std::endl;
+                << installed_version.value().getVersionString();
+
+      if (installed_version.value().version() < latest.value()) {
+        std::cout << " (update available!)\n";
+      } else {
+        std::cout << std::endl;
+      }
     }
+
     std::cout << " ├─ " << TC::blue("Latest Version: ", TRUE) << latest_version
               << std::endl;
     if (!p.keywords.empty()) {
