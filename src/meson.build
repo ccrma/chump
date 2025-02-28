@@ -9,8 +9,8 @@ chump_lib_sources = [
 
 # Fetch the dependency
 nlohmann_json_dep = subproject('nlohmann_json').get_variable('nlohmann_json_dep')
-libcurl_dep = subproject('curl', required: true).get_variable('curl_dep')
-openssl_dep = subproject('openssl', required: true).get_variable('openssl_dep')
+openssl_dep = subproject('openssl', default_options: ['prefer_static=true'], required: true).get_variable('openssl_dep')
+libcurl_dep = subproject('curl', default_options: ['prefer_static=true'], required: true).get_variable('curl_dep')
 minizip_dep = subproject('minizip-ng', required: true).get_variable('minizip_ng_dep')
 
 cheaders_proj = subproject('cheaders')

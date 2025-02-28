@@ -19,6 +19,8 @@ fs::path getHomeDirectory();
 
 fs::path chumpDir();
 
+std::string manifestURL(std::string base_url);
+
 tuple<string, optional<string>> parsePackageName(string packageName);
 
 bool is_subpath(const fs::path &path, const fs::path &base);

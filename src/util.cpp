@@ -44,6 +44,11 @@ fs::path chumpDir() {
   return chump_dir;
 }
 
+std::string manifestURL(std::string base_url) {
+  return base_url + "v" + std::to_string(MANIFEST_VERSION_NO) +
+         "/manifest.json";
+}
+
 std::string whichOS() {
 #if defined(_WIN32) || defined(_WIN64) || defined(__CYGWIN__)
   return "windows";

@@ -20,6 +20,19 @@ PackageList::PackageList(fs::path filepath) {
   // parse all the packages
   json j_packages = data["packages"];
 
+  if (data.contains("manifest-version")) {
+    if (data["manifest-version"].is_number_integer()) {
+      manifest_api_version = data["manifest-version"];
+    } else {
+      throw std::invalid_argument("'manifest-version' field in " +
+                                  filepath.string() +
+                                  " must be an integer, exiting...");
+    }
+  } else {
+    throw std::invalid_argument(
+        filepath.string() + " does not contain a manifest-version, exiting...");
+  }
+
   for (auto &j_package : j_packages) {
     Package p = j_package.get<Package>();
 

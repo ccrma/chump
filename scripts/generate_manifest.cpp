@@ -16,13 +16,6 @@
 namespace fs = std::filesystem;
 
 int main(int argc, const char **argv) {
-  /*****************************************************************
-   * CLI Args Setup
-   *****************************************************************/
-  // CLI::App app;
-
-  // CLI11_PARSE(app, argc, argv);
-
   if (argc != 2) {
     std::cerr
         << "generate_manifest must have one arg: path to manifest directory"
@@ -72,6 +65,7 @@ int main(int argc, const char **argv) {
 
   json output;
   output["packages"] = packages;
+  output["manifest-version"] = MANIFEST_VERSION_NO;
   std::cout << output.dump(4) << std::endl;
 
   return 0;

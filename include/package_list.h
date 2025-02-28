@@ -15,6 +15,9 @@ using std::string;
 
 namespace fs = std::filesystem;
 
+// Our super special manifest version
+#define MANIFEST_VERSION_NO 1
+
 // A PackageList is a database of available packages, including names,
 // download urls, description, and other metadata.
 class PackageList {
@@ -44,6 +47,8 @@ public:
 private:
   // TODO could be a more efficient lookup implementation
   std::vector<Package> packages;
+
+  int manifest_api_version;
 };
 
 #endif

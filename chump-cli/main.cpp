@@ -22,6 +22,8 @@ using std::cerr;
 using std::string;
 using std::vector;
 
+#define BASE_URL "https://chuck.stanford.edu/release/chump/manifest/"
+
 // indent string
 static const string INDENT = "    ";
 const string VERSION = "v0.0.1";
@@ -150,8 +152,7 @@ int main(int argc, const char **argv) {
   fs::path pkg_path = chumpDir() / "manifest.json";
   // URL to the manifest file
 
-  std::string manifest_url =
-      "https://ccrma.stanford.edu/~nshaheed/chump/manifest.json";
+  std::string manifest_url = manifestURL(BASE_URL);
 
   // info package name
   string info_package_name = parser.getCommandTarget("info");

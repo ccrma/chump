@@ -1,4 +1,5 @@
 {
+    "manifest-version": 1,
     "packages": [
         {
             "name": "Hydra",
