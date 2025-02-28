@@ -13,16 +13,16 @@ build-debug:
 	meson setup --buildtype=debug --debug builddir-debug -Db_coverage=true
 
 build-release-win:
-	meson setup builddir-release --backend vs
+	meson setup --buildtype=release builddir-release --backend vs
 
 build-release-mac:
-	meson setup builddir-release --backend xcode
+	meson setup --buildtype=release builddir-release --backend xcode
 
 setup-mac-x86_64:
-	meson setup --cross-file cross/x86_64-macos.txt builddir-x86_64
+	meson setup --buildtype=release --cross-file cross/x86_64-macos.txt builddir-x86_64
 
 setup-mac-arm64:
-	meson setup --cross-file cross/arm64-macos.txt builddir-arm64
+	meson setup --buildtype=release --cross-file cross/arm64-macos.txt builddir-arm64
 
 build-mac-x86_64: setup-mac-x86_64
 	meson compile -C builddir-x86_64
