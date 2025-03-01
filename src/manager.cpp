@@ -470,6 +470,21 @@ fs::path Manager::install_path(Package pkg) {
 }
 
 bool Manager::update_manifest() {
+  optional<int> newest_manifest_version = fetch->fetch_newest_manifest_version(
+      "https://chuck.stanford.edu/release/chump/manifest/"
+      "latest-manifest.version");
+
+  if (newest_manifest_version &&
+      newest_manifest_version.value() > MANIFEST_VERSION_NO) {
+    std::cerr
+        << "[chump] there are newer packages available that this version of "
+           "chump cannot manage. visit https://chuck.stanford.edu/release/ and "
+           "install the latest version of chuck (which includes an updated "
+           "version of chump). once you have done this, rerun chump for the "
+           "latest, greatest, chumpiest experience available\n";
+    std::cerr << "[chump] ~~ don't be a lump, update chump ~~\n";
+  }
+
   // Create a temporary directory to download our manifest to
   fs::path temp_dir = {fs::temp_directory_path() /= std::tmpnam(nullptr)};
   fs::create_directory(temp_dir);
@@ -478,7 +493,7 @@ bool Manager::update_manifest() {
   bool result = fetch->fetch_manifest(manifest_url, temp_dir);
 
   if (!result) {
-    std::cerr << "[chump]: failed to fetch manifest.json, exiting."
+    std::cerr << "[chump]: failed to fetch manifest.json, continuing..."
               << std::endl;
     return false;
   }

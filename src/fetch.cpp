@@ -273,3 +273,75 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
 
   return true;
 }
+
+struct MemoryStruct {
+  char *memory;
+  size_t size;
+};
+
+static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb,
+                                  void *userp) {
+  size_t realsize = size * nmemb;
+  auto &mem = *static_cast<std::string *>(userp);
+  mem.append(static_cast<char *>(contents), realsize);
+  return realsize;
+}
+
+optional<int> Fetch::fetch_newest_manifest_version(string url) {
+  if (!isURL(url)) {
+    std::cerr << "[chump]: not a URL!" << std::endl;
+    return {};
+  }
+
+  CURL *curl_handle;
+  CURLcode res;
+
+  std::string chunk;
+
+  curl_global_init(CURL_GLOBAL_ALL);
+
+  /* init the curl session */
+  curl_handle = curl_easy_init();
+
+  /* specify URL to get */
+  curl_easy_setopt(curl_handle, CURLOPT_URL, url.c_str());
+
+  /* send all data to this function  */
+  curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+
+  /* we pass our 'chunk' struct to the callback function */
+  curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &chunk);
+
+  /* some servers do not like requests that are made without a user-agent
+     field, so we provide one */
+  curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+
+  /* get it! */
+  res = curl_easy_perform(curl_handle);
+
+  /* check for errors */
+  if (res != CURLE_OK) {
+    fprintf(stderr, "[chump]: failed to fetch latest manifest version: %s\n",
+            curl_easy_strerror(res));
+    return {};
+  }
+
+  /* cleanup curl stuff */
+  curl_easy_cleanup(curl_handle);
+
+  // free(chunk.memory);
+
+  /* we are done with libcurl, so clean it up */
+  curl_global_cleanup();
+
+  try {
+    int ver_no = std::stoi(chunk);
+    return ver_no;
+  } catch (std::invalid_argument const &ex) {
+    std::cerr << "[chump]: failed to fetch latest manifest version: "
+              << ex.what() << std::endl;
+    return {};
+  }
+
+  return {};
+}
