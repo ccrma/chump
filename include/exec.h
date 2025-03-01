@@ -75,7 +75,6 @@ void printPackagesMultiLine(Manager *mgr, bool print_installed) {
     string installed = mgr->is_installed(p) ? "yes" : "no";
 
     fs::path install_path = mgr->install_path(p);
-    int curr_path_len = install_path.string().length();
 
     optional<InstalledVersion> installed_version =
         mgr->open_installed_version_file(install_path / "version.json");
@@ -209,6 +208,116 @@ void printInstalledPackages(Manager *mgr) {
               << std::setw(max_path_len + 1) << install_path.string() << "| "
               << std::setw(12) << truncate(p.description, 100, true)
               << std::endl;
+  }
+}
+
+void printPackage(Manager *mgr, Package p) {
+  optional<PackageVersion> latest = mgr->latestPackageVersion(p.name);
+
+  string latest_version = "Not available on this OS";
+  if (latest)
+    latest_version = latest.value().getVersionString();
+
+  string installed = mgr->is_installed(p) ? "yes" : "no";
+
+  fs::path install_path = mgr->install_path(p);
+
+  optional<InstalledVersion> installed_version =
+      mgr->open_installed_version_file(install_path / "version.json");
+
+  std::cout << TC::bold(p.name) << std::endl;
+
+  if (installed_version) {
+    std::cout << " ├─ " << TC::green("Installed Version: ", TRUE)
+              << installed_version.value().getVersionString();
+
+    if (latest && installed_version.value().version() < latest.value()) {
+      std::cout << " (update available!)\n";
+    } else {
+      std::cout << std::endl;
+    }
+
+    std::cout << " │  └─ " << TC::green("Install Path: ", TRUE) << install_path
+              << std::endl;
+  }
+
+  std::cout << " ├─ " << TC::blue("Latest Version: ", TRUE) << latest_version
+            << std::endl;
+  if (!p.keywords.empty()) {
+    std::cout << " ├─ " << TC::blue("Keywords: ", TRUE) << "[";
+    std::cout << p.keywords[0];
+
+    for (size_t i = 1; i < p.keywords.size(); ++i) {
+      std::cout << ", " << p.keywords[i];
+    }
+    std::cout << "]" << std::endl;
+  }
+
+  std::cout << " ├─ " << TC::blue("Authors: ", TRUE);
+
+  if (p.authors.size() == 1) {
+    std::cout << p.authors[0] << "\n";
+  } else if (p.authors.size() > 1) {
+    std::cout << "[" << p.authors[0];
+
+    for (size_t i = 1; i < p.authors.size(); ++i) {
+      std::cout << ", " << p.authors[i];
+    }
+    std::cout << "]\n";
+  }
+
+  std::cout << " ├─ " << TC::blue("License: ", TRUE) << p.license << std::endl;
+  ;
+  std::cout << " ├─ " << TC::blue("Homepage: ", TRUE) << p.homepage
+            << std::endl;
+  std::cout << " ├─ " << TC::blue("Respository: ", TRUE) << p.repository
+            << std::endl;
+
+  std::cout << " ├─ " << TC::blue("Description: ", TRUE) << p.description
+            << std::endl;
+  std::cout << " │\n";
+
+  for (int i = 0; i < p.versions.size(); i++) {
+    string prepend = " │";
+    if (i == p.versions.size() - 1) {
+      std::cout << " └─ " << TC::blue("Versions ", TRUE) << std::endl;
+      prepend = "   ";
+    } else {
+      std::cout << " ├─ " << TC::blue("Versions ", TRUE) << std::endl;
+    }
+
+    const auto &ver = p.versions[i];
+
+    // std::cout << " └─ " << TC::blue("Versions ", TRUE) << std::endl;
+    std::cout << prepend << "  └─ " << TC::blue("Version: ", TRUE) << ver.major
+              << "." << ver.minor << "." << ver.patch << std::endl;
+    std::cout << prepend << "     ├─ " << TC::blue("Min ChucK Version: ", TRUE)
+              << ver.language_version_min << std::endl;
+
+    if (ver.language_version_max) {
+      std::cout << prepend << "     ├─ "
+                << TC::blue("Max ChucK Version: ", TRUE)
+                << ver.language_version_max.value() << std::endl;
+    }
+    if (ver.api_version) {
+      std::cout << prepend << "     ├─ "
+                << TC::blue("Chugin API Version: ", TRUE);
+      std::cout << ver.api_version.value() << std::endl;
+    }
+    std::cout << prepend << "     ├─ " << TC::blue("Operating System: ", TRUE)
+              << ver.os << std::endl;
+    std::cout << prepend << "     ├─ " << TC::blue("Architecture: ", TRUE)
+              << architectureToString.at(ver.arch) << std::endl;
+    std::cout << prepend << "     └─ " << TC::blue("Files ", TRUE) << std::endl;
+
+    for (int j = 0; j < ver.files.size(); j++) {
+      if (j == ver.files.size() - 1)
+        std::cout << prepend << "        └─ ";
+      else
+        std::cout << prepend << "        ├─ ";
+
+      std::cout << ver.files[j].url << std::endl;
+    }
   }
 }
 

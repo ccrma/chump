@@ -267,10 +267,6 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
     return false;
   }
 
-  std::cerr << std::endl;
-  // std::cerr << "[chump]: successfully downloaded manifest.json!" <<
-  // std::endl; std::cerr << "hash: " << hash_file(tempFilePath) << std::endl;
-
   return true;
 }
 

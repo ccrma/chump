@@ -247,7 +247,7 @@ int main(int argc, const char **argv) {
       std::cerr << "unable to find package " << info_package_name << std::endl;
       return 1;
     }
-    std::cout << pkg.value() << std::endl;
+    printPackage(manager, pkg.value());
   } else if (subcommand == "list") {
     if (n_targets != 0) {
       cerr << "[chump]: " << TC::blue(subcommand, TRUE)
