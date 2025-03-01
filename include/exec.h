@@ -277,44 +277,43 @@ void printPackage(Manager *mgr, Package p) {
             << std::endl;
   std::cout << " │\n";
 
+  std::cout << " └─ " << TC::blue("Versions ", TRUE) << std::endl;
+
   for (int i = 0; i < p.versions.size(); i++) {
-    string prepend = " │";
+    string prepend = "    │";
     if (i == p.versions.size() - 1) {
-      std::cout << " └─ " << TC::blue("Versions ", TRUE) << std::endl;
-      prepend = "   ";
+      std::cout << "    └─ " << TC::blue("Version: ", TRUE);
+      prepend = "     ";
     } else {
-      std::cout << " ├─ " << TC::blue("Versions ", TRUE) << std::endl;
+      std::cout << "    ├─ " << TC::blue("Version: ", TRUE);
     }
 
     const auto &ver = p.versions[i];
 
     // std::cout << " └─ " << TC::blue("Versions ", TRUE) << std::endl;
-    std::cout << prepend << "  └─ " << TC::blue("Version: ", TRUE) << ver.major
-              << "." << ver.minor << "." << ver.patch << std::endl;
-    std::cout << prepend << "     ├─ " << TC::blue("Min ChucK Version: ", TRUE)
+    std::cout << ver.major << "." << ver.minor << "." << ver.patch << std::endl;
+    std::cout << prepend << "  ├─ " << TC::blue("Min ChucK Version: ", TRUE)
               << ver.language_version_min << std::endl;
 
     if (ver.language_version_max) {
-      std::cout << prepend << "     ├─ "
-                << TC::blue("Max ChucK Version: ", TRUE)
+      std::cout << prepend << "  ├─ " << TC::blue("Max ChucK Version: ", TRUE)
                 << ver.language_version_max.value() << std::endl;
     }
     if (ver.api_version) {
-      std::cout << prepend << "     ├─ "
-                << TC::blue("Chugin API Version: ", TRUE);
+      std::cout << prepend << "  ├─ " << TC::blue("Chugin API Version: ", TRUE);
       std::cout << ver.api_version.value() << std::endl;
     }
-    std::cout << prepend << "     ├─ " << TC::blue("Operating System: ", TRUE)
+    std::cout << prepend << "  ├─ " << TC::blue("Operating System: ", TRUE)
               << ver.os << std::endl;
-    std::cout << prepend << "     ├─ " << TC::blue("Architecture: ", TRUE)
+    std::cout << prepend << "  ├─ " << TC::blue("Architecture: ", TRUE)
               << architectureToString.at(ver.arch) << std::endl;
-    std::cout << prepend << "     └─ " << TC::blue("Files ", TRUE) << std::endl;
+    std::cout << prepend << "  └─ " << TC::blue("Files ", TRUE) << std::endl;
 
     for (int j = 0; j < ver.files.size(); j++) {
       if (j == ver.files.size() - 1)
-        std::cout << prepend << "        └─ ";
+        std::cout << prepend << "     └─ ";
       else
-        std::cout << prepend << "        ├─ ";
+        std::cout << prepend << "     ├─ ";
 
       std::cout << ver.files[j].url << std::endl;
     }
