@@ -1,3 +1,11 @@
+//-----------------------------------------------------------------------------
+// name: chump_doc.cpp
+// desc: chump page documentation generator for packages
+//
+// author: Nick Shaheed (nshaheed@ccrma.stanford.edu)
+//         Ge Wang (ge@ccrma.stanford.edu)
+// date: Spring 2025
+//-----------------------------------------------------------------------------
 #include "package.h"
 #include "package_directory.h"
 #include "package_list.h"
@@ -5,88 +13,121 @@
 #include <iostream>
 #include <sstream>
 
+// c++ namespace setup
 namespace fs = std::filesystem;
 using std::optional;
 using std::string;
 
-string package_doc( Package p );
-string package_idx( PackageList p );
+// function prototypes
+string generate_page_HTML( Package p );
+string generate_mainIndex_HTML( PackageList p );
 
-/*******************************************************************
- * Generates documentation webpages for each package
- *****************************************************************/
 
+
+
+//-----------------------------------------------------------------------------
+// name: main()
+// desc: entry point
+//-----------------------------------------------------------------------------
 int main( int argc, const char** argv )
 {
+    // check arguments
     if( argc != 3 ) {
-        std::cerr << "chump_doc must have two args: path to manifest directory and "
-            "output dir"
-            << std::endl;
+        std::cerr << "chump_doc [packages dir] [output dir]" << std::endl;
         return -1;
     }
 
+    // packages dir
     fs::path packages_path = argv[1];
     fs::path packages_subdir = packages_path / "packages";
+    // output dir
     fs::path output_dir = argv[2];
 
+    // check packages subdir
     if( !fs::exists( packages_subdir ) || !fs::is_directory( packages_subdir ) ) {
         std::cout << "no 'packages' dir found in " << packages_path
             << " make sure you pointed to the chump-packages repo correctly"
             << std::endl;
         return -1;
     }
+
+    // check output dir
     if( !fs::exists( output_dir ) ) {
         std::cout << "output dir '" << output_dir << "' not found" << std::endl;
         return -1;
     }
 
+    // a vector packages
     std::vector<Package> packages;
 
-    for( auto const& path : fs::directory_iterator{ packages_subdir } ) {
+    // iterate over contents of packages subdir
+    for( auto const & path : fs::directory_iterator{ packages_subdir } )
+    {
+        // if not a directory, move on to next entry
         if( !fs::is_directory( path ) )
             continue;
 
-        // Each directory corresponds to a package
+        // NOTE: each directory corresponds to a package
 
         // grab the package.json
         fs::path pkg_path = path.path() / "package.json";
-
         // std::cout << pkg_path << std::endl;
 
+        // check package.json file
         if( !fs::exists( pkg_path ) ) {
             std::cerr
-                << "Package definition " << pkg_path
-                << "not found, are you in the chump-packages/packages directory?"
+                << "package definition '" << pkg_path
+                << "' not found; are you in the chump-packages/packages directory?"
                 << std::endl;
             continue;
         }
 
+        // read package from package.json
         Package pkg = read_package( pkg_path );
-
+        // populate versions of package
         populate_versions( &pkg, path );
-
+        // add to vector of packages
         packages.push_back( pkg );
     }
 
+    // a package list
     PackageList package_list( packages );
-
+    // create output dir packages directory
     fs::create_directory( output_dir / "packages" );
 
-    for( auto const& p : package_list.get_packages() ) {
+    // iterate over package list
+    for( auto const & p : package_list.get_packages() )
+    {
+        // the package info "chump page"
         fs::path filename = p.name + ".html";
+        // path to the chump page
         fs::path pkg_path = output_dir / "packages" / filename;
+        // open the file
         std::ofstream out( pkg_path );
-        out << package_doc( p );
+        // generate the chump page for the package
+        out << generate_page_HTML( p );
+        // close the file
         out.close();
     }
 
+    // main index file
     fs::path idx_path = output_dir / "index.html";
+    // open the file
     std::ofstream out( idx_path );
-    out << package_idx( package_list );
+    // output the package
+    out << generate_mainIndex_HTML( package_list );
+    // close the file
     out.close();
 }
 
-string package_doc( Package p )
+
+
+
+//-----------------------------------------------------------------------------
+// name: generate_HTML()
+// desc: generate HTML chump page
+//-----------------------------------------------------------------------------
+string generate_page_HTML( Package p )
 {
     std::stringstream ss;
 
@@ -151,7 +192,14 @@ string package_doc( Package p )
     return ss.str();
 }
 
-string package_idx( PackageList pkg_list )
+
+
+
+//-----------------------------------------------------------------------------
+// name: generate_mainIndex_HTML()
+// desc: generate main packages index in HTML
+//-----------------------------------------------------------------------------
+string generate_mainIndex_HTML( PackageList pkg_list )
 {
     std::stringstream ss;
 
