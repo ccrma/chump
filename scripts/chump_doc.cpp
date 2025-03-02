@@ -19,6 +19,8 @@ using std::optional;
 using std::string;
 
 // function prototypes
+string generate_page_MD( Package p );
+string generate_mainIndex_MD( PackageList p );
 string generate_page_HTML( Package p );
 string generate_mainIndex_HTML( PackageList p );
 
@@ -105,7 +107,7 @@ int main( int argc, const char** argv )
         // open the file
         std::ofstream out( pkg_path );
         // generate the chump page for the package
-        out << generate_page_HTML( p );
+        out << generate_page_MD( p );
         // close the file
         out.close();
     }
@@ -115,9 +117,119 @@ int main( int argc, const char** argv )
     // open the file
     std::ofstream out( idx_path );
     // output the package
-    out << generate_mainIndex_HTML( package_list );
+    out << generate_mainIndex_MD( package_list );
     // close the file
     out.close();
+}
+
+
+
+
+//-----------------------------------------------------------------------------
+// name: generate_MD()
+// desc: generate Markdown chump page
+//-----------------------------------------------------------------------------
+string generate_page_MD( Package p )
+{
+    std::stringstream ss;
+
+    ss << "<html>";
+    ss << "<title>" << p.name << "</title>";
+    ss << "<body>";
+
+    ss << "<h1>" << p.name << "</h1>";
+
+    ss << "<p> install command: chump install " << p.name << "</p>";
+
+    // ss << "<p> authors: " << p.
+
+    ss << "<p>" << p.description << "</p>";
+
+    ss << "<p> Homepage: "
+        << "<a href=\"" << p.homepage << "\">" << p.homepage << "</a>"
+        << "</p>";
+    ;
+    ss << "<p> Repository: "
+        << "<a href=\"" << p.repository << "\">" << p.repository << "</a>"
+        << "</p>";
+
+    ss << "<p> License: " << p.license << "</p>";
+
+    // Current versions (mac, windows, linux)
+    ss << "<p>"
+        << "Current versions:"
+        << "</p>";
+
+    optional<PackageVersion> linux = p.latest_version( "linux" );
+    optional<PackageVersion> win = p.latest_version( "windows" );
+    optional<PackageVersion> mac = p.latest_version( "mac" );
+
+    ss << "<table>";
+    if( linux )
+        ss << "<tr>"
+        << "<th>"
+        << "linux"
+        << "</th>"
+        << "<th>" << linux.value().getVersionString() << "</th>"
+        << "</tr>";
+    if( win )
+        ss << "<tr>"
+        << "<th>"
+        << "windows"
+        << "</th>"
+        << "<th>" << win.value().getVersionString() << "</th>"
+        << "</tr>";
+    if( mac )
+        ss << "<tr>"
+        << "<th>"
+        << "mac"
+        << "</th>"
+        << "<th>" << mac.value().getVersionString() << "</th>"
+        << "</tr>";
+    ss << "</table>";
+
+    ss << "</body>";
+    ss << "</html>";
+
+    return ss.str();
+}
+
+
+
+
+//-----------------------------------------------------------------------------
+// name: generate_mainIndex_MD()
+// desc: generate main packages index in Markdown
+//-----------------------------------------------------------------------------
+string generate_mainIndex_MD( PackageList pkg_list )
+{
+    std::stringstream ss;
+
+    ss << "<html>";
+    ss << "<title>"
+        << "ChuMP"
+        << "</title>";
+    ss << "<body>";
+
+    ss << "<h1>"
+        << "ChuMP (the ChucK Manager of Packages)"
+        << "</h1>";
+    ss << "<h2>"
+        << "Package Directory"
+        << "</h2>";
+
+    ss << "<table>";
+    for( auto const& p : pkg_list.get_packages() ) {
+        ss << "<tr>"
+            << "<th>"
+            << "<a href=\"./packages/" << p.name << ".html\">" << p.name << "</a>"
+            << "</th>"
+            << "<th>" << p.description << "</th>"
+            << "</tr>";
+    }
+    ss << "</table>";
+
+    return ss.str();
 }
 
 
