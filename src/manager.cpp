@@ -202,7 +202,7 @@ bool Manager::install_local(fs::path pkgDefn, fs::path pkgVer,
               << "' already exists." << std::endl;
     std::cerr << "[chump]: uninstalling '" << package.value().name << "'..."
               << std::endl;
-    uninstall(package.value().name);
+    uninstall(package.value().name, false);
   }
 
   std::cerr << "[chump]: installing '" << package.value().name << "'..."
@@ -381,7 +381,7 @@ bool Manager::update(string packageName) {
   return true;
 }
 
-bool Manager::uninstall(string packageName) {
+bool Manager::uninstall(string packageName, bool force) {
   // if there isn't already a .chump/PACKAGE directory, error out and tell the
   // user to install
   fs::path packageNamePath = fs::path(packageName);
@@ -393,6 +393,12 @@ bool Manager::uninstall(string packageName) {
     std::cerr << "[chump]: use `chump install " << packageName
               << "' to install the existing package" << std::endl;
     return false;
+  }
+
+  if (force) {
+    std::cerr << "[chump]: force-uninstall " << packageName
+              << " (completely removing the directory)...\n";
+    fs::remove_all(install_dir.lexically_normal());
   }
 
   optional<InstalledVersion> installed_ver =

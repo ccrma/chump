@@ -46,7 +46,7 @@ TEST_CASE("Integration Tests - install/update/uninstall") {
   REQUIRE(fs::exists(installPath / "TestPackage" / "version.json"));
 
   // Uninstall Package
-  m->uninstall("TestPackage");
+  m->uninstall("TestPackage", false);
 
   REQUIRE_FALSE(fs::exists(installPath / "TestPackage"));
 }
@@ -96,7 +96,7 @@ TEST_CASE("Integration Tests - install/update/uninstall with dirs") {
   extraFile.close();
 
   // Uninstall Package
-  m->uninstall("TestPackageDir");
+  m->uninstall("TestPackageDir", false);
 
   REQUIRE(fs::exists(installPath / "TestPackageDir"));
   REQUIRE_FALSE(fs::exists(installPath / "TestPackageDir" / "dir"));
@@ -323,7 +323,7 @@ TEST_CASE("Integration Test - uninstall with missing file") {
   fs::remove(installPath / "TestPackage" / "hello.ck");
 
   // Uninstall Package
-  m->uninstall("TestPackage");
+  m->uninstall("TestPackage", false);
 
   // Validate that everything got deleted properly
   REQUIRE_FALSE(fs::exists(installPath / "TestPackage"));
@@ -367,4 +367,32 @@ TEST_CASE("Integration Test - update with missing file") {
   REQUIRE(fs::exists(installPath / "TestPackage" / "hello.ck"));
   REQUIRE(fs::exists(installPath / "TestPackage" / "_data" / "hello.ck"));
   REQUIRE(fs::exists(installPath / "TestPackage" / "version.json"));
+}
+
+TEST_CASE("Integration Test - force uninstall") {
+  // reference:
+  // https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
+  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
+  fs::create_directories(installPath);
+
+  std::string dataPath = "../data/manifest.json";
+
+  ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
+  ApiVersion langVersion = ApiVersion("9.1");
+
+  Manager *m = new Manager(dataPath, installPath, ckVersion, langVersion,
+                           "linux", X86_64, manifest_url, false);
+
+  // install package
+
+  m->install("TestPackage");
+
+  REQUIRE(fs::exists(installPath / "TestPackage"));
+  REQUIRE(fs::exists(installPath / "TestPackage" / "hello.ck"));
+  REQUIRE(fs::exists(installPath / "TestPackage" / "version.json"));
+
+  // Uninstall Package
+  m->uninstall("TestPackage", true);
+
+  REQUIRE_FALSE(fs::exists(installPath / "TestPackage"));
 }

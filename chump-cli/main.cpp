@@ -162,6 +162,8 @@ int main(int argc, const char **argv) {
   vector<string> install_package_names = parser.getCommandTargets();
   // uninstall package names
   vector<string> uninstall_package_names = parser.getCommandTargets();
+  // force -f
+  bool uninstall_force = parser.getCommandOption("uninstall", "-f", "--force");
   // update package name
   string update_package_name = parser.getCommandTarget("update");
 
@@ -299,7 +301,7 @@ int main(int argc, const char **argv) {
     // uninstall a package by name
     for (string uninstall_package_name : uninstall_package_names) {
       try {
-        manager->uninstall(uninstall_package_name);
+        manager->uninstall(uninstall_package_name, uninstall_force);
       } catch (const std::exception &e) {
         cerr << e.what() << endl;
       }
@@ -456,6 +458,9 @@ void printUsage() {
        << endl;
   cerr << INDENT << TC::blue("uninstall", TRUE)
        << " <package>              uninstall <package>" << endl;
+  cerr << INDENT << "  └─" << TC::blue(" --force/-f", TRUE)
+       << "                    └─ delete package dir (and all files inside it)"
+       << endl;
   cerr << INDENT << TC::blue("update", TRUE)
        << " <package>                 update <package> to latest version"
        << endl;
