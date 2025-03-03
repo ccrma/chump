@@ -296,16 +296,6 @@ bool Manager::update(string packageName) {
     return true;
   }
 
-  for (auto file : installed_version.value().files) {
-    fs::path curr_dir = (install_dir / file.parent_path()).lexically_normal();
-    fs::path curr_file = (install_dir / file).lexically_normal();
-
-    fs::remove(curr_file);
-    if (fs::is_empty(curr_dir)) {
-      fs::remove(curr_dir);
-    }
-  }
-
   // Create a temporary directory to download our files to
   fs::path temp_dir = {fs::temp_directory_path() /= std::tmpnam(nullptr)};
   fs::create_directory(temp_dir);
@@ -347,6 +337,25 @@ bool Manager::update(string packageName) {
   for (auto const &dir_entry : fs::recursive_directory_iterator(temp_dir)) {
     if (fs::is_regular_file(dir_entry)) {
       installed_ver.files.push_back(fs::relative(dir_entry, temp_dir));
+    }
+  }
+
+  // uninstall our current version
+  // this is done as late as possible so that if fetching/extracting the updated
+  // package fails, we won't have removed the current installation prematurely.
+  for (auto file : installed_version.value().files) {
+    fs::path curr_dir = (install_dir / file.parent_path()).lexically_normal();
+    fs::path curr_file = (install_dir / file).lexically_normal();
+
+    if (fs::exists(curr_file)) {
+      fs::remove(curr_file);
+    } else {
+      std::cerr << "[chump]: attempted to remove " << curr_file
+                << ", but the file was not found, continuing..." << std::endl;
+    }
+
+    if (fs::is_empty(curr_dir)) {
+      fs::remove(curr_dir);
     }
   }
 
@@ -397,8 +406,16 @@ bool Manager::uninstall(string packageName) {
   // Remove all files associated with package
   for (auto file : installed_ver.value().files) {
     fs::path filepath = file.lexically_normal();
-    std::cerr << "[chump]: removing " << install_dir / filepath << std::endl;
-    fs::remove(install_dir / filepath);
+
+    fs::path full_path = install_dir / filepath;
+
+    if (fs::exists(full_path)) {
+      std::cerr << "[chump]: removing " << full_path << std::endl;
+      fs::remove(full_path);
+    } else {
+      std::cerr << "[chump]: attempted to remove " << full_path
+                << ", but the file was not found, continuing..." << std::endl;
+    }
 
     fs::path parent = filepath.parent_path();
     fs::path root = filepath.root_path();
@@ -408,7 +425,6 @@ bool Manager::uninstall(string packageName) {
     // make sure the parent dir isn't the root dir and check that it's
     // empty
     if (parent != root && fs::is_empty(parent_path)) {
-
       fs::remove(parent_path.lexically_normal());
     }
   }

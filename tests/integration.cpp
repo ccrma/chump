@@ -296,3 +296,75 @@ TEST_CASE("Integration Test - zip files") {
   REQUIRE_FALSE(
       fs::exists(installPath / "TestPackageZip" / "test_package_zip.zip"));
 }
+
+TEST_CASE("Integration Test - uninstall with missing file") {
+  // reference:
+  // https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
+  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
+  fs::create_directories(installPath);
+
+  std::string dataPath = "../data/manifest.json";
+
+  ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
+  ApiVersion langVersion = ApiVersion("9.1");
+
+  Manager *m = new Manager(dataPath, installPath, ckVersion, langVersion,
+                           "linux", X86_64, manifest_url, false);
+
+  // install package
+
+  m->install("TestPackage");
+
+  REQUIRE(fs::exists(installPath / "TestPackage"));
+  REQUIRE(fs::exists(installPath / "TestPackage" / "hello.ck"));
+  REQUIRE(fs::exists(installPath / "TestPackage" / "version.json"));
+
+  // remove file, which will hopefully not screw things up
+  fs::remove(installPath / "TestPackage" / "hello.ck");
+
+  // Uninstall Package
+  m->uninstall("TestPackage");
+
+  // Validate that everything got deleted properly
+  REQUIRE_FALSE(fs::exists(installPath / "TestPackage"));
+}
+
+TEST_CASE("Integration Test - update with missing file") {
+  // reference:
+  // https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
+  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
+  fs::create_directories(installPath);
+
+  std::string dataPath = "../data/manifest.json";
+
+  ChuckVersion ckVersion = ChuckVersion("1.5.2.0");
+  ApiVersion langVersion = ApiVersion("9.1");
+
+  Manager *m = new Manager(dataPath, installPath, ckVersion, langVersion,
+                           "linux", X86_64, manifest_url, false);
+
+  // install package
+
+  m->install("TestPackage");
+
+  REQUIRE(fs::exists(installPath / "TestPackage"));
+  REQUIRE(fs::exists(installPath / "TestPackage" / "hello.ck"));
+  REQUIRE(fs::exists(installPath / "TestPackage" / "version.json"));
+
+  // remove file, which will hopefully not screw things up
+  fs::remove(installPath / "TestPackage" / "hello.ck");
+
+  // Update Package
+  ckVersion = ChuckVersion("1.5.2.6");
+  langVersion = ApiVersion("10.1");
+
+  m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux",
+                  X86_64, manifest_url, false);
+
+  m->update("TestPackage");
+
+  REQUIRE(fs::exists(installPath / "TestPackage"));
+  REQUIRE(fs::exists(installPath / "TestPackage" / "hello.ck"));
+  REQUIRE(fs::exists(installPath / "TestPackage" / "_data" / "hello.ck"));
+  REQUIRE(fs::exists(installPath / "TestPackage" / "version.json"));
+}
