@@ -233,7 +233,7 @@ string generate_page_MD( Package p )
     std::stringstream ss;
 
     ss << R"(<div align="center"><img src="../../../doc/images/downchuck-logo2025c.png" width="25%"></img>
-<h2>ChucK Package</h2>
+<h2><a href="../">ChucK Package</a></h2>
 (require <a target="_blank" href="../../">chuck 1.5.5.0 or higher</a>)
 </div>
 
@@ -274,6 +274,10 @@ string generate_page_MD( Package p )
     ss << "* macOS: " << (mac ? mac.value().getVersionString() : "[not available]") << endl;
     ss << "* Linux: " << (linux ? linux.value().getVersionString() : "[not available]") << endl;
     ss << "* Windows: " << (win ? win.value().getVersionString() : "[not available]") << endl;
+
+    ss << "### File Browser" << endl;
+    ss << "Manually [browse versions and packages files](./files) on server." << endl;
+    ss << endl;
 
     // return stream as string
     return ss.str();
@@ -380,8 +384,9 @@ To list packages currently installed on your computer:
     // iterate over packages
     for( auto & p : packages )
     {
-        optional<PackageVersion> mac = p.latest_version( "mac" );
-        string version = (mac ? " (" + mac.value().getVersionString() + ")" : "");
+        // optional<PackageVersion> mac = p.latest_version( "mac" );
+        // string version = (mac ? " (" + mac.value().getVersionString() + ")" : "");
+        string version = ""; // empty for now
         ss << "* [**" << p.name << "**](./" << p.name << "/)" << version << ": " << p.description << std::endl;
     }
 
