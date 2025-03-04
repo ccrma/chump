@@ -87,8 +87,9 @@ int progressCallback(void *clientp, double dltotal, double dlnow,
 // Download file to proper package directory.
 // Return true on success, False on failure.
 //*******************************************
-bool Fetch::fetch(std::string url, fs::path dir, Package package, PackageVersion ver,
-                  fs::path temp_dir, FileType file_type, string checksum) {
+bool Fetch::fetch(std::string url, fs::path dir, Package package,
+                  PackageVersion ver, fs::path temp_dir, FileType file_type,
+                  string checksum) {
   if (!isURL(url)) {
     std::cerr << "[chump]: not a URL!" << std::endl;
     return false;
@@ -152,8 +153,8 @@ bool Fetch::fetch(std::string url, fs::path dir, Package package, PackageVersion
 
     // Perform the request
     string line = TC::orange("down-chucking package", TRUE) + " ";
-    line += TC::bold(package.name) + " (" + ver.getVersionString() + ")" + TC::orange(" ├─ ", TRUE) +
-            filename.string() + "\n";
+    line += TC::bold(package.name) + " (" + ver.getVersionString() + ")" +
+            TC::orange(" ├─ ", TRUE) + filename.string() + "\n";
     std::cerr << line;
 
     res = curl_easy_perform(curl);

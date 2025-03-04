@@ -26,8 +26,8 @@ namespace fs = std::filesystem;
 class FetchBase {
 public:
   virtual ~FetchBase() = default;
-  virtual bool fetch(string data, fs::path dir, Package package, PackageVersion ver,
-                     fs::path temp_dir, FileType file_type,
+  virtual bool fetch(string data, fs::path dir, Package package,
+                     PackageVersion ver, fs::path temp_dir, FileType file_type,
                      string checksum) = 0;
   virtual bool fetch_manifest(string url, fs::path dir) = 0;
   virtual optional<int> fetch_newest_manifest_version(string url) = 0;
@@ -39,7 +39,7 @@ public:
   Fetch(bool render_tui);
   // download a package file from a remote host
   bool fetch(string data, fs::path dir, Package package, PackageVersion ver,
-	     fs::path temp_dir, FileType file_type, string checksum);
+             fs::path temp_dir, FileType file_type, string checksum);
   // download the manifest from a remote host
   bool fetch_manifest(string url, fs::path dir);
 

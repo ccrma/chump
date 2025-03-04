@@ -3,8 +3,11 @@
 #include "package.h"
 #include "util.h"
 
+#include <algorithm>
+#include <cctype>
 #include <filesystem>
 #include <sstream>
+// #include <cstring>
 namespace fs = std::filesystem;
 
 // Equality operator overload
@@ -17,7 +20,15 @@ bool Package::operator==(const Package &other) const {
 
 // Less-than operator (for sorting)
 bool Package::operator<(const Package &other) const {
-  return name < other.name;
+  string name_lower = name;
+  std::transform(name_lower.begin(), name_lower.end(), name_lower.begin(),
+                 [](unsigned char c) { return std::tolower(c); });
+
+  string other_lower = other.name;
+  std::transform(other_lower.begin(), other_lower.end(), other_lower.begin(),
+                 [](unsigned char c) { return std::tolower(c); });
+
+  return name_lower < other_lower;
 }
 
 PackageVersion::PackageVersion() {}
