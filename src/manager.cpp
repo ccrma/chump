@@ -97,7 +97,7 @@ bool Manager::install(string packageName) {
     FileType file_type = file.file_type;
 
     bool result =
-        fetch->fetch(url, dir, package, temp_dir, file_type, checksum);
+      fetch->fetch(url, dir, package, version, temp_dir, file_type, checksum);
     if (!result) {
       std::cerr << "[chump]: failed to fetch " << url << ", exiting."
                 << std::endl;
@@ -318,7 +318,7 @@ bool Manager::update(string packageName) {
     FileType file_type = file.file_type;
 
     bool result =
-        fetch->fetch(url, dir, package, temp_dir, file_type, checksum);
+      fetch->fetch(url, dir, package, latest_version, temp_dir, file_type, checksum);
     if (!result) {
       std::cerr << "[chump]: failed to fetch " << url << ", exiting."
                 << std::endl;

@@ -92,7 +92,7 @@ void printPackagesMultiLine(Manager *mgr, bool print_installed) {
       }
 
       std::cout << " │  └─ " << TC::green("Install Path: ", TRUE)
-                << install_path << std::endl;
+                << install_path.string() << std::endl;
     }
 
     std::cout << " ├─ " << TC::blue("Latest Version: ", TRUE) << latest_version

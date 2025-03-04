@@ -21,7 +21,8 @@ TEST_CASE("Check if a string is a valid URL", "[Fetch]") {
 TEST_CASE("Fetch::fetch() tests") {
   Fetch f;
   Package p;
+  PackageVersion v;
   SECTION("Invalid URL") {
-    REQUIRE_FALSE(f.fetch("badurl", "./", p, "/tmp/", PACKAGE_FILE, ""));
+    REQUIRE_FALSE(f.fetch("badurl", "./", p, v, "/tmp/", PACKAGE_FILE, ""));
   }
 }

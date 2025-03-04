@@ -186,7 +186,7 @@
                     "os": "linux",
                     "files": [
                         {
-                            "url": "https://ccrma.stanford.edu/~nshaheed/chugins/test_package/1.0.0/doesnotexist.ck",
+                            "url": "https://ccrma.stanford.edu/~nshaheed/chugins/TestPackage/1.0.0/doesnotexist.ck",
                             "local_dir": "./",
                             "file_type": "package",
                             "checksum": "3333"
@@ -208,7 +208,7 @@
                     "os": "linux",
                     "files": [
                         {
-                            "url": "https://ccrma.stanford.edu/~nshaheed/chugins/test_package/1.0.0/hello.ck",
+                            "url": "https://ccrma.stanford.edu/~nshaheed/chugins/TestPackage/1.0.0/hello.ck",
                             "local_dir": "./",
                             "file_type": "package",
                             "checksum": "d9865523a214fbdc00eadcf4e07a2c23746fbcb0af4bdbfb4e700fcf33894ce2"
@@ -230,13 +230,13 @@
                     "os": "linux",
                     "files": [
                         {
-                            "url": "https://ccrma.stanford.edu/~nshaheed/chugins/test_package/2.0.0/hello.ck",
+                            "url": "https://ccrma.stanford.edu/~nshaheed/chugins/TestPackage/2.0.0/hello.ck",
                             "local_dir": "./",
                             "file_type": "package",
                             "checksum": "729cca447b587fe2abff90c9b2f2a5b8313a19f4e564b9894a657784ec7027de"
                         },
                         {
-                            "url": "https://ccrma.stanford.edu/~nshaheed/chugins/test_package/2.0.0/hello.ck",
+                            "url": "https://ccrma.stanford.edu/~nshaheed/chugins/TestPackage/2.0.0/hello.ck",
                             "local_dir": "./",
                             "file_type": "data",
                             "checksum": "729cca447b587fe2abff90c9b2f2a5b8313a19f4e564b9894a657784ec7027de"
@@ -272,7 +272,7 @@
                     "os": "linux",
                     "files": [
                         {
-                            "url": "https://ccrma.stanford.edu/~nshaheed/chugins/test_package/1.0.0/hello.ck",
+                            "url": "https://ccrma.stanford.edu/~nshaheed/chugins/TestPackage/1.0.0/hello.ck",
                             "local_dir": "./",
                             "file_type": "package",
                             "checksum": "d9865523a214fbdc00eadcf4e07a2c23746fbcb0af4bdbfb4e700fcf33894ce2"
@@ -290,7 +290,7 @@
                     "os": "linux",
                     "files": [
                         {
-                            "url": "https://ccrma.stanford.edu/~nshaheed/chugins/test_package/2.0.0/hello.ck",
+                            "url": "https://ccrma.stanford.edu/~nshaheed/chugins/TestPackage/2.0.0/hello.ck",
                             "local_dir": "./dir",
                             "file_type": "package",
                             "checksum": "729cca447b587fe2abff90c9b2f2a5b8313a19f4e564b9894a657784ec7027de"

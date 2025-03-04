@@ -245,14 +245,15 @@ TEST_CASE("Integration Tests - update manifest") {
 TEST_CASE("Integration Test - wrong checksum") {
   Fetch f;
   Package p;
+  PackageVersion v;
 
   fs::path tmpPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
   fs::create_directories(tmpPath);
 
   // This will fail due to an incorrect checksum being provided
   bool result = f.fetch("https://ccrma.stanford.edu/~nshaheed/chugins/"
-                        "test_package/1.0.0/hello.ck",
-                        "./", p, tmpPath, PACKAGE_FILE, "1234");
+                        "TestPackage/1.0.0/hello.ck",
+                        "./", p, v, tmpPath, PACKAGE_FILE, "1234");
   REQUIRE_FALSE(result);
 }
 
