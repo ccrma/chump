@@ -72,7 +72,8 @@ format:
 	clang-format --style=llvm -i chumpinate/*.cpp
 	clang-format --style=llvm -i include/*.h
 	clang-format --style=llvm -i scripts/*.h
-	clang-format --style=llvm -i scripts/*.cpp
+	# clang-format --style=llvm -i scripts/*.cpp
+	clang-format --style=llvm -i scripts/generate_manifest.cpp
 
 chumpinate_pkg_linux: linux chumpinate_ckdoc
 	cd chumpinate; chuck -s build-pkg-linux.ck
