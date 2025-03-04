@@ -108,6 +108,9 @@ int main( int argc, const char** argv )
     // iterate over package list
     for( auto const & p : package_list.get_packages() )
     {
+        // skip over these!
+        if( p.name == "TestPackage" || p.name == "TestPackageDir" ) continue;
+
         // the path
         fs::path pkg_dir = output_dir / p.name;
         // if not exist, create directory
@@ -384,6 +387,9 @@ To list packages currently installed on your computer:
     // iterate over packages
     for( auto & p : packages )
     {
+        // skip over these!
+        if( p.name == "TestPackage" || p.name == "TestPackageDir" ) continue;
+
         // optional<PackageVersion> mac = p.latest_version( "mac" );
         // string version = (mac ? " (" + mac.value().getVersionString() + ")" : "");
         string version = ""; // empty for now
