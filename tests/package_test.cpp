@@ -113,6 +113,8 @@ TEST_CASE("latest_version returns the highest compatible version",
                   "MIT",
                   "Test package description",
                   {"keyword1", "keyword2"},
+		  "A very long description indeed",
+		  "www.awesomepackage.com/doc",
                   {v1, v2, v3, v4}};
 
   SECTION("Test with compatible versions") {
@@ -168,6 +170,8 @@ TEST_CASE("latest_version returns the highest compatible version",
                "MIT",
                "Test package description",
                {"keyword1", "keyword2"},
+	       "A very long description indeed",
+	       "www.awesomepackage.com/doc",
                {v1, v2, v3, v4, v5}};
 
     ChuckVersion language_ver =
@@ -206,6 +210,8 @@ TEST_CASE("version() test") {
                   "MIT",
                   "Test package description",
                   {"keyword1", "keyword2"},
+		  "A very long description indeed",
+		  "www.awesomepackage.com/doc",
                   {v1, v2, v3, v4}};
 
   SECTION("Test with compatible versions") {
@@ -246,6 +252,8 @@ TEST_CASE("version() test") {
                "MIT",
                "Test package description",
                {"keyword1", "keyword2"},
+	       "A very long description indeed",
+	       "www.awesomepackage.com/doc",
                {v1, v2, v3, v4, v5}};
 
     ChuckVersion language_ver =
@@ -276,6 +284,8 @@ TEST_CASE("version() test") {
                "MIT",
                "Test package description",
                {"keyword1", "keyword2"},
+	       "A very long description indeed",
+	       "www.awesomepackage.com/doc",
                {v1_no_api, v2_no_api}};
 
     ChuckVersion language_ver =

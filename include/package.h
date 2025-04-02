@@ -57,6 +57,16 @@ struct Package {
   string description;
   vector<string> keywords;
 
+  // ------------------------------
+  // Metadata for the chump website
+  // ------------------------------
+
+  // Long description to be used for the chump website.
+  // Can be markdown.
+  optional<string> long_description;
+  // URL to ckdoc (or other doc site)
+  optional<string> doc_url;
+
   vector<PackageVersion> versions;
 
   // Equality operator overload
@@ -169,6 +179,16 @@ struct InstalledVersion {
   string license;
   string description;
   vector<string> keywords;
+
+  // ------------------------------
+  // Metadata for the chump website
+  // ------------------------------
+
+  // Long description to be used for the chump website.
+  // Can be markdown.
+  optional<string> long_description;
+  // URL to ckdoc (or other doc site)
+  optional<string> doc_url;
 
   int major, minor, patch;
 

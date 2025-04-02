@@ -315,6 +315,14 @@ void to_json(json &j, const Package &p) {
            {"description", p.description},
            {"keywords", p.keywords},
            {"versions", p.versions}};
+
+  // optional fields
+  if (p.long_description) {
+    j["long_description"] = p.long_description.value();
+  }
+  if (p.doc_url) {
+    j["doc_url"] = p.doc_url.value();
+  }
 }
 
 void from_json(const json &j, Package &p) {
@@ -326,8 +334,17 @@ void from_json(const json &j, Package &p) {
   j.at("description").get_to(p.description);
   j.at("keywords").get_to(p.keywords);
 
+  // optional and array fields
   if (j.contains("versions")) {
     j.at("versions").get_to(p.versions);
+  }
+
+  if (j.contains("long_description") && !j["long_description"].is_null()) {
+    p.long_description = j["long_description"];
+  }
+
+  if (j.contains("doc_url") && !j["doc_url"].is_null()) {
+    p.doc_url = j["doc_url"];
   }
 }
 
@@ -528,11 +545,18 @@ void to_json(json &j, const InstalledVersion &p) {
       {"arch", architectureToString.at(p.arch)},
       {"files", p.files}};
 
+  // optional fields
   if (p.language_version_max) {
     j["language_version_max"] = p.language_version_max.value();
   }
   if (p.api_version) {
     j["api_version"] = p.api_version.value();
+  }
+  if (p.long_description) {
+    j["long_description"] = p.long_description.value();
+  }
+  if (p.doc_url) {
+    j["doc_url"] = p.doc_url.value();
   }
 }
 
@@ -571,4 +595,13 @@ void from_json(const json &j, InstalledVersion &p) {
   }
 
   j.at("files").get_to(p.files);
+
+  // optional site-specific fields
+  if (j.contains("long_description") && !j["long_description"].is_null()) {
+    p.long_description = j["long_description"];
+  }
+
+  if (j.contains("doc_url") && !j["doc_url"].is_null()) {
+    p.doc_url = j["doc_url"];
+  }
 }
