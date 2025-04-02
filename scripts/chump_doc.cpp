@@ -108,6 +108,9 @@ int main( int argc, const char** argv )
     // iterate over package list
     for( auto const & p : package_list.get_packages() )
     {
+        // skip over these!
+        if( p.name == "TestPackage" || p.name == "TestPackageDir" ) continue;
+
         // the path
         fs::path pkg_dir = output_dir / p.name;
         // if not exist, create directory
@@ -362,7 +365,7 @@ string generate_mainIndex_MD( PackageList pkg_list )
     ss << R"(<img src="../../doc/images/downchuck-logo2025c.png" width="35%"></img>
 # Downloadable ChucK Packages
 
-This is a listing of all available packages that can be downloaded and installed using  [**ChuMP**](../../chump/)—ChucK's (all-new) package manager for macOS, Linux, and Windows. As of ChucK `1.5.5.0`, ChuMP is bundled with the [ChucK release](../) on macOS and Windows (Linux users can [build from source](../../chump/linux-build.html). Many more packages are on the way, from both the ChucK community and ChucK Team. Please visit the [ChuMP site](../../chump/) for more information on using and contributing to ChuMP.
+This is a listing of all available packages that can be downloaded and installed using  [**ChuMP**](../../chump/)—ChucK's (all-new) package manager for macOS, Linux, and Windows. As of ChucK `1.5.5.0`, ChuMP is bundled with the [ChucK release](../) on macOS and Windows (Linux users can [build from source](../../chump/linux-build.html)). Many more packages are on the way, from both the ChucK community and ChucK Team. Please visit the [ChuMP site](../../chump/) for more information on using and contributing to ChuMP.
 
 BTW it is also possible to browse packages using ChuMP in terminal:
 
@@ -384,6 +387,9 @@ To list packages currently installed on your computer:
     // iterate over packages
     for( auto & p : packages )
     {
+        // skip over these!
+        if( p.name == "TestPackage" || p.name == "TestPackageDir" ) continue;
+
         // optional<PackageVersion> mac = p.latest_version( "mac" );
         // string version = (mac ? " (" + mac.value().getVersionString() + ")" : "");
         string version = ""; // empty for now
