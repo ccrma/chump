@@ -133,7 +133,7 @@ bool is_subpath(const fs::path &path, const fs::path &base) {
   return !rel.empty() && rel.native()[0] != '.';
 }
 
-// Convert a filename to a sha 256 hash.
+// Convert a file to a sha 256 hash.
 // https://docs.openssl.org/3.0/man3/EVP_DigestInit/#examples
 // Do I know what's really going on here? Sort of...
 std::string hash_file(fs::path filename) {
