@@ -11,4 +11,5 @@ jobs:
       with:
         clang-format-version: '19'
         fallback-style: 'llvm' # optional
-	exclude-regex: './scripts/chump_doc.cpp'
+        exclude-regex: './scripts/chump_doc.cpp'
+
