@@ -216,7 +216,7 @@ fs::path fileTypeToDir(FileType f) {
 }
 
 bool unzipFile(const std::string &zipPath, const std::string &outputDir) {
-  unzFile zipFile = unzOpen(zipPath.c_str());
+  unzFile zipFile = unzOpen64(zipPath.c_str());
   if (zipFile == nullptr) {
     std::cerr << "[chump]: error opening ZIP file: " << zipPath << std::endl;
     return false;
