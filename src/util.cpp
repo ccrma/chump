@@ -19,8 +19,8 @@
 #ifdef _WIN32
 #include <Shlobj.h>
 #include <io.h> // for _isatty()
-#include <windows.h>
 #include <shellapi.h>
+#include <windows.h>
 #else               // not windows
 #include <unistd.h> // for isatty()
 #endif              // #ifdef _WIN32
@@ -49,11 +49,11 @@ fs::path chumpDir() {
 void openDocCmd(fs::path indexPath) {
   std::string os = whichOS();
 #if defined(_WIN32) || defined(_WIN64) || defined(__CYGWIN__)
-    ShellExecute(0, 0, indexPath.wstring(), 0, 0 , SW_SHOW );
+  ShellExecute(0, 0, indexPath.wstring(), 0, 0, SW_SHOW);
 #elif defined(__APPLE__)
-    execlp("open", "open", indexPath.c_str(), nullptr);
+  execlp("open", "open", indexPath.c_str(), nullptr);
 #else
-    execlp("xdg-open", "xdg-open", indexPath.c_str(), nullptr);
+  execlp("xdg-open", "xdg-open", indexPath.c_str(), nullptr);
 #endif
 }
 

@@ -489,8 +489,7 @@ void printUsage() {
           "and OS)"
        << endl;
   cerr << INDENT << TC::blue("doc", TRUE)
-       << " <package>                    open <package> documentation"
-       << endl;
+       << " <package>                    open <package> documentation" << endl;
   cerr << INDENT << TC::blue("logo", TRUE)
        << " <mode>                      behold the chump logo" << endl;
   cerr << INDENT << "  └─" << TC::blue(" cereal", TRUE)
