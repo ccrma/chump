@@ -9,7 +9,7 @@ current:
 build-release:
 	meson setup builddir-release
 
-build-debug:
+setup-debug:
 	meson setup --buildtype=debug --debug builddir-debug -Db_coverage=true
 
 build-release-win:
@@ -29,6 +29,9 @@ build-mac-x86_64: setup-mac-x86_64
 
 build-mac-arm64: setup-mac-arm64
 	meson compile -C builddir-arm64
+
+build-mac-debug: setup-debug
+	meson compile -C builddir-debug
 
 install:
 	meson install -C builddir-release
