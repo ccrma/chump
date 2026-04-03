@@ -240,6 +240,9 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
     // Set callback function to write data
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
 
+    // Set connection timeout
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 3L);
+
     // Set file to write to
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
 
