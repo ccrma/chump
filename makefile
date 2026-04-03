@@ -49,6 +49,9 @@ linux linux-oss linux-jack linux-alsa linux-all: build-release
 .PHONY: mac osx
 mac osx: mac-universal
 
+.PHONY: mac-arm64
+mac-arm64: build-mac-arm64
+
 linux-debug: build-debug
 	meson compile -C builddir-debug
 
