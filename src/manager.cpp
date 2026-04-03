@@ -2,6 +2,7 @@
 #include "manager.h"
 #include "util.h"
 
+#include <sstream>
 #include <regex>
 
 Manager::Manager(string package_list_path, fs::path package_install_dir,
@@ -402,7 +403,7 @@ bool Manager::uninstall(string packageName, bool force) {
   }
 
   optional<InstalledVersion> installed_ver =
-      open_installed_version_file(install_dir / "version.json");
+    open_installed_version_file(install_dir / "version.json");
 
   if (!installed_ver)
     return false;
@@ -569,6 +570,44 @@ bool Manager::update_manifest() {
   }
 
   std::cerr << "[chump]: manifest.json was successfully updated!" << std::endl;
+  return true;
+}
+
+bool Manager::open_doc(string packageName) {
+  fs::path packageNamePath = fs::path(packageName);
+  fs::path installDir = chump_dir / packageNamePath;
+
+  if (!fs::exists(installDir)) {
+    // get optional package
+    optional<Package> pkg = getPackage(packageName);
+    // check
+    if (!pkg) {
+      std::cerr << "[chump]: the package '" << packageName
+		<< "' does not exist." << std::endl;
+      return false;
+    } else {
+      std::cerr << "[chump]: the install directory '" << installDir
+		<< "' does not exist." << std::endl;
+      std::cerr << "[chump]: use `chump install " << packageName
+                << "' to install the existing package" << std::endl;
+      return false;
+    }
+  }
+
+  auto indexPath = installDir / fileTypeToDir(DOCS_FILE) / "index.html";
+
+  // the package is installed. check if there is an index.html
+  if (!fs::exists(indexPath)) {
+    std::cerr << "[chump]: package '" << packageName
+		<< "' does not have documentation. sorry!" << std::endl;
+    return false;
+  }
+
+  openDocCmd(indexPath);
+  // std::ostringstream cmd;
+  // cmd << "open " << indexPatggh;
+  // system(cmd.str().c_str());
+
   return true;
 }
 

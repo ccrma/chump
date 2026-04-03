@@ -37,6 +37,7 @@ public:
   bool uninstall(string packageName, bool force);
   bool update(string packageName);
   bool update_manifest(); // Download a new package manifest
+  bool open_doc(string packageName); // open doc page
 
   bool is_installed(Package pkg);
   fs::path install_path(Package pkg);

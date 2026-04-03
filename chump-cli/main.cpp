@@ -166,6 +166,8 @@ int main(int argc, const char **argv) {
   bool uninstall_force = parser.getCommandOption("uninstall", "-f", "--force");
   // update package name
   string update_package_name = parser.getCommandTarget("update");
+  // doc package name
+  string doc_package_name = parser.getCommandTarget("doc");
 
   // the subcommand
   string subcommand = parser.command().name();
@@ -184,7 +186,7 @@ int main(int argc, const char **argv) {
   if (subcommand != "help" && subcommand != "list" && subcommand != "info" &&
       subcommand != "install" && subcommand != "install-local" &&
       subcommand != "uninstall" && subcommand != "update" &&
-      subcommand != "logo") {
+      subcommand != "doc" && subcommand != "logo") {
     cerr << "[chump]: " << TC::blue(subcommand, TRUE)
          << TC::orange(" is not a valid chump command...", TRUE) << endl;
     cerr << "(run `chump --help` for more information)" << endl;
@@ -323,6 +325,24 @@ int main(int argc, const char **argv) {
     }
     // update package
     manager->update(update_package_name);
+  } else if (subcommand == "doc") {
+    // open up doc file - an index.html to be opened in the browser
+    if (n_targets != 1) {
+      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+           << TC::orange(" requires additional argument...", TRUE) << endl;
+      cerr << "(run `chump --help` for more information)" << endl;
+      return 1;
+    }
+
+    // check arg
+    if (doc_package_name == "") {
+      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+           << TC::orange(" requires additional argument...", TRUE) << endl;
+      cerr << "(run `chump --help` for more information)" << endl;
+      return 1;
+    }
+
+    manager->open_doc(doc_package_name);
   } else if (subcommand == "logo") {
     // get target
     string target = parser.getCommandTarget("logo");
@@ -467,6 +487,9 @@ void printUsage() {
   cerr << INDENT
        << "                                   (compatible with chuck version "
           "and OS)"
+       << endl;
+  cerr << INDENT << TC::blue("doc", TRUE)
+       << " <package>                    open <package> documentation"
        << endl;
   cerr << INDENT << TC::blue("logo", TRUE)
        << " <mode>                      behold the chump logo" << endl;
