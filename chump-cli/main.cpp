@@ -158,6 +158,8 @@ int main(int argc, const char **argv) {
   string info_package_name = parser.getCommandTarget("info");
   // list -i
   bool installed_flag = parser.getCommandOption("list", "-i", "--installed");
+  // list -u
+  bool updates_list_flag = parser.getCommandOption("list", "-u", "--updates");
   // install package names
   vector<string> install_package_names = parser.getCommandTargets();
   // uninstall package names
@@ -226,6 +228,14 @@ int main(int argc, const char **argv) {
     return 1;
   }
 
+  // Check if any package updates are available
+  if (updateAvailable(manager)) {
+    cerr << "[chump]: " << TC::blue("updates available!", TRUE)
+         << TC::orange(" (to view available updates, run `chump list -u`)",
+                       TRUE)
+         << endl;
+  }
+
   // match subcommands
   if (subcommand == "info") {
     // check
@@ -260,7 +270,7 @@ int main(int argc, const char **argv) {
       return 1;
     }
 
-    printPackages(manager, installed_flag);
+    printPackages(manager, installed_flag, updates_list_flag);
   } else if (subcommand == "install") {
     // check
     if (install_package_names.size() == 0) {
@@ -462,6 +472,8 @@ void printUsage() {
        << "                             list available packages" << endl;
   cerr << INDENT << "  └─" << TC::blue(" --installed/-i", TRUE)
        << "                └─ list only installed packages" << endl;
+  cerr << INDENT << "  └─" << TC::blue(" --updates/-u", TRUE)
+       << "                └─ list only packages that can be updated" << endl;
   cerr << INDENT << TC::blue("info", TRUE)
        << " <package>                   display information about <package>"
        << endl;

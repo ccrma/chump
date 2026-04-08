@@ -32,7 +32,8 @@ void printPackage(Package pkg) { std::cout << pkg << std::endl; }
 
 void printAllPackages(Manager *mgr);
 void printInstalledPackages(Manager *mgr);
-void printPackagesMultiLine(Manager *mgr, bool print_installed);
+void printPackagesMultiLine(Manager *mgr, bool print_installed,
+                            bool print_updates);
 
 // https://stackoverflow.com/questions/19580877/how-to-truncate-a-string-formating-c
 std::string truncate(std::string str, size_t width, bool show_ellipsis = true) {
@@ -49,21 +50,57 @@ std::string truncate(std::string str, size_t width, bool show_ellipsis = true) {
 }
 
 // Function used in the `chump list` command
-void printPackages(Manager *mgr, bool print_installed) {
-  printPackagesMultiLine(mgr, print_installed);
+void printPackages(Manager *mgr, bool print_installed, bool print_updates) {
+  printPackagesMultiLine(mgr, print_installed, print_updates);
   // if (print_installed)
   //   printInstalledPackages(mgr);
   // else
   //   printAllPackages(mgr);
 }
 
-void printPackagesMultiLine(Manager *mgr, bool print_installed) {
+// Check if there are any out of date packages, return true if so
+bool updateAvailable(Manager *mgr) {
+  vector<Package> packages = mgr->listPackages();
+  // sort package list lexicographically
+  std::sort(packages.begin(), packages.end());
+
+  for (Package p : packages) {
+    if (!mgr->is_installed(p))
+      continue;
+
+    optional<PackageVersion> latest = mgr->latestPackageVersion(p.name);
+
+    if (!latest)
+      continue;
+
+    string latest_version = latest.value().getVersionString();
+
+    fs::path install_path = mgr->install_path(p);
+
+    optional<InstalledVersion> installed_version =
+        mgr->open_installed_version_file(install_path / "version.json");
+
+    if (!installed_version)
+      continue;
+
+    if (installed_version.value().version() < latest.value())
+      return true;
+  }
+
+  return false;
+}
+
+void printPackagesMultiLine(Manager *mgr, bool print_installed,
+                            bool print_updates) {
   vector<Package> packages = mgr->listPackages();
   // sort package list lexicographically
   std::sort(packages.begin(), packages.end());
 
   for (Package p : packages) {
     if (print_installed && !mgr->is_installed(p))
+      continue;
+
+    if (print_updates && !mgr->is_installed(p))
       continue;
 
     optional<PackageVersion> latest = mgr->latestPackageVersion(p.name);
@@ -78,6 +115,17 @@ void printPackagesMultiLine(Manager *mgr, bool print_installed) {
 
     optional<InstalledVersion> installed_version =
         mgr->open_installed_version_file(install_path / "version.json");
+
+    // This is the case where there's a locally installed packages
+    // that's not in the manifest
+    if (print_updates && !latest)
+      continue;
+
+    if (print_updates) {
+      if (installed_version && latest &&
+          installed_version.value().version() >= latest.value())
+        continue;
+    }
 
     std::cout << TC::bold(p.name) << std::endl;
 
