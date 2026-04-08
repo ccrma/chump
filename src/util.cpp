@@ -47,9 +47,9 @@ fs::path chumpDir() {
 
 // OS-specific 'open' command to open documentation index.html
 void openDocCmd(fs::path indexPath) {
-  std::string os = whichOS();
 #if defined(_WIN32) || defined(_WIN64) || defined(__CYGWIN__)
-  ShellExecute(0, 0, indexPath.wstring(), 0, 0, SW_SHOW);
+  std::basic_string<TCHAR> indexPathTChar(TEXT(indexPath.string()));
+  ShellExecuteW(0, 0, indexPath.wstring().c_str(), 0, 0, SW_SHOW);
 #elif defined(__APPLE__)
   execlp("open", "open", indexPath.c_str(), nullptr);
 #else
