@@ -36,8 +36,9 @@ public:
   bool install_local(fs::path pkgDefn, fs::path pkgVer, fs::path pkgZip);
   bool uninstall(string packageName, bool force);
   bool update(string packageName);
-  bool update_manifest();            // Download a new package manifest
-  bool open_doc(string packageName); // open doc page
+  bool update_manifest();                 // Download a new package manifest
+  bool open_doc(string packageName);      // open doc page
+  bool open_examples(string packageName); // open doc page
 
   bool is_installed(Package pkg);
   fs::path install_path(Package pkg);

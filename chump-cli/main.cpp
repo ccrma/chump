@@ -156,6 +156,7 @@ int main(int argc, const char **argv) {
 
   // info package name
   string info_package_name = parser.getCommandTarget("info");
+  string examples_package_name = parser.getCommandTarget("examples");
   // list -i
   bool installed_flag = parser.getCommandOption("list", "-i", "--installed");
   // list -u
@@ -188,7 +189,7 @@ int main(int argc, const char **argv) {
   if (subcommand != "help" && subcommand != "list" && subcommand != "info" &&
       subcommand != "install" && subcommand != "install-local" &&
       subcommand != "uninstall" && subcommand != "update" &&
-      subcommand != "doc" && subcommand != "logo") {
+      subcommand != "doc" && subcommand != "logo" && subcommand != "examples") {
     cerr << "[chump]: " << TC::blue(subcommand, TRUE)
          << TC::orange(" is not a valid chump command...", TRUE) << endl;
     cerr << "(run `chump --help` for more information)" << endl;
@@ -353,6 +354,29 @@ int main(int argc, const char **argv) {
     }
 
     manager->open_doc(doc_package_name);
+  } else if (subcommand == "examples") {
+    // open up the _examples folder in explorer or finder or whatever
+    if (n_targets != 1) {
+      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+           << TC::orange(" requires additional argument...", TRUE) << endl;
+      cerr << "(run `chump --help` for more information)" << endl;
+      return 1;
+    }
+
+    // check arg
+    if (doc_package_name == "") {
+      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+           << TC::orange(" requires additional argument...", TRUE) << endl;
+      cerr << "(run `chump --help` for more information)" << endl;
+      return 1;
+    }
+
+    // TODO: special case for chuck examples - open up chuck examples
+    // folder
+    // if (doc_package_name == "chuck") {
+    // }
+
+    manager->open_examples(examples_package_name);
   } else if (subcommand == "logo") {
     // get target
     string target = parser.getCommandTarget("logo");
@@ -502,6 +526,8 @@ void printUsage() {
        << endl;
   cerr << INDENT << TC::blue("doc", TRUE)
        << " <package>                    open <package> documentation" << endl;
+  cerr << INDENT << TC::blue("examples", TRUE)
+       << " <package>               open <package> examples directory" << endl;
   cerr << INDENT << TC::blue("logo", TRUE)
        << " <mode>                      behold the chump logo" << endl;
   cerr << INDENT << "  └─" << TC::blue(" cereal", TRUE)

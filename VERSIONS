@@ -7,6 +7,8 @@ ChuMP VERSIONS log
 
 (added) chump doc command
     * 'chump doc <package>' to open a documentation web page for <package> (if it exists)
+(added) chump examples command
+    * 'chump examples <package>' to open the examples directory for <package> (if it exists)
 (added) chump list -u/--updates
     * lists only packages that have an update available on your system
 (fixed) shorter connection timeout when downloading manifest

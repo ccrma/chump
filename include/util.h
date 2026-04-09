@@ -13,6 +13,7 @@ namespace fs = std::filesystem;
 fs::path packagePath(Package p, fs::path install_dir);
 
 void openDocCmd(fs::path indexPath);
+void openExamplesCmd(fs::path indexPath);
 
 string whichOS();
 Architecture whichArch();

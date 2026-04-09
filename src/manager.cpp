@@ -611,6 +611,39 @@ bool Manager::open_doc(string packageName) {
   return true;
 }
 
+bool Manager::open_examples(string packageName) {
+  fs::path packageNamePath = fs::path(packageName);
+  fs::path installDir = chump_dir / packageNamePath;
+
+  if (!fs::exists(installDir)) {
+    // get optional package
+    optional<Package> pkg = getPackage(packageName);
+    // check
+    if (!pkg) {
+      std::cerr << "[chump]: the package '" << packageName
+                << "' does not exist." << std::endl;
+      return false;
+    } else {
+      std::cerr << "[chump]: the install directory '" << installDir
+                << "' does not exist." << std::endl;
+      std::cerr << "[chump]: use `chump install " << packageName
+                << "' to install the existing package" << std::endl;
+      return false;
+    }
+  }
+  auto examplePath = installDir / fileTypeToDir(EXAMPLE_FILE);
+
+  // the package is installed. check if there is an index.html
+  if (!fs::exists(examplePath)) {
+    std::cerr << "[chump]: package '" << packageName
+              << "' does not have any examples. sorry!" << std::endl;
+    return false;
+  }
+
+  openExamplesCmd(examplePath);
+  return true;
+}
+
 optional<Package> Manager::open_package_file(fs::path path) {
   // parse package and version files
   std::ifstream ver_stream(path);
