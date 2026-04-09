@@ -6,7 +6,7 @@
 
 ## [As in sucker](https://www.merriam-webster.com/thesaurus/chump)
 
-The ChucK Manager of Packages
+The ChucK Manager of Packages. For more information, see [https://chuck.stanford.edu/chump/](https://chuck.stanford.edu/chump/)
 
 ## Building & Testing
 
