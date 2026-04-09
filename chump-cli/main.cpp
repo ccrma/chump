@@ -26,7 +26,7 @@ using std::vector;
 
 // indent string
 static const string INDENT = "    ";
-const string VERSION = "v0.0.2";
+const string VERSION = "v0.0.3";
 
 // function prototypes
 void printUsage();
