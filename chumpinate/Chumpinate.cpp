@@ -237,7 +237,7 @@ public:
     if (repository)
       j["repository"] = repository.value();
     else
-      j["respository"] = "";
+      j["repository"] = "";
 
     if (license)
       j["license"] = license.value();

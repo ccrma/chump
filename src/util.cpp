@@ -19,6 +19,7 @@
 #ifdef _WIN32
 #include <Shlobj.h>
 #include <io.h> // for _isatty()
+#include <shellapi.h>
 #include <windows.h>
 #else               // not windows
 #include <unistd.h> // for isatty()
@@ -42,6 +43,30 @@ fs::path chumpDir() {
 #endif
 
   return chump_dir;
+}
+
+// OS-specific 'open' command to open documentation index.html
+void openDocCmd(fs::path indexPath) {
+#if defined(_WIN32) || defined(_WIN64) || defined(__CYGWIN__)
+  std::basic_string<TCHAR> indexPathTChar(TEXT(indexPath.string()));
+  ShellExecuteW(0, 0, indexPath.wstring().c_str(), 0, 0, SW_SHOW);
+#elif defined(__APPLE__)
+  execlp("open", "open", indexPath.c_str(), nullptr);
+#else
+  execlp("xdg-open", "xdg-open", indexPath.c_str(), nullptr);
+#endif
+}
+
+// OS-specific 'open' command to open example directory
+void openExamplesCmd(fs::path indexPath) {
+#if defined(_WIN32) || defined(_WIN64) || defined(__CYGWIN__)
+  std::basic_string<TCHAR> indexPathTChar(TEXT(indexPath.string()));
+  ShellExecuteW(0, 0, indexPath.wstring().c_str(), 0, 0, SW_SHOW);
+#elif defined(__APPLE__)
+  execlp("open", "open", indexPath.c_str(), nullptr);
+#else
+  execlp("xdg-open", "xdg-open", indexPath.c_str(), nullptr);
+#endif
 }
 
 std::string manifestURL(std::string base_url) {

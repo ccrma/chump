@@ -26,7 +26,7 @@ using std::vector;
 
 // indent string
 static const string INDENT = "    ";
-const string VERSION = "v0.0.2";
+const string VERSION = "v0.0.3";
 
 // function prototypes
 void printUsage();
@@ -156,8 +156,11 @@ int main(int argc, const char **argv) {
 
   // info package name
   string info_package_name = parser.getCommandTarget("info");
+  string examples_package_name = parser.getCommandTarget("examples");
   // list -i
   bool installed_flag = parser.getCommandOption("list", "-i", "--installed");
+  // list -u
+  bool updates_list_flag = parser.getCommandOption("list", "-u", "--updates");
   // install package names
   vector<string> install_package_names = parser.getCommandTargets();
   // uninstall package names
@@ -166,6 +169,8 @@ int main(int argc, const char **argv) {
   bool uninstall_force = parser.getCommandOption("uninstall", "-f", "--force");
   // update package name
   string update_package_name = parser.getCommandTarget("update");
+  // doc package name
+  string doc_package_name = parser.getCommandTarget("doc");
 
   // the subcommand
   string subcommand = parser.command().name();
@@ -184,7 +189,7 @@ int main(int argc, const char **argv) {
   if (subcommand != "help" && subcommand != "list" && subcommand != "info" &&
       subcommand != "install" && subcommand != "install-local" &&
       subcommand != "uninstall" && subcommand != "update" &&
-      subcommand != "logo") {
+      subcommand != "doc" && subcommand != "logo" && subcommand != "examples") {
     cerr << "[chump]: " << TC::blue(subcommand, TRUE)
          << TC::orange(" is not a valid chump command...", TRUE) << endl;
     cerr << "(run `chump --help` for more information)" << endl;
@@ -224,6 +229,14 @@ int main(int argc, const char **argv) {
     return 1;
   }
 
+  // Check if any package updates are available
+  if (updateAvailable(manager)) {
+    cerr << "[chump]: " << TC::blue("updates available!", TRUE)
+         << TC::orange(" (to view available updates, run `chump list -u`)",
+                       TRUE)
+         << endl;
+  }
+
   // match subcommands
   if (subcommand == "info") {
     // check
@@ -258,7 +271,7 @@ int main(int argc, const char **argv) {
       return 1;
     }
 
-    printPackages(manager, installed_flag);
+    printPackages(manager, installed_flag, updates_list_flag);
   } else if (subcommand == "install") {
     // check
     if (install_package_names.size() == 0) {
@@ -323,6 +336,47 @@ int main(int argc, const char **argv) {
     }
     // update package
     manager->update(update_package_name);
+  } else if (subcommand == "doc") {
+    // open up doc file - an index.html to be opened in the browser
+    if (n_targets != 1) {
+      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+           << TC::orange(" requires additional argument...", TRUE) << endl;
+      cerr << "(run `chump --help` for more information)" << endl;
+      return 1;
+    }
+
+    // check arg
+    if (doc_package_name == "") {
+      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+           << TC::orange(" requires additional argument...", TRUE) << endl;
+      cerr << "(run `chump --help` for more information)" << endl;
+      return 1;
+    }
+
+    manager->open_doc(doc_package_name);
+  } else if (subcommand == "examples") {
+    // open up the _examples folder in explorer or finder or whatever
+    if (n_targets != 1) {
+      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+           << TC::orange(" requires additional argument...", TRUE) << endl;
+      cerr << "(run `chump --help` for more information)" << endl;
+      return 1;
+    }
+
+    // check arg
+    if (doc_package_name == "") {
+      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+           << TC::orange(" requires additional argument...", TRUE) << endl;
+      cerr << "(run `chump --help` for more information)" << endl;
+      return 1;
+    }
+
+    // TODO: special case for chuck examples - open up chuck examples
+    // folder
+    // if (doc_package_name == "chuck") {
+    // }
+
+    manager->open_examples(examples_package_name);
   } else if (subcommand == "logo") {
     // get target
     string target = parser.getCommandTarget("logo");
@@ -442,6 +496,8 @@ void printUsage() {
        << "                             list available packages" << endl;
   cerr << INDENT << "  └─" << TC::blue(" --installed/-i", TRUE)
        << "                └─ list only installed packages" << endl;
+  cerr << INDENT << "  └─" << TC::blue(" --updates/-u", TRUE)
+       << "                └─ list only packages that can be updated" << endl;
   cerr << INDENT << TC::blue("info", TRUE)
        << " <package>                   display information about <package>"
        << endl;
@@ -468,6 +524,10 @@ void printUsage() {
        << "                                   (compatible with chuck version "
           "and OS)"
        << endl;
+  cerr << INDENT << TC::blue("doc", TRUE)
+       << " <package>                    open <package> documentation" << endl;
+  cerr << INDENT << TC::blue("examples", TRUE)
+       << " <package>               open <package> examples directory" << endl;
   cerr << INDENT << TC::blue("logo", TRUE)
        << " <mode>                      behold the chump logo" << endl;
   cerr << INDENT << "  └─" << TC::blue(" cereal", TRUE)
