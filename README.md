@@ -32,7 +32,7 @@ make mac-universal
 ### Windows
 ```
 # configure build dir
-meson setup builddir --backend vs
+meson setup --buildtype=release builddir-release --backend vs
 # Go to build dir
 cd builddir
 # Compile the project
