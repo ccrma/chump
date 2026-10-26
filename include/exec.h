@@ -11,8 +11,8 @@
 #include <tuple>
 #include <vector>
 
-#include "manager.h"
 #include "chuck_version.h"
+#include "manager.h"
 #include "util.h"
 
 #if defined(_WIN32)
