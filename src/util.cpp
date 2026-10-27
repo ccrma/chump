@@ -6,10 +6,12 @@
 
 #include <algorithm>
 #include <cctype>
+#include <chrono>
 #include <fstream>
 #include <iostream>
 #include <openssl/evp.h>
 #include <openssl/sha.h>
+#include <random>
 #include <sstream>
 #include <system_error>
 
@@ -350,8 +352,32 @@ optional<InstalledVersion> getInstalledVersion(fs::path dir) {
   return installed_version;
 }
 
+
 //-----------------------------------------------------------------------------
-// name: ck_isatty() | 1.5.0.5 (ge) added
+// name: makeTempDir()
+// desc: create a unique directory that is in the OS's temp directory.
+//       returns the path to the created dir.
+//       Reference: https://stackoverflow.com/a/58454949
+//-----------------------------------------------------------------------------
+fs::path makeTempDir() {
+  fs::path base_path = fs::temp_directory_path();
+
+  // Random number generator
+  std::mt19937_64 rng(std::chrono::steady_clock::now().time_since_epoch().count());
+  std::uniform_int_distribution<uint64_t> dist;
+
+  // find a valid, unused dirname
+  fs::path temp_path;
+  do {
+    temp_path = base_path / ("tmp_" + std::to_string(dist(rng)));
+  } while (fs::exists(temp_path));
+
+  fs::create_directories(temp_path);
+  return temp_path;
+}
+
+//-----------------------------------------------------------------------------
+// name: ck_isatty()
 // desc: are we output to a TTY (teletype, character by character)
 //       (vs say a file stream; helpful for determining if we should
 //       suppress printing ANSI escapes codes, e.g., color codes

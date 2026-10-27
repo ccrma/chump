@@ -43,6 +43,9 @@ string to_lower(const string &str);
 // Try to open a verison.json file
 optional<InstalledVersion> getInstalledVersion(fs::path dir);
 
+// Make a temp dir in path
+fs::path makeTempDir();
+
 // are we output to a terminal?
 t_CKBOOL ck_isatty();
 

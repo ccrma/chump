@@ -87,8 +87,7 @@ bool Manager::install(string packageName) {
   }
 
   // Create a temporary directory to download our files to
-  fs::path temp_dir = {fs::temp_directory_path() /= std::tmpnam(nullptr)};
-  fs::create_directory(temp_dir);
+  fs::path temp_dir = makeTempDir();
 
   // fetch
   for (auto file : version.files) {
@@ -298,8 +297,7 @@ bool Manager::update(string packageName) {
   }
 
   // Create a temporary directory to download our files to
-  fs::path temp_dir = {fs::temp_directory_path() /= std::tmpnam(nullptr)};
-  fs::create_directory(temp_dir);
+  fs::path temp_dir = makeTempDir();
 
   // fetch
   for (auto file : latest_version.files) {
@@ -517,8 +515,7 @@ bool Manager::update_manifest() {
   }
 
   // Create a temporary directory to download our manifest to
-  fs::path temp_dir = {fs::temp_directory_path() /= std::tmpnam(nullptr)};
-  fs::create_directory(temp_dir);
+  fs::path temp_dir = makeTempDir();
 
   // load both tmp file and current file as strings
   bool result = fetch->fetch_manifest(manifest_url, temp_dir);
