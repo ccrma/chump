@@ -300,7 +300,7 @@ void from_json(const json &j, PackageVersion &p) {
   if (j.contains("arch") && !j["arch"].is_null()) {
     p.arch = stringToArchitecture.at(j["arch"]);
   } else {
-    p.arch = ARCH_ALL;
+    p.arch = ARCH_ALL_CHMP;
   }
 
   j.at("files").get_to(p.files);
@@ -369,7 +369,7 @@ optional<PackageVersion> Package::latest_version(string os, Architecture arch,
       continue;
 
     // special cases for macos universal binaries and ARCH_ANY
-    if (version.arch != ARCH_ALL && version.arch != arch) {
+    if (version.arch != ARCH_ALL_CHMP && version.arch != arch) {
       // The version is a different arch and it's not a mac universal binary
       if (version.arch != MAC_UNIVERSAL)
         continue;
@@ -591,7 +591,7 @@ void from_json(const json &j, InstalledVersion &p) {
   if (j.contains("arch") && !j["arch"].is_null()) {
     p.arch = stringToArchitecture.at(j["arch"]);
   } else {
-    p.arch = ARCH_ALL;
+    p.arch = ARCH_ALL_CHMP;
   }
 
   j.at("files").get_to(p.files);

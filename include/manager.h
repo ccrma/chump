@@ -5,6 +5,7 @@
 
 #include <string>
 #include <vector>
+#include <solv/repo.h>
 
 #include "chuck_version.h"
 #include "fetch.h"
@@ -26,8 +27,9 @@ public:
           Architecture arch, std::string manifest_url, bool render_tui);
 
 public:
-  // return a list of all (installed) packages
+  // return a list of all packages (in manifest or installed)
   std::vector<Package> listPackages();
+  std::vector<InstalledVersion> listInstalledVersions();
 
   optional<Package> getPackage(string name);
   optional<PackageVersion> latestPackageVersion(string name);
@@ -63,6 +65,10 @@ public:
   optional<Package> open_package_file(fs::path path);
   optional<InstalledVersion> open_installed_version_file(fs::path path);
   optional<PackageVersion> open_package_version_file(fs::path path);
+
+private: // dependency resolution variables
+  Repo *initializeSystemRepo();
+  Repo *systemRepo;
 };
 
 #endif

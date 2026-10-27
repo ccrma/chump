@@ -32,7 +32,7 @@ struct File;
 // macs built as a universal binary.
 // -----------------------------------------------------------------------------
 enum Architecture {
-  ARCH_ALL,
+  ARCH_ALL_CHMP,
   X86,
   X86_64,
   ARM64,        // including apple silicon
@@ -93,7 +93,7 @@ void to_json(json &j, const Package &p);
 void from_json(const json &j, Package &p);
 
 static const map<string, Architecture> stringToArchitecture = {
-    {"all", ARCH_ALL},
+    {"all", ARCH_ALL_CHMP},
     {"x86", X86},
     {"x86_64", X86_64},
     {"arm64", ARM64},
@@ -101,7 +101,7 @@ static const map<string, Architecture> stringToArchitecture = {
 };
 
 static const map<Architecture, string> architectureToString = {
-    {ARCH_ALL, "all"},
+    {ARCH_ALL_CHMP, "all"},
     {X86, "x86"},
     {X86_64, "x86_64"},
     {ARM64, "arm64"},

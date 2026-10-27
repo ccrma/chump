@@ -357,7 +357,7 @@ optional<InstalledVersion> getInstalledVersion(fs::path dir) {
 // name: makeTempDir()
 // desc: create a unique directory that is in the OS's temp directory.
 //       returns the path to the created dir.
-//       Reference: https://stackoverflow.com/a/58454949
+//       Reference: htmtps://stackoverflow.com/a/58454949
 //-----------------------------------------------------------------------------
 fs::path makeTempDir() {
   fs::path base_path = fs::temp_directory_path();

@@ -6,12 +6,28 @@
 #include <solv/solverdebug.h>
 #include <iostream>
 
+/* main logic of dependency solver
+
+   system repo - fill with currently installed packages in chump
+
+   it seems that the repo can be constructed ahead of time and only when
+   installs happen does it need to be referenced
+   - need to create system repo with currently installed packages
+   - then create the full repo with everything in it?
+
+   single package install:
+   - add package to be installed to repo
+   - add dependencies of installing package to repo
+     - recursively add dependencies of these packages
+
+ */
+
 int main() {
     // Create a new dependency pool
     Pool *pool = pool_create();
 
     // Enable debug printing
-    pool_setdebuglevel(pool, 2);  // 1 = minimal, 2 = verbose
+    pool_setdebuglevel(pool, 1);  // 0 = nothing, 1 = minimal, 2 = verbose
 
     // Create an empty system repo (represents installed packages)
     Repo *systemRepo = repo_create(pool, "@System");

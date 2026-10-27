@@ -2,6 +2,8 @@
 #include "manager.h"
 #include "util.h"
 
+#include <solv/pool.h>
+#include <solv/solver.h>
 #include <regex>
 #include <sstream>
 
@@ -24,6 +26,8 @@ Manager::Manager(string package_list_path, fs::path package_install_dir,
   // really only used to update manifest without needed to properly
   // parse the existing manifest.
   package_list = new PackageList(package_list_path);
+
+  systemRepo = initializeSystemRepo();
 }
 
 optional<Package> Manager::getPackage(string packageName) {
@@ -446,7 +450,12 @@ bool Manager::uninstall(string packageName, bool force) {
   return true;
 }
 
-// return a list of all (installed) packages
+//-----------------------------------------------------------------------------
+// name: listPackages()
+// desc: Return a list of all packages. This includes both packages found
+//       on the manifest as well as packages that were installed from a
+//       local source
+//-----------------------------------------------------------------------------
 std::vector<Package> Manager::listPackages() {
   std::vector<Package> pkg_list = package_list->get_packages();
 
@@ -482,6 +491,38 @@ std::vector<Package> Manager::listPackages() {
 
   return pkg_list;
 }
+
+
+
+//-----------------------------------------------------------------------------
+// name: listInstalledVersions()
+// desc: Return a list of all currently installed package versions. These do not
+//       have to be on the manifest (i.e. can be installed from a local source)
+//-----------------------------------------------------------------------------
+std::vector<InstalledVersion> Manager::listInstalledVersions() {
+  std::vector<InstalledVersion> version_list;
+
+  for (auto const &dir_entry : fs::directory_iterator{chump_dir}) {
+    // To be installed, a package has to have a direction in the chump_dir
+    // and that directory has to contain a version.json
+    if (!fs::is_directory(dir_entry))
+      continue;
+    if (!fs::exists(dir_entry.path() / "version.json"))
+      continue;
+
+    optional<InstalledVersion> installed_version =
+        getInstalledVersion(dir_entry);
+
+    // If not installed, skip
+    if (!installed_version)
+      continue;
+
+    version_list.push_back(installed_version.value());
+  }
+
+  return version_list;
+}
+
 
 bool Manager::is_installed(Package pkg) {
   fs::path install_dir = packagePath(pkg, chump_dir);
@@ -746,4 +787,51 @@ optional<PackageVersion> Manager::open_package_version_file(fs::path path) {
               << "\" to PackageVersion: " << e.what() << std::endl;
     return {};
   }
+}
+
+
+
+//-----------------------------------------------------------------------------
+// name: initializeSystemRepo()
+// desc: Create a libsolv pool of all the packages installed on your system
+//       (and their dependencies)
+//-----------------------------------------------------------------------------
+Repo *Manager::initializeSystemRepo() {
+  Pool *pool = pool_create();
+
+  Repo *systemRepo = repo_create(pool, "@System");
+
+  std::vector<InstalledVersion> installed_versions = listInstalledVersions();
+
+  std::cout << "initiazle system repo\n";
+
+  // add all installed packages to system repo
+  for (auto ver : installed_versions) {
+    Id pkgId = repo_add_solvable(systemRepo);
+    Solvable *solv = pool_id2solvable(pool, pkgId);
+
+    solv->name = pool_str2id(pool, ver.name.c_str(), 1);
+    solv->evr = pool_str2id(pool, ver.version().getVersionString().c_str(), 1);
+
+    // std::cout << "name " << ver.name << "\n";
+    // std::cout << "arch " << ver.arch << " " << ver.os << "\n";
+
+    string arch = architectureToString.at(ver.arch);
+    solv->arch = pool_str2id(pool, arch.c_str(), 1);
+
+    Id rel_provides = pool_rel2id(pool, solv->name, solv->evr, REL_EQ, 1);
+    solvable_add_deparray(solv, SOLVABLE_PROVIDES, rel_provides, 0);
+
+    // TODO I need to define dependencies in a version and add those
+  }
+  repo_internalize(systemRepo);
+
+  std::cout << "exit system repo\n";
+
+  // Verify system repo setup
+  printf("Installed repo populated with %d solvables.\n", systemRepo->nsolvables);
+
+  // Cleanup
+  pool_free(pool);
+  return systemRepo;
 }

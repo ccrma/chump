@@ -14,6 +14,9 @@ zlib_dep = subproject('zlib', default_options: ['prefer_static=true'], required:
 libcurl_dep = subproject('curl', default_options: ['prefer_static=true'], required: true).get_variable('curl_dep')
 minizip_dep = subproject('minizip-ng', default_options: ['prefer_static=true'], required: true).get_variable('minizip_ng_dep')
 
+# TODO make this statically linked
+libsolv_dep = dependency('libsolv')
+
 cheaders_proj = subproject('cheaders')
 cheaders_dep = cheaders_proj.get_variable('cheaders_dep')
 
@@ -21,10 +24,10 @@ chump_lib = static_library(
   'chump_lib',
   sources: chump_lib_sources,
   include_directories : inc,
-  dependencies : [nlohmann_json_dep, libcurl_dep, openssl_dep, minizip_dep, cheaders_dep, zlib_dep],
+  dependencies : [nlohmann_json_dep, libcurl_dep, openssl_dep, minizip_dep, cheaders_dep, zlib_dep, libsolv_dep],
 )
 
 chump_lib_dep = declare_dependency(
-  dependencies: [nlohmann_json_dep, libcurl_dep, openssl_dep, minizip_dep, cheaders_dep, zlib_dep],
+  dependencies: [nlohmann_json_dep, libcurl_dep, openssl_dep, minizip_dep, cheaders_dep, zlib_dep, libsolv_dep],
   include_directories : inc,
   link_with : chump_lib)

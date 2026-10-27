@@ -32,6 +32,7 @@ build-mac-arm64: setup-mac-arm64
 
 build-mac-debug: setup-debug
 	meson compile -C builddir-debug
+	cp builddir-debug/chump-cli/chump chump
 
 install:
 	meson install -C builddir-release
@@ -51,6 +52,7 @@ mac osx: mac-universal
 
 .PHONY: mac-arm64
 mac-arm64: build-mac-arm64
+	cp builddir-arm64/chump-cli/chump chump
 
 linux-debug: build-debug
 	meson compile -C builddir-debug

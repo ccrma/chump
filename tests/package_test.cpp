@@ -102,7 +102,7 @@ TEST_CASE("latest_version returns the highest compatible version",
                     {{"./", "file1"}, {"./", "file2"}});
   PackageVersion v4("3.0.1", "1.5.2.1", "1.5.2.4", "10.1", "linux", X86_64,
                     {{"./", "file1"}, {"./", "file2"}});
-  PackageVersion v5("3.0.2", "1.5.2.1", "1.5.2.4", "10.1", "any", ARCH_ALL,
+  PackageVersion v5("3.0.2", "1.5.2.1", "1.5.2.4", "10.1", "any", ARCH_ALL_CHMP,
                     {{"./", "file1"}, {"./", "file2"}});
 
   // Mockup Package with versions
@@ -199,7 +199,7 @@ TEST_CASE("version() test") {
                     {{"./", "file1"}, {"./", "file2"}});
   PackageVersion v4("3.0.1", "1.5.2.1", "1.5.2.4", "10.1", "linux", X86_64,
                     {{"./", "file1"}, {"./", "file2"}});
-  PackageVersion v5("3.0.2", "1.5.2.1", "1.5.2.4", "10.1", "any", ARCH_ALL,
+  PackageVersion v5("3.0.2", "1.5.2.1", "1.5.2.4", "10.1", "any", ARCH_ALL_CHMP,
                     {{"./", "file1"}, {"./", "file2"}});
 
   // Mockup Package with versions
