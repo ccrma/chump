@@ -676,10 +676,6 @@ std::string bedtimeLogo(int counter) {
                 --- ChuMP! the CHUck Manager of Packages ---
   )";
   // clang-format on
-
-  auto num_lines = std::count(logo.begin(), logo.end(), '\n');
-  num_lines += (!logo.empty() && logo.back() != '\n');
-
   logo = bedtimeColors(logo, counter);
 
   return logo;

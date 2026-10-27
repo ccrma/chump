@@ -448,10 +448,13 @@ bool Manager::uninstall(string packageName, bool force) {
   return true;
 }
 
+// return a list of all (installed) packages
 std::vector<Package> Manager::listPackages() {
   std::vector<Package> pkg_list = package_list->get_packages();
 
   for (auto const &dir_entry : fs::directory_iterator{chump_dir}) {
+    // To be installed, a package has to have a direction in the chump_dir
+    // and that directory has to contain a version.json
     if (!fs::is_directory(dir_entry))
       continue;
     if (!fs::exists(dir_entry.path() / "version.json"))
@@ -460,6 +463,7 @@ std::vector<Package> Manager::listPackages() {
     optional<InstalledVersion> installed_version =
         getInstalledVersion(dir_entry);
 
+    // If not installed, skip
     if (!installed_version)
       continue;
 
