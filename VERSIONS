@@ -1,6 +1,13 @@
 ------------------
 ChuMP VERSIONS log
 ------------------
+0.0.4
+=====
+Infinite chump
+
+(improved) added OS architecture and ChucK version to info messages
+	   when a package isn't available on the specific system configuration
+
 0.0.3
 =====
 20,000 chumps under the sea
@@ -31,5 +38,4 @@ A chump is born!
 
 
 === Potential Future Version Names ===
-- Infinite chump
 - No country for old chumps

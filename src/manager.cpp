@@ -492,6 +492,10 @@ fs::path Manager::install_path(Package pkg) {
   return packagePath(pkg, chump_dir);
 }
 
+string Manager::getSystemChuckVersion() {
+  return language_version.getVersionString();
+};
+
 bool Manager::update_manifest() {
   optional<int> newest_manifest_version = fetch->fetch_newest_manifest_version(
       "https://chuck.stanford.edu/release/chump/manifest/"

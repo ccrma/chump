@@ -11,6 +11,7 @@
 #include <tuple>
 #include <vector>
 
+#include "chuck_version.h"
 #include "manager.h"
 #include "util.h"
 
@@ -105,7 +106,11 @@ void printPackagesMultiLine(Manager *mgr, bool print_installed,
 
     optional<PackageVersion> latest = mgr->latestPackageVersion(p.name);
 
-    string latest_version = "Not available on this OS";
+    string latest_version = "Not available on this OS (" + whichOS() + ", " +
+                            architectureToString.at(whichArch()) +
+                            ") and ChucK version (v" +
+                            mgr->getSystemChuckVersion() + ")";
+
     if (latest)
       latest_version = latest.value().getVersionString();
 
@@ -262,7 +267,11 @@ void printInstalledPackages(Manager *mgr) {
 void printPackage(Manager *mgr, Package p) {
   optional<PackageVersion> latest = mgr->latestPackageVersion(p.name);
 
-  string latest_version = "Not available on this OS";
+  string latest_version = "Not available on this OS (" + whichOS() + ", " +
+                          architectureToString.at(whichArch()) +
+                          ") and ChucK version (v" +
+                          mgr->getSystemChuckVersion() + ")";
+
   if (latest)
     latest_version = latest.value().getVersionString();
 

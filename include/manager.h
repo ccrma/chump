@@ -43,6 +43,8 @@ public:
   bool is_installed(Package pkg);
   fs::path install_path(Package pkg);
 
+  string getSystemChuckVersion();
+
 public:
   // the fetcher implementation
   FetchBase *fetch;
