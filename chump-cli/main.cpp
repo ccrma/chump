@@ -12,6 +12,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <thread>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -21,6 +22,7 @@ namespace fs = std::filesystem;
 using std::cerr;
 using std::string;
 using std::vector;
+using std::endl;
 
 #define BASE_URL "https://chuck.stanford.edu/release/chump/manifest/"
 
