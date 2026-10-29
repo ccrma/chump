@@ -1,4 +1,4 @@
 [wrap-git]
 url = https://github.com/openSUSE/libsolv.git
-revision = master
+revision = 0.7.41
 depth = 1
