@@ -35,7 +35,7 @@ public:
   optional<PackageVersion> latestPackageVersion(string name);
 
   bool install(string packageName);
-  bool installWithDeps(string packageName);
+  bool installWithDeps(const vector<string> packageNames);
   bool install_local(fs::path pkgDefn, fs::path pkgVer, fs::path pkgZip);
   bool uninstall(string packageName, bool force);
   bool update(string packageName);

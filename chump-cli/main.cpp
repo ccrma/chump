@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 #include <thread>
+#include <unordered_set>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -24,7 +25,9 @@ using std::string;
 using std::vector;
 using std::endl;
 
-#define BASE_URL "https://chuck.stanford.edu/release/chump/manifest/"
+// TODO: move back to release manifest once testing is done
+// #define BASE_URL "https://chuck.stanford.edu/release/chump/manifest/"
+#define BASE_URL "https://chuck.stanford.edu/~nshaheed/chump/manifest-dev/"
 
 // indent string
 static const string INDENT = "    ";
@@ -283,13 +286,11 @@ int main(int argc, const char **argv) {
       return 1;
     }
 
-    // install a package by name
-    for (string install_package_name : install_package_names) {
-      try {
-        manager->installWithDeps(install_package_name);
-      } catch (const std::exception &e) {
-        cerr << e.what() << endl;
-      }
+    // install packages by name
+    try {
+      manager->installWithDeps(install_package_names);
+    } catch (const std::exception &e) {
+      cerr << e.what() << endl;
     }
   } else if (subcommand == "install-local") {
     vector<string> targets = parser.command().targets();

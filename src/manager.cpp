@@ -6,6 +6,7 @@
 #include <solv/solver.h>
 #include <regex>
 #include <sstream>
+#include <unordered_set>
 
 void printDependencies(Pool *pool, const char *packageName);
 
@@ -47,39 +48,45 @@ optional<PackageVersion> Manager::latestPackageVersion(string name) {
 
 // Install, but with dependencies!
 // Uses libsolv to resolve package dependencies via a sat solver
-bool Manager::installWithDeps(string packageName) {
-  // parse packages here
-  auto [name, version_string] = parsePackageName(packageName);
-
-  // lookup package name (default to latest version)
-  auto pkg = package_list->find_package(name);
-
-  if (!pkg) {
-    std::cerr << "[chump]: package " << packageName << " not found."
-              << std::endl;
-    return false;
-  }
-
-  // now get install list here
+bool Manager::installWithDeps(const vector<string> packageNames) {
+  // make install list
   Queue job;
   queue_init(&job);
 
-  // printDependencies(pool, name.c_str());
+  std::unordered_set<Id> requestedPackages;
 
-  // define job
-  Id name_id = pool_str2id(pool, name.c_str(), 1);
+  for (auto packageName : packageNames) {
+    // parse packages here
+    auto [name, version_string] = parsePackageName(packageName);
 
-  // If a package version is specified, have both the name
-  // and version as solver constraints, otherwise, just
-  // constrain on the name.
-  if (version_string) {
-    Id evr_id = pool_str2id(pool, version_string.value().c_str(), 1);
+    // lookup package name (default to latest version)
+    auto pkg = package_list->find_package(name);
 
-    // create a relational ID (i.e. "Rec = 1.1.0")
-    Id rel_id = pool_rel2id(pool, name_id, evr_id, REL_EQ, 1);
-    queue_push2(&job, SOLVER_INSTALL | SOLVER_SOLVABLE_PROVIDES, rel_id);
-  } else {
-    queue_push2(&job, SOLVER_INSTALL | SOLVER_SOLVABLE_NAME, name_id);
+    if (!pkg) {
+      std::cerr << "[chump]: package " << packageName << " not found."
+		<< std::endl;
+      return false;
+    }
+
+    // printDependencies(pool, name.c_str());
+
+    // define job
+    Id name_id = pool_str2id(pool, name.c_str(), 1);
+
+    requestedPackages.insert(name_id);
+
+    // If a package version is specified, have both the name
+    // and version as solver constraints, otherwise, just
+    // constrain on the name.
+    if (version_string) {
+      Id evr_id = pool_str2id(pool, version_string.value().c_str(), 1);
+
+      // create a relational ID (i.e. "Rec = 1.1.0")
+      Id rel_id = pool_rel2id(pool, name_id, evr_id, REL_EQ, 1);
+      queue_push2(&job, SOLVER_INSTALL | SOLVER_SOLVABLE_PROVIDES, rel_id);
+    } else {
+      queue_push2(&job, SOLVER_INSTALL | SOLVER_SOLVABLE_NAME, name_id);
+    }
   }
 
   // std::cout << "--- libsolv Pool State Dump ---\n";
@@ -125,12 +132,15 @@ bool Manager::installWithDeps(string packageName) {
   Transaction *trans = solver_create_transaction(solver);
 
   if (trans->steps.count == 0) {
-    std::cerr << "[chump]: the package '" << name << "' already exists."
+    std::cerr << "[chump]: the requested packages are already installed."
               << std::endl;
-    std::cerr << "[chump]: use `chump update " << name
-              << "' to update the existing package" << std::endl;
-    std::cerr << "[chump]: or use `chump uninstall " << name
-              << "` to remove the package" << std::endl;
+    std::cerr << "[chump]: use `chump update <package>' to update the existing "
+                 "package"
+              << std::endl;
+    std::cerr
+        << "[chump]: or use `chump uninstall <package>` to remove the package"
+        << std::endl;
+
     transaction_free(trans);
     solver_free(solver);
     queue_free(&job);
@@ -158,8 +168,10 @@ bool Manager::installWithDeps(string packageName) {
       string s_name = pool_id2str(pool, s->name);
       string s_evr = pool_id2str(pool, s->evr);
 
+      bool is_requested = requestedPackages.count(s->name) > 0;
+
       // Print different message depending on if it's dependency or not
-      if (s_name == name) {
+      if (is_requested) {
 	std::cout << "[chump] installing package: " << s_name << "="
                 << s_evr << "\n";
       } else {
