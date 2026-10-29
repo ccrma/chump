@@ -2,8 +2,8 @@
 #include "manager.h"
 #include "util.h"
 
-#include <regex>
 #include <pool.h>
+#include <regex>
 #include <solver.h>
 #include <sstream>
 #include <unordered_set>
