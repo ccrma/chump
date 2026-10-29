@@ -1,4 +1,28 @@
 #include "exec.h"
+#include "util.h"
+
+#define NOMINMAX // to get std::min/std::max working on windows
+#include <cctype>
+#include <chrono>
+#include <filesystem>
+#include <iomanip>
+#include <iostream>
+#include <random>
+#include <sstream>
+#include <stdlib.h>
+#include <thread>
+#include <tuple>
+#include <vector>
+
+#if defined(_WIN32)
+#include <Windows.h>
+#else
+#include <sys/ioctl.h>
+#endif
+
+using std::endl;
+
+namespace fs = std::filesystem;
 
 void printPackage(Package pkg) { std::cout << pkg << std::endl; }
 

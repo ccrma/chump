@@ -261,7 +261,7 @@ int main(int argc, const char **argv) {
     optional<Package> pkg = manager->getPackage(info_package_name);
     // check
     if (!pkg) {
-      std::cerr << "unable to find package " << info_package_name << std::endl;
+      std::cerr << "[chump] unable to find package " << info_package_name << std::endl;
       return 1;
     }
     printPackage(manager, pkg.value());
@@ -286,7 +286,7 @@ int main(int argc, const char **argv) {
     // install a package by name
     for (string install_package_name : install_package_names) {
       try {
-        manager->install(install_package_name);
+        manager->installWithDeps(install_package_name);
       } catch (const std::exception &e) {
         cerr << e.what() << endl;
       }

@@ -270,7 +270,7 @@ public:
 
 private:
   // instance data
-  t_CKFLOAT m_param;
+  // t_CKFLOAT m_param;
   string name;
   vector<string> authors;
   optional<string> homepage;

@@ -24,6 +24,7 @@ namespace fs = std::filesystem;
 
 struct PackageVersion;
 struct File;
+struct Dependency;
 
 //-----------------------------------------------------------------------------
 // Compatible architecture for a chump PackageVersion. This should
@@ -141,6 +142,7 @@ struct PackageVersion {
   string os;
   Architecture arch;
   vector<File> files;
+  vector<Dependency> dependencies;
 
   // Equality operator overload
   bool operator==(const PackageVersion &other) const;
@@ -204,12 +206,29 @@ struct InstalledVersion {
   Architecture arch;
   vector<fs::path> files;
 
+  vector<Dependency> dependencies;
+
   string getVersionString() const;
 };
 
 // Function declarations for JSON serialization/deserialization
 void to_json(json &j, const InstalledVersion &p);
 void from_json(const json &j, InstalledVersion &p);
+
+
+//-----------------------------------------------------------------------------
+// Dependency describes a package's dependency.
+// -----------------------------------------------------------------------------
+struct Dependency {
+  string name;
+  // these will just be for the version string
+  optional<PackageVersion> version_min;
+  optional<PackageVersion> version_max;
+};
+
+// Function declarations for JSON serialization/deserialization
+void to_json(json &j, const Dependency &p);
+void from_json(const json &j, Dependency &p);
 
 // What kind of file is this? Package file, dep, example, etc...
 enum FileType {

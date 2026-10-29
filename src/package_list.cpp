@@ -35,7 +35,6 @@ PackageList::PackageList(fs::path filepath) {
 
   for (auto &j_package : j_packages) {
     Package p = j_package.get<Package>();
-
     packages.push_back(p);
   }
 }

@@ -7,6 +7,8 @@
 #include <regex>
 #include <sstream>
 
+void printDependencies(Pool *pool, const char *packageName);
+
 Manager::Manager(string package_list_path, fs::path package_install_dir,
                  ChuckVersion ck_ver, ApiVersion api_ver, string system_os,
                  Architecture _arch, string _manifest_url, bool render_tui) {
@@ -27,7 +29,11 @@ Manager::Manager(string package_list_path, fs::path package_install_dir,
   // parse the existing manifest.
   package_list = new PackageList(package_list_path);
 
+  pool = pool_create();
   systemRepo = initializeSystemRepo();
+  manifestRepo = initializeManifestRepo();
+
+  // testSolve();
 }
 
 optional<Package> Manager::getPackage(string packageName) {
@@ -37,6 +43,189 @@ optional<Package> Manager::getPackage(string packageName) {
 optional<PackageVersion> Manager::latestPackageVersion(string name) {
   return package_list->find_latest_package_version(
       name, os, arch, language_version, api_version);
+}
+
+// Install, but with dependencies!
+// Uses libsolv to resolve package dependencies via a sat solver
+bool Manager::installWithDeps(string packageName) {
+  // parse packages here
+  auto [name, version_string] = parsePackageName(packageName);
+
+  // lookup package name (default to latest version)
+  auto pkg = package_list->find_package(name);
+
+  if (!pkg) {
+    std::cerr << "[chump]: package " << packageName << " not found."
+              << std::endl;
+    return false;
+  }
+
+  // now get install list here
+  Queue job;
+  queue_init(&job);
+
+  // printDependencies(pool, name.c_str());
+
+  // define job
+  Id name_id = pool_str2id(pool, name.c_str(), 1);
+
+  // If a package version is specified, have both the name
+  // and version as solver constraints, otherwise, just
+  // constrain on the name.
+  if (version_string) {
+    Id evr_id = pool_str2id(pool, version_string.value().c_str(), 1);
+
+    // create a relational ID (i.e. "Rec = 1.1.0")
+    Id rel_id = pool_rel2id(pool, name_id, evr_id, REL_EQ, 1);
+    queue_push2(&job, SOLVER_INSTALL | SOLVER_SOLVABLE_PROVIDES, rel_id);
+  } else {
+    queue_push2(&job, SOLVER_INSTALL | SOLVER_SOLVABLE_NAME, name_id);
+  }
+
+  // std::cout << "--- libsolv Pool State Dump ---\n";
+  // // Solvables are stored in a contiguous array from index 1 to pool->nsolvables
+  // for (int i = 1; i < pool->nsolvables; i++) {
+  //   Solvable *s = pool->solvables + i;
+
+  //   // Only print actual packages, skip empty slots
+  //   if (s->repo) {
+  //     std::cout << "Repo: " << s->repo->name
+  // 		<< " | Pkg: '" << pool_id2str(pool, s->name) << "'"
+  // 		<< " ver '" << pool_id2str(pool, s->evr) << "'"
+  // 		<< " (Name ID: " << s->name << ")\n";
+  //   }
+  // }
+  // std::cout << "-------------------------------\n";
+
+  // Create and run solver
+  Solver *solver = solver_create(pool);
+
+  // Allow the solver to downgrade installed packages if a dependency requires it
+  solver_set_flag(solver, SOLVER_FLAG_ALLOW_DOWNGRADE, 1);
+
+  // Solve it!
+  solver_solve(solver, &job);
+
+  // check for solver success
+  int problem_count = solver_problem_count(solver);
+  if (problem_count > 0) {
+    std::cerr << "[chump] dependency resolution failed with " << problem_count << " problems:\n";
+
+    Id problem = 0;
+    // Pass 0 to get the first problem, then pass the previous ID to get the next
+    while ((problem = solver_next_problem(solver, problem)) != 0) {
+      std::cerr << " - " << solver_problem2str(solver, problem) << "\n";
+    }
+
+    return false;
+  }
+
+  // parse the transaction and install/erase/upgrade
+  // there are a lot of options: https://github.com/openSUSE/libsolv/blob/c9ee7a3b946e8870f056dddc22032e4d43a40636/src/transaction.h#L45
+  Transaction *trans = solver_create_transaction(solver);
+
+  if (trans->steps.count == 0) {
+    std::cerr << "[chump]: the package '" << name << "' already exists."
+              << std::endl;
+    std::cerr << "[chump]: use `chump update " << name
+              << "' to update the existing package" << std::endl;
+    std::cerr << "[chump]: or use `chump uninstall " << name
+              << "` to remove the package" << std::endl;
+    transaction_free(trans);
+    solver_free(solver);
+    queue_free(&job);
+    return true; // Success, no file operations needed
+  }
+
+  // topologically order transactions
+  transaction_order(trans, 0);
+
+  for (int i = 0; i < trans->steps.count; ++i) {
+    Id p = trans->steps.elements[i];
+    Solvable *s = pool_id2solvable(pool, p);
+
+    // Determine what action the solver is actually taking on this package
+    // Id step_type = transaction_type(trans, p, SOLVER_TRANSACTION_SHOW_ALL);
+    Id step_type = transaction_type(trans, p, 0);
+
+    // ignore ck & api version (we can't install these!)
+    if (strcmp(pool_id2str(pool, s->name), "chuck-system-version") == 0)
+      continue;
+    if (strcmp(pool_id2str(pool, s->name), "chuck-system-api") == 0)
+      continue;
+
+    if (step_type == SOLVER_TRANSACTION_INSTALL) {
+      string s_name = pool_id2str(pool, s->name);
+      string s_evr = pool_id2str(pool, s->evr);
+
+      // Print different message depending on if it's dependency or not
+      if (s_name == name) {
+	std::cout << "[chump] installing package: " << s_name << "="
+                << s_evr << "\n";
+      } else {
+        std::cout << "[chump] installing dependency: " << pool_id2str(pool, s->name) << "="
+                  << pool_id2str(pool, s->evr) << "\n";
+      }
+
+      string pkgstr =
+	string(pool_id2str(pool, s->name)) + "=" + string(pool_id2str(pool, s->evr));
+
+      if (!install(pkgstr)) {
+	std::cerr << "Failed to install\n";
+	return false;
+      }
+    } else if (step_type == SOLVER_TRANSACTION_ERASE) {
+      std::cout << "[chump] removing package: " << pool_id2str(pool, s->name) << "="
+                << pool_id2str(pool, s->evr) << "\n";
+
+      string pkg = string(pool_id2str(pool, s->name));
+      string pkgstr = pkg + "=" +
+                      string(pool_id2str(pool, s->evr));
+
+      if (!uninstall(pkg, false)) {
+        std::cerr << "[chump] failed to uninstall package: " << pkg << "\n";
+	return false;
+      }
+    } else if (step_type == SOLVER_TRANSACTION_IGNORE) {
+      // std::cout << "Ignoring: " << pool_id2str(pool, s->name) << "="
+      //           << pool_id2str(pool, s->evr) << "\n";
+    } else if (step_type == SOLVER_TRANSACTION_UPGRADED || step_type == SOLVER_TRANSACTION_DOWNGRADED) {
+      // 's' is the OLD package being removed.
+      // need to ask libsolv what the NEW package is
+      Id new_p = transaction_obs_pkg(trans, p);
+      Solvable *new_s = pool_id2solvable(pool, new_p);
+
+      std::string action = (step_type == SOLVER_TRANSACTION_UPGRADED)
+                               ? "Upgrade: "
+                               : "Downgrade: ";
+
+      std::cout << "[chump] " << action << pool_id2str(pool, s->name) << " from "
+                << pool_id2str(pool, s->evr) << " to "
+                << pool_id2str(pool, new_s->evr) << "\n";
+
+      // install the new package
+      string pkg = string(pool_id2str(pool, new_s->name));
+      string pkgstr = pkg + "=" +
+                      string(pool_id2str(pool, new_s->evr));
+
+      if (!uninstall(pkg, false)) {
+	std::cerr << "[chump] failed to uninstall package: " << pkg << "\n";
+	return false;
+      }
+      if (!install(pkgstr)) {
+	std::cerr << "[chump] failed to install package: " << pkg << "\n";
+      }
+    } else {
+      std::cout << "[chump] unaccounted for step type: " << step_type << "\n";
+    }
+  }
+
+  // Clean up
+  transaction_free(trans);
+  solver_free(solver);
+  queue_free(&job);
+
+  return true;
 }
 
 bool Manager::install(string packageName) {
@@ -793,28 +982,57 @@ optional<PackageVersion> Manager::open_package_version_file(fs::path path) {
 
 //-----------------------------------------------------------------------------
 // name: initializeSystemRepo()
-// desc: Create a libsolv pool of all the packages installed on your system
+// desc: Create a libsolv repo of all the packages installed on your system
 //       (and their dependencies)
 //-----------------------------------------------------------------------------
 Repo *Manager::initializeSystemRepo() {
-  Pool *pool = pool_create();
-
-  Repo *systemRepo = repo_create(pool, "@System");
+  Repo *repo = repo_create(pool, "@System");
+  pool_set_installed(pool, repo); // mark @System as the repo of installed packages
 
   std::vector<InstalledVersion> installed_versions = listInstalledVersions();
 
-  std::cout << "initiazle system repo\n";
+  // std::cout << "initiazle system repo\n";
+
+  // Add chuck's language information as a constraint in the repo.
+  Id ck_lang_id = repo_add_solvable(repo);
+  Solvable *s_lang = pool_id2solvable(pool, ck_lang_id);
+
+  s_lang->name = pool_str2id(pool, "chuck-system-version", 1);
+  s_lang->evr = pool_str2id(pool, language_version.getVersionString().c_str(), 1);
+
+  // Provide the virtual capability (e.g. "chuck-version = 1.5.5.9"
+  Id cap_ck_name = pool_str2id(pool, "chuck-version", 1);
+  Id cap_ck_ver  = pool_str2id(pool, language_version.getVersionString().c_str(), 1);
+  Id prov_rel_ck = pool_rel2id(pool, cap_ck_name, cap_ck_ver, REL_EQ, 1);
+
+  solvable_add_deparray(s_lang, SOLVABLE_PROVIDES, prov_rel_ck, 0);
+
+  // Add chuck api information as a constraint
+  Id ck_api_id = repo_add_solvable(repo);
+  Solvable *s_api = pool_id2solvable(pool, ck_api_id);
+
+  s_api->name = pool_str2id(pool, "chuck-system-api", 1);
+  s_api->evr = pool_str2id(pool, api_version.getVersionString().c_str(), 1);
+
+  // Provide the virtual capability (e.g. "chuck-version = 1.5.5.9"
+  Id cap_api_name = pool_str2id(pool, "chuck-api", 1);
+  Id cap_api_ver  = pool_str2id(pool, api_version.getVersionString().c_str(), 1);
+  Id prov_rel_api = pool_rel2id(pool, cap_api_name, cap_api_ver, REL_EQ, 1);
+
+  solvable_add_deparray(s_api, SOLVABLE_PROVIDES, prov_rel_api, 0);
 
   // add all installed packages to system repo
   for (auto ver : installed_versions) {
-    Id pkgId = repo_add_solvable(systemRepo);
+    Id pkgId = repo_add_solvable(repo);
     Solvable *solv = pool_id2solvable(pool, pkgId);
 
     solv->name = pool_str2id(pool, ver.name.c_str(), 1);
     solv->evr = pool_str2id(pool, ver.version().getVersionString().c_str(), 1);
 
-    // std::cout << "name " << ver.name << "\n";
-    // std::cout << "arch " << ver.arch << " " << ver.os << "\n";
+    // this causes a pkg to conflict with itself, which means that
+    // different versions of a package being installed at the same
+    // time will conflict
+    solvable_add_deparray(solv, SOLVABLE_CONFLICTS, solv->name, 0);
 
     string arch = architectureToString.at(ver.arch);
     solv->arch = pool_str2id(pool, arch.c_str(), 1);
@@ -822,16 +1040,196 @@ Repo *Manager::initializeSystemRepo() {
     Id rel_provides = pool_rel2id(pool, solv->name, solv->evr, REL_EQ, 1);
     solvable_add_deparray(solv, SOLVABLE_PROVIDES, rel_provides, 0);
 
-    // TODO I need to define dependencies in a version and add those
-  }
-  repo_internalize(systemRepo);
+    // add chuck language version constraint
+    Id min_ck_ver = pool_str2id(
+        pool, ver.language_version_min.getVersionString().c_str(), 1);
+    Id req_min_ck_ver = pool_rel2id(pool, cap_ck_name, min_ck_ver, REL_GT | REL_EQ, 1);
+    solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_min_ck_ver, 0);
 
-  std::cout << "exit system repo\n";
+    // set max lang version (if exists)
+    if (ver.language_version_max) {
+      Id max_ck_ver = pool_str2id(
+          pool, ver.language_version_max.value().getVersionString().c_str(), 1);
+      Id req_max_ck_ver = pool_rel2id(pool, cap_ck_name, max_ck_ver, REL_LT | REL_EQ, 1);
+      solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_max_ck_ver, 0);
+    }
+
+    // set api version (if exists)
+    if (ver.api_version) {
+      Id api_ver = pool_str2id(
+          pool, ver.api_version.value().getVersionString().c_str(), 1);
+      Id req_api_ver = pool_rel2id(pool, cap_api_name, api_ver, REL_EQ, 1);
+      solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_api_ver, 0);
+    }
+
+    // add dependencies (weeee)
+    for (Dependency dep : ver.dependencies) {
+      Id name_id = pool_str2id(pool, dep.name.c_str(), 1);
+
+      // optionally, add min/max version bounds of the dependency
+      if (dep.version_min) {
+	Id evr_id = pool_str2id(pool, dep.version_min.value().getVersionString().c_str(), 1);
+
+	// create an relational ID (i.e. "Rec >= 1.1.0")
+	Id rel_id = pool_rel2id(pool, name_id, evr_id, REL_GT | REL_EQ, 1);
+	solvable_add_deparray(solv, SOLVABLE_REQUIRES, rel_id, 0);
+      }
+
+      if (dep.version_max) {
+	Id evr_id = pool_str2id(pool, dep.version_max.value().getVersionString().c_str(), 1);
+
+	// create an relational ID (i.e. "Rec <= 1.1.0")
+	Id rel_id = pool_rel2id(pool, name_id, evr_id, REL_LT | REL_EQ, 1);
+	solvable_add_deparray(solv, SOLVABLE_REQUIRES, rel_id, 0);
+      }
+
+      if (!dep.version_min && !dep.version_max) {
+	  solvable_add_deparray(solv, SOLVABLE_REQUIRES, name_id, 0);
+      }
+    }
+  }
+  repo_internalize(repo);
 
   // Verify system repo setup
-  printf("Installed repo populated with %d solvables.\n", systemRepo->nsolvables);
+  // printf("Installed repo populated with %d solvables, %d ids.\n",
+  //        repo->nsolvables, repo->idarraysize);
 
-  // Cleanup
-  pool_free(pool);
-  return systemRepo;
+  return repo;
+}
+
+
+
+//-----------------------------------------------------------------------------
+// name: initializeManifestRepo()
+// desc: Create a libsolv repo of all packages available in the manifest
+//-----------------------------------------------------------------------------
+Repo *Manager::initializeManifestRepo() {
+  Repo *repo = repo_create(pool, "manifest");
+
+  // Enable debug printing
+  // pool_setdebuglevel(pool, 2);  // 0 = nothing, 1 = minimal, 2 = verbose
+
+  std::vector<Package> packages = listPackages();
+
+  // std::cout << "initialize manifest repo\n";
+
+  for (Package package : packages) {
+    for (PackageVersion ver : package.versions) {
+      Id pkgId = repo_add_solvable(repo);
+      Solvable *solv = pool_id2solvable(pool, pkgId);
+
+      solv->name = pool_str2id(pool, package.name.c_str(), 1);
+      solv->evr = pool_str2id(pool, ver.getVersionString().c_str(), 1);
+
+      // this causes a pkg to conflict with itself, which means that
+      // different versions of a package being installed at the same
+      // time will conflict
+      solvable_add_deparray(solv, SOLVABLE_CONFLICTS, solv->name, 0);
+
+      string arch = architectureToString.at(ver.arch);
+      solv->arch = pool_str2id(pool, arch.c_str(), 1);
+
+      Id rel_provides = pool_rel2id(pool, solv->name, solv->evr, REL_EQ, 1);
+      solvable_add_deparray(solv, SOLVABLE_PROVIDES, rel_provides, 0);
+
+      // add chuck language version constraint
+      Id cap_ck_name = pool_str2id(pool, "chuck-version", 1);
+
+      Id min_ck_ver = pool_str2id(
+          pool, ver.language_version_min.getVersionString().c_str(), 1);
+      Id req_min_ck_ver = pool_rel2id(pool, cap_ck_name, min_ck_ver, REL_GT | REL_EQ, 1);
+      solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_min_ck_ver, 0);
+
+      // set max lang version (if exists)
+      if (ver.language_version_max) {
+        Id max_ck_ver = pool_str2id(
+            pool, ver.language_version_max.value().getVersionString().c_str(),
+            1);
+	Id req_max_ck_ver = pool_rel2id(pool, cap_ck_name, max_ck_ver, REL_LT | REL_EQ, 1);
+	solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_max_ck_ver, 0);
+      }
+
+      // set api version (if exists)
+      if (ver.api_version) {
+	Id api_name = pool_str2id(pool, "chuck-api", 1);
+        Id api_ver = pool_str2id(
+            pool, ver.api_version.value().getVersionString().c_str(), 1);
+	Id req_api_ver = pool_rel2id(pool, api_name, api_ver, REL_EQ, 1);
+	solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_api_ver, 0);
+      }
+
+      // add dependencies (weeee)
+      for (Dependency dep : ver.dependencies) {
+	// std::cout << "Dependency: " << dep.name << "\n";
+        Id name_id = pool_str2id(pool, dep.name.c_str(), 1);
+
+	// optionally, add min/max version bounds of the dependency
+        if (dep.version_min) {
+          Id evr_id = pool_str2id(pool, dep.version_min.value().getVersionString().c_str(), 1);
+
+          // create an relational ID (i.e. "Rec >= 1.1.0")
+          Id rel_id = pool_rel2id(pool, name_id, evr_id, REL_GT | REL_EQ, 1);
+	  solvable_add_deparray(solv, SOLVABLE_REQUIRES, rel_id, 0);
+        }
+
+	if (dep.version_max) {
+          Id evr_id = pool_str2id(pool, dep.version_max.value().getVersionString().c_str(), 1);
+
+          // create an relational ID (i.e. "Rec <= 1.1.0")
+          Id rel_id = pool_rel2id(pool, name_id, evr_id, REL_LT | REL_EQ, 1);
+	  solvable_add_deparray(solv, SOLVABLE_REQUIRES, rel_id, 0);
+        }
+
+        if (!dep.version_min && !dep.version_max) {
+	  solvable_add_deparray(solv, SOLVABLE_REQUIRES, name_id, 0);
+	}
+      }
+    }
+  }
+  repo_internalize(repo);
+
+  // Verify system repo setup
+  // printf("Installed repo populated with %d solvables, %d ids.\n",
+  //        repo->nsolvables, repo->idarraysize);
+
+  return repo;
+}
+
+
+
+void printDependencies(Pool *pool, const char *packageName) {
+    // 1. Get the ID for the name (pass create=0 because we only want to lookup)
+    Id name_id = pool_str2id(pool, packageName, 0);
+    if (!name_id) {
+        std::cout << "Package '" << packageName << "' does not exist in the pool.\n";
+        return;
+    }
+
+    // 2. Prepare the pool for querying (builds the provider index)
+    pool_createwhatprovides(pool);
+
+    // 3. Iterate through every solvable that provides this name
+    Id p, pp;
+    FOR_PROVIDES(p, pp, name_id) {
+        Solvable *s = pool_id2solvable(pool, p);
+
+        // Print the package name and version
+        std::cout << "Dependencies for " << pool_id2str(pool, s->name)
+                  << "=" << pool_id2str(pool, s->evr) << ":\n";
+
+        // 4. Iterate through the SOLVABLE_REQUIRES array
+        if (s->requires) {
+	  Id req;
+	  // FIX 2: The internal array is named 'idarraydata'
+	  Id *reqp = s->repo->idarraydata + s->requires;
+
+	  // The array is 0-terminated
+	  while ((req = *reqp++) != 0) {
+	    // pool_dep2str handles both simple names ("foo") and relations ("foo >= 1.0")
+	    std::cout << "  - " << pool_dep2str(pool, req) << "\n";
+	  }
+        } else {
+            std::cout << "  (none)\n";
+        }
+    }
 }

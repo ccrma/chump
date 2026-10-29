@@ -352,6 +352,358 @@
                     ]
                 }
             ]
-        }
+        },
+	{
+            "name": "A",
+            "authors": [
+                "Nick Shaheed"
+            ],
+            "homepage": "",
+            "repository": "",
+            "license": "gpl3",
+            "description": "",
+            "keywords": [
+            ],
+            "versions": [
+                {
+                    "version": "1.0.0",
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 0
+                    },
+                    "os": "linux",
+                    "files": [
+                    ]
+                },
+                {
+                    "version": "2.0.0",
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 6
+                    },
+                    "os": "linux",
+                    "files": [
+                    ]
+                },
+                {
+                    "version": "3.0.0",
+		    "api_version": {
+                        "major": 10,
+                        "minor": 1
+		    },
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 6
+                    },
+                    "os": "linux",
+                    "files": [
+                    ]
+                }
+            ]
+        },
+	{
+	    "name": "B",
+	    "authors": [
+		"Nick Shaheed"
+	    ],
+	    "homepage": "",
+	    "repository": "",
+	    "license": "gpl3",
+	    "description": "",
+	    "keywords": [
+	    ],
+	    "versions": [
+		{
+		    "version": "1.0.0",
+		    "language_version_min": {
+			"mega": 1,
+			"major": 5,
+			"minor": 2,
+			"patch": 0
+		    },
+		    "os": "linux",
+		    "files": [
+		    ],
+		    "dependencies": [
+			{"name": "A"}
+		    ]
+		},
+		{
+		    "version": "2.0.0",
+		    "language_version_min": {
+			"mega": 1,
+			"major": 5,
+			"minor": 2,
+			"patch": 6
+		    },
+		    "os": "linux",
+		    "files": [
+		    ],
+		    "dependencies": [
+			{"name": "A"}
+		    ]
+		}
+	    ]
+	},
+	{
+	    "name": "C",
+	    "authors": [
+		"Nick Shaheed"
+	    ],
+	    "homepage": "",
+	    "repository": "",
+	    "license": "gpl3",
+	    "description": "",
+	    "keywords": [
+	    ],
+	    "versions": [
+		{
+		    "version": "1.0.0",
+		    "language_version_min": {
+			"mega": 1,
+			"major": 5,
+			"minor": 2,
+			"patch": 0
+		    },
+		    "os": "linux",
+		    "files": [
+		    ],
+		    "dependencies": [
+			{"name": "B"}
+		    ]
+		},
+		{
+		    "version": "2.0.0",
+		    "language_version_min": {
+			"mega": 1,
+			"major": 5,
+			"minor": 2,
+			"patch": 6
+		    },
+		    "os": "linux",
+		    "files": [
+		    ],
+		    "dependencies": [
+			{"name": "B"}
+		    ]
+		}
+	    ]
+	},
+	{
+	    "name": "D",
+	    "authors": [
+		"Nick Shaheed"
+	    ],
+	    "homepage": "",
+	    "repository": "",
+	    "license": "gpl3",
+	    "description": "",
+	    "keywords": [
+	    ],
+	    "versions": [
+		{
+		    "version": "1.0.0",
+		    "language_version_min": {
+			"mega": 1,
+			"major": 5,
+			"minor": 2,
+			"patch": 0
+		    },
+		    "os": "linux",
+		    "files": [
+		    ],
+		    "dependencies": [
+			{"name": "B"},
+			{"name": "A"}
+		    ]
+		},
+		{
+		    "version": "2.0.0",
+		    "language_version_min": {
+			"mega": 1,
+			"major": 5,
+			"minor": 2,
+			"patch": 6
+		    },
+		    "os": "linux",
+		    "files": [
+		    ],
+		    "dependencies": [
+			{"name": "B"},
+			{"name": "A"}
+		    ]
+		}
+	    ]
+	},
+	{
+	    "name": "E",
+	    "authors": [
+		"Nick Shaheed"
+	    ],
+	    "homepage": "",
+	    "repository": "",
+	    "license": "gpl3",
+	    "description": "",
+	    "keywords": [
+	    ],
+	    "versions": [
+		{
+		    "version": "0.1.0",
+		    "language_version_min": {
+			"mega": 1,
+			"major": 5,
+			"minor": 2,
+			"patch": 0
+		    },
+		    "os": "linux",
+		    "files": [
+		    ]
+		},
+		{
+		    "version": "1.0.0",
+		    "language_version_min": {
+			"mega": 1,
+			"major": 5,
+			"minor": 2,
+			"patch": 0
+		    },
+		    "os": "linux",
+		    "files": [
+		    ]
+		},
+		{
+		    "version": "2.0.0",
+		    "language_version_min": {
+			"mega": 1,
+			"major": 5,
+			"minor": 2,
+			"patch": 0
+		    },
+		    "os": "linux",
+		    "files": [
+		    ]
+		}
+	    ]
+	},
+	{
+	    "name": "F",
+	    "authors": [
+		"Nick Shaheed"
+	    ],
+	    "homepage": "",
+	    "repository": "",
+	    "license": "gpl3",
+	    "description": "",
+	    "keywords": [
+	    ],
+	    "versions": [
+		{
+		    "version": "1.0.0",
+		    "language_version_min": {
+			"mega": 1,
+			"major": 5,
+			"minor": 2,
+			"patch": 0
+		    },
+		    "os": "linux",
+		    "files": [
+		    ],
+		    "dependencies": [
+			{"name": "E"}
+		    ]
+		},
+		{
+		    "version": "2.0.0",
+		    "language_version_min": {
+			"mega": 1,
+			"major": 5,
+			"minor": 2,
+			"patch": 0
+		    },
+		    "os": "linux",
+		    "files": [
+		    ],
+		    "dependencies": [
+			{
+			    "name": "E",
+			    "version_min": "1.0.0",
+			    "version_max": "1.0.0"
+			}
+		    ]
+		}
+	    ]
+	},
+	{
+	    "name": "G",
+	    "authors": [
+		"Nick Shaheed"
+	    ],
+	    "homepage": "",
+	    "repository": "",
+	    "license": "gpl3",
+	    "description": "",
+	    "keywords": [
+	    ],
+	    "versions": [
+		{
+		    "version": "2.0.0",
+		    "language_version_min": {
+			"mega": 1,
+			"major": 5,
+			"minor": 2,
+			"patch": 0
+		    },
+		    "os": "linux",
+		    "files": [
+		    ],
+		    "dependencies": [
+			{
+			    "name": "E",
+			    "version_min": "1.0.0",
+			    "version_max": "1.0.0"
+			}
+		    ]
+		}
+	    ]
+	},
+	{
+	    "name": "H",
+	    "authors": [
+		"Nick Shaheed"
+	    ],
+	    "homepage": "",
+	    "repository": "",
+	    "license": "gpl3",
+	    "description": "",
+	    "keywords": [
+	    ],
+	    "versions": [
+		{
+		    "version": "2.0.0",
+		    "language_version_min": {
+			"mega": 1,
+			"major": 5,
+			"minor": 2,
+			"patch": 0
+		    },
+		    "os": "linux",
+		    "files": [
+		    ],
+		    "dependencies": [
+			{
+			    "name": "E",
+			    "version_min": "2.0.0",
+			    "version_max": "2.0.0"
+			}
+		    ]
+		}
+	    ]
+	}	
     ]
 }

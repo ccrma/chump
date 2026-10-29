@@ -5,11 +5,12 @@ test_sources = [
     'package_list_test.cpp',
     'chuck_version_test.cpp',
     'api_version_test.cpp',
-    'util_test.cpp'
+    'util_test.cpp',
 ]
 
 integration_sources = [
     'integration.cpp',
+    'dependency_test.cpp'
 ]
 
 catch2_dep = dependency('catch2-with-main')

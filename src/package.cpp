@@ -10,6 +10,8 @@
 // #include <cstring>
 namespace fs = std::filesystem;
 
+using namespace std;
+
 // Equality operator overload
 bool Package::operator==(const Package &other) const {
   return (name == other.name) && (authors == other.authors) &&
@@ -33,7 +35,10 @@ bool Package::operator<(const Package &other) const {
 
 PackageVersion::PackageVersion() {}
 
-PackageVersion::PackageVersion(string version) { setVersionString(version); }
+PackageVersion::PackageVersion(string version) {
+  setVersionString(version);
+  arch = ARCH_ALL_CHMP; // There needs to be some default
+}
 
 PackageVersion::PackageVersion(int _major, int _minor, int _patch) {
   if (_major < 0 || _minor < 0 || _patch < 0) {
@@ -45,6 +50,8 @@ PackageVersion::PackageVersion(int _major, int _minor, int _patch) {
   major = _major;
   minor = _minor;
   patch = _patch;
+
+  arch = ARCH_ALL_CHMP; // There needs to be some default
 }
 
 PackageVersion::PackageVersion(string version, string _language_ver_min,
@@ -270,6 +277,7 @@ void to_json(json &j, const PackageVersion &p) {
       {"version", version}, {"language_version_min", p.language_version_min},
       {"os", p.os},         {"arch", architectureToString.at(p.arch)},
       {"files", p.files},
+      {"dependencies", p.dependencies}
   };
 
   if (p.language_version_max) {
@@ -304,6 +312,10 @@ void from_json(const json &j, PackageVersion &p) {
   }
 
   j.at("files").get_to(p.files);
+
+  if (j.contains("dependencies") && !j["dependencies"].is_null()) {
+    j.at("dependencies").get_to(p.dependencies);
+  }
 }
 
 void to_json(json &j, const Package &p) {
@@ -492,6 +504,7 @@ InstalledVersion::InstalledVersion(Package pkg, PackageVersion v) {
   language_version_max = v.language_version_max;
   os = v.os;
   arch = v.arch;
+  dependencies = v.dependencies;
 }
 
 InstalledVersion::InstalledVersion() {}
@@ -543,7 +556,10 @@ void to_json(json &j, const InstalledVersion &p) {
       {"language_version_min", p.language_version_min},
       {"os", p.os},
       {"arch", architectureToString.at(p.arch)},
-      {"files", p.files}};
+      {"files", p.files},
+  };
+
+  j["dependencies"] = p.dependencies;
 
   // optional fields
   if (p.language_version_max) {
@@ -596,6 +612,10 @@ void from_json(const json &j, InstalledVersion &p) {
 
   j.at("files").get_to(p.files);
 
+  if (j.contains("dependencies") && !j["dependencies"].is_null()) {
+    j.at("dependencies").get_to(p.dependencies);
+  }
+
   // optional site-specific fields
   if (j.contains("long_description") && !j["long_description"].is_null()) {
     p.long_description = j["long_description"];
@@ -603,5 +623,33 @@ void from_json(const json &j, InstalledVersion &p) {
 
   if (j.contains("doc_url") && !j["doc_url"].is_null()) {
     p.doc_url = j["doc_url"];
+  }
+}
+
+void to_json(json &j, const Dependency &p) {
+  j = json{{"name", p.name}};
+
+  if (p.version_min) {
+    j["version_min"] = p.version_min.value().getVersionString();
+  }
+
+  if (p.version_max)
+    j["version_max"] = p.version_max.value().getVersionString();
+}
+
+
+
+void from_json(const json &j, Dependency &p) {
+  j.at("name").get_to(p.name);
+
+  if (j.contains("version_min") && !j["version_min"].is_null()) {
+    string version_str = j.at("version_min");
+    p.version_min = PackageVersion(version_str);
+  }
+
+
+  if (j.contains("version_max") && !j["version_max"].is_null()) {
+    string version_str = j.at("version_max");
+    p.version_max = PackageVersion(version_str);
   }
 }
