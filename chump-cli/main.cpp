@@ -183,7 +183,7 @@ int main(int argc, const char **argv) {
 
   // if there's no subcommand then print error message
   if (subcommand == "") {
-    cerr << "[chump]: " << TC::orange("insufficient arguments...", TRUE)
+    cerr << chumpPrepend() << "" << TC::orange("insufficient arguments...", TRUE)
          << endl;
     cerr << "(run `chump --help` for more information)" << endl;
     return 0;
@@ -195,7 +195,7 @@ int main(int argc, const char **argv) {
       subcommand != "install" && subcommand != "install-local" &&
       subcommand != "uninstall" && subcommand != "update" &&
       subcommand != "doc" && subcommand != "logo" && subcommand != "examples") {
-    cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+    cerr << chumpPrepend() << "" << TC::blue(subcommand, TRUE)
          << TC::orange(" is not a valid chump command...", TRUE) << endl;
     cerr << "(run `chump --help` for more information)" << endl;
 
@@ -205,7 +205,7 @@ int main(int argc, const char **argv) {
   // help subcommand doesn't need manager initialization
   if (subcommand == "help") {
     if (n_targets != 0) {
-      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+      cerr << chumpPrepend() << "" << TC::blue(subcommand, TRUE)
            << TC::orange(" does not support subcommands...", TRUE) << endl;
       cerr << "(run `chump --help` for more information)" << endl;
       return 1;
@@ -236,7 +236,7 @@ int main(int argc, const char **argv) {
 
   // Check if any package updates are available
   if (updateAvailable(manager)) {
-    cerr << "[chump]: " << TC::blue("updates available!", TRUE)
+    cerr << chumpPrepend() << "" << TC::blue("updates available!", TRUE)
          << TC::orange(" (to view available updates, run `chump list -u`)",
                        TRUE)
          << endl;
@@ -246,12 +246,12 @@ int main(int argc, const char **argv) {
   if (subcommand == "info") {
     // check
     if (info_package_name == "") {
-      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+      cerr << chumpPrepend() << "" << TC::blue(subcommand, TRUE)
            << TC::orange(" requires additional argument...", TRUE) << endl;
       cerr << "(run `chump --help` for more information)" << endl;
       return 1;
     } else if (n_targets != 1) {
-      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+      cerr << chumpPrepend() << "" << TC::blue(subcommand, TRUE)
            << TC::orange(" has too many arguments, follows the form 'chump "
                          "info <package-name>'...",
                          TRUE)
@@ -270,7 +270,7 @@ int main(int argc, const char **argv) {
     printPackage(manager, pkg.value());
   } else if (subcommand == "list") {
     if (n_targets != 0) {
-      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+      cerr << chumpPrepend() << "" << TC::blue(subcommand, TRUE)
            << TC::orange(" does not support subcommands...", TRUE) << endl;
       cerr << "(run `chump --help` for more information)" << endl;
       return 1;
@@ -280,7 +280,7 @@ int main(int argc, const char **argv) {
   } else if (subcommand == "install") {
     // check
     if (install_package_names.size() == 0) {
-      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+      cerr << chumpPrepend() << "" << TC::blue(subcommand, TRUE)
            << TC::orange(" requires additional argument...", TRUE) << endl;
       cerr << "(run `chump --help` for more information)" << endl;
       return 1;
@@ -297,7 +297,7 @@ int main(int argc, const char **argv) {
 
     // validate target size
     if (targets.size() != 3) {
-      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+      cerr << chumpPrepend() << "" << TC::blue(subcommand, TRUE)
            << TC::orange(" requires exactly 3 arguments...", TRUE) << endl;
       cerr << "(run `chump --help` for more information)" << endl;
       return 1;
@@ -308,7 +308,7 @@ int main(int argc, const char **argv) {
   } else if (subcommand == "uninstall") {
     // check
     if (install_package_names.size() == 0) {
-      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+      cerr << chumpPrepend() << "" << TC::blue(subcommand, TRUE)
            << TC::orange(" requires additional argument...", TRUE) << endl;
       cerr << "(run `chump --help` for more information)" << endl;
       return 1;
@@ -324,7 +324,7 @@ int main(int argc, const char **argv) {
     }
   } else if (subcommand == "update") {
     if (n_targets != 1) {
-      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+      cerr << chumpPrepend() << "" << TC::blue(subcommand, TRUE)
            << TC::orange(" requires additional argument...", TRUE) << endl;
       cerr << "(run `chump --help` for more information)" << endl;
       return 1;
@@ -332,7 +332,7 @@ int main(int argc, const char **argv) {
 
     // check
     if (update_package_name == "") {
-      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+      cerr << chumpPrepend() << "" << TC::blue(subcommand, TRUE)
            << TC::orange(" requires additional argument...", TRUE) << endl;
       cerr << "(run `chump --help` for more information)" << endl;
       return 1;
@@ -342,7 +342,7 @@ int main(int argc, const char **argv) {
   } else if (subcommand == "doc") {
     // open up doc file - an index.html to be opened in the browser
     if (n_targets != 1) {
-      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+      cerr << chumpPrepend() << "" << TC::blue(subcommand, TRUE)
            << TC::orange(" requires additional argument...", TRUE) << endl;
       cerr << "(run `chump --help` for more information)" << endl;
       return 1;
@@ -350,7 +350,7 @@ int main(int argc, const char **argv) {
 
     // check arg
     if (doc_package_name == "") {
-      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+      cerr << chumpPrepend() << "" << TC::blue(subcommand, TRUE)
            << TC::orange(" requires additional argument...", TRUE) << endl;
       cerr << "(run `chump --help` for more information)" << endl;
       return 1;
@@ -360,7 +360,7 @@ int main(int argc, const char **argv) {
   } else if (subcommand == "examples") {
     // open up the _examples folder in explorer or finder or whatever
     if (n_targets != 1) {
-      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+      cerr << chumpPrepend() << "" << TC::blue(subcommand, TRUE)
            << TC::orange(" requires additional argument...", TRUE) << endl;
       cerr << "(run `chump --help` for more information)" << endl;
       return 1;
@@ -368,7 +368,7 @@ int main(int argc, const char **argv) {
 
     // check arg
     if (doc_package_name == "") {
-      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+      cerr << chumpPrepend() << "" << TC::blue(subcommand, TRUE)
            << TC::orange(" requires additional argument...", TRUE) << endl;
       cerr << "(run `chump --help` for more information)" << endl;
       return 1;
@@ -386,12 +386,12 @@ int main(int argc, const char **argv) {
 
     // check
     if (target == "") {
-      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+      cerr << chumpPrepend() << "" << TC::blue(subcommand, TRUE)
            << TC::orange(" requires additional argument...", TRUE) << endl;
       cerr << "(run `chump --help` for more information)" << endl;
       return 1;
     } else if (n_targets != 1) {
-      cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+      cerr << chumpPrepend() << "" << TC::blue(subcommand, TRUE)
            << TC::orange(" has too many arguments, follows the form 'chump "
                          "logo <mode>'...",
                          TRUE)
@@ -462,11 +462,11 @@ int main(int argc, const char **argv) {
       }
     }
   } else if (subcommand != "") {
-    cerr << "[chump]: " << TC::blue(subcommand, TRUE)
+    cerr << chumpPrepend() << "" << TC::blue(subcommand, TRUE)
          << TC::orange(" is not a valid chump command...", TRUE) << endl;
     cerr << "(run `chump --help` for more information)" << endl;
   } else {
-    cerr << "[chump]: " << TC::orange("insufficient arguments...", TRUE)
+    cerr << chumpPrepend() << "" << TC::orange("insufficient arguments...", TRUE)
          << endl;
     cerr << "(run `chump --help` for more information)" << endl;
   }
@@ -720,7 +720,7 @@ t_CKBOOL ChumpArgParser::parse(int argc, const char **argv) {
 
     default: {
       // internal error
-      cerr << "[chump]: (internal error) unexpected state in argument parser..."
+      cerr << chumpPrepend() << "(internal error) unexpected state in argument parser..."
            << endl;
       return FALSE;
     }

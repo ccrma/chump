@@ -29,6 +29,12 @@
 
 using std::map;
 
+std::string chumpPrepend() { return TC::orange("[chump]", TRUE) + " "; }
+
+std::string packageStr(std::string pkg, std::string ver) {
+  return TC::bold(pkg) + " (" + ver + ")";
+}
+
 // Returns the path to the directory where a package will be installed
 // TODO expand to other OS
 fs::path packagePath(Package p, fs::path install_dir) {
@@ -85,7 +91,7 @@ std::string whichOS() {
   return "linux";
 #else
   throw std::system_error(EINVAL, std::generic_category(),
-                          "[chump]: unknown operating system");
+                          chumpPrepend() + "unknown operating system");
 #endif
 }
 
@@ -99,7 +105,7 @@ Architecture whichArch() {
 #else // this shouldn't happen but whoops if it does
   throw std::system_error(
       EINVAL, std::generic_category(),
-      "[chump]: chump does not support this system architecture");
+      chumpPrepend() + "chump does not support this system architecture");
 #endif
 }
 
@@ -200,7 +206,7 @@ std::string hash_file(fs::path filename) {
 bool validate_manifest(fs::path manifest_path) {
   if (!fs::exists(manifest_path)) {
     std::cerr
-        << "[chump]: unable to find package list (manifest.json), fetching..."
+        << chumpPrepend() << "unable to find package list (manifest.json), fetching..."
         << std::endl;
     return false;
   }
@@ -208,9 +214,9 @@ bool validate_manifest(fs::path manifest_path) {
   try {
     PackageList p(manifest_path);
   } catch (const std::exception &e) {
-    std::cerr << "[chump]: failed to validate manifest.json with the error: "
+    std::cerr << chumpPrepend() << "failed to validate manifest.json with the error: "
               << e.what() << std::endl;
-    std::cerr << "[chump]: hint: try updating the chump package list (`chump "
+    std::cerr << chumpPrepend() << "hint: try updating the chump package list (`chump "
                  "list -u`)"
               << std::endl;
     return false;
@@ -245,7 +251,7 @@ fs::path fileTypeToDir(FileType f) {
 bool unzipFile(const std::string &zipPath, const std::string &outputDir) {
   unzFile zipFile = unzOpen64(zipPath.c_str());
   if (zipFile == nullptr) {
-    std::cerr << "[chump]: error opening ZIP file: " << zipPath << std::endl;
+    std::cerr << chumpPrepend() << "error opening ZIP file: " << zipPath << std::endl;
     return false;
   }
 
@@ -272,7 +278,7 @@ bool unzipFile(const std::string &zipPath, const std::string &outputDir) {
 
       FILE *outFile = fopen(fullPath.c_str(), "wb");
       if (outFile == nullptr) {
-        std::cerr << "[chump]: error opening output file: " << fullPath
+        std::cerr << chumpPrepend() << "error opening output file: " << fullPath
                   << std::endl;
         unzCloseCurrentFile(zipFile);
         unzClose(zipFile);
@@ -290,7 +296,7 @@ bool unzipFile(const std::string &zipPath, const std::string &outputDir) {
       unzCloseCurrentFile(zipFile);
 
       if (bytesRead < 0) {
-        std::cerr << "[chump]: error reading ZIP file: " << filename
+        std::cerr << chumpPrepend() << "error reading ZIP file: " << filename
                   << std::endl;
         unzClose(zipFile);
         return false;
@@ -318,21 +324,21 @@ string to_lower(const string &str) {
 // Try to open a verison.json file
 optional<InstalledVersion> getInstalledVersion(fs::path dir) {
   if (!fs::is_directory(dir)) {
-    std::cerr << "[chump]: path " << dir << " is not a directory" << std::endl;
+    std::cerr << chumpPrepend() << "path " << dir << " is not a directory" << std::endl;
     return {};
   }
 
   fs::path json_path = dir / "version.json";
 
   if (!fs::exists(json_path)) {
-    std::cerr << "[chump]: file " << json_path << " not found" << std::endl;
+    std::cerr << chumpPrepend() << "file " << json_path << " not found" << std::endl;
     return {};
   }
 
   std::ifstream f(json_path);
 
   if (!f.good()) {
-    std::cerr << "[chump]: unable to open " << json_path << std::endl;
+    std::cerr << chumpPrepend() << "unable to open " << json_path << std::endl;
     f.close();
     return {};
   }
@@ -344,7 +350,7 @@ optional<InstalledVersion> getInstalledVersion(fs::path dir) {
     installed_version = pkg_ver.template get<InstalledVersion>();
   } catch (const std::exception &e) {
     f.close();
-    std::cerr << "[chump]: exception throw when trying to parse " << json_path
+    std::cerr << chumpPrepend() << "exception throw when trying to parse " << json_path
               << ": " << e.what() << std::endl;
     return {};
   }
@@ -539,3 +545,5 @@ std::string TC::set_bg_default() {
     return "";
   return TC::set(BG_DEFAULT);
 }
+
+

@@ -63,7 +63,7 @@ bool Manager::installWithDeps(const vector<string> packageNames) {
     auto pkg = package_list->find_package(name);
 
     if (!pkg) {
-      std::cerr << "[chump]: package " << packageName << " not found."
+      std::cerr << chumpPrepend() << "package " << packageName << " not found."
 		<< std::endl;
       return false;
     }
@@ -116,7 +116,7 @@ bool Manager::installWithDeps(const vector<string> packageNames) {
   // check for solver success
   int problem_count = solver_problem_count(solver);
   if (problem_count > 0) {
-    std::cerr << "[chump] dependency resolution failed with " << problem_count << " problems:\n";
+    std::cerr << chumpPrepend() << "dependency resolution failed with " << problem_count << " problems:\n";
 
     Id problem = 0;
     // Pass 0 to get the first problem, then pass the previous ID to get the next
@@ -132,13 +132,13 @@ bool Manager::installWithDeps(const vector<string> packageNames) {
   Transaction *trans = solver_create_transaction(solver);
 
   if (trans->steps.count == 0) {
-    std::cerr << "[chump]: the requested packages are already installed."
+    std::cerr << chumpPrepend() << "the requested packages are already installed."
               << std::endl;
-    std::cerr << "[chump]: use `chump update <package>' to update the existing "
+    std::cerr << chumpPrepend() << "use `chump update <package>' to update the existing "
                  "package"
               << std::endl;
     std::cerr
-        << "[chump]: or use `chump uninstall <package>` to remove the package"
+        << chumpPrepend() << "or use `chump uninstall <package>` to remove the package"
         << std::endl;
 
     transaction_free(trans);
@@ -172,11 +172,9 @@ bool Manager::installWithDeps(const vector<string> packageNames) {
 
       // Print different message depending on if it's dependency or not
       if (is_requested) {
-	std::cout << "[chump] installing package: " << s_name << "="
-                << s_evr << "\n";
+	std::cout << chumpPrepend() << "installing package: " << packageStr(s_name, s_evr) << "\n";
       } else {
-        std::cout << "[chump] installing dependency: " << pool_id2str(pool, s->name) << "="
-                  << pool_id2str(pool, s->evr) << "\n";
+        std::cout << chumpPrepend() << "installing dependency: " << packageStr(s_name, s_evr) << "\n";
       }
 
       string pkgstr =
@@ -187,7 +185,7 @@ bool Manager::installWithDeps(const vector<string> packageNames) {
 	return false;
       }
     } else if (step_type == SOLVER_TRANSACTION_ERASE) {
-      std::cout << "[chump] removing package: " << pool_id2str(pool, s->name) << "="
+      std::cout << chumpPrepend() << "removing package: " << pool_id2str(pool, s->name) << "="
                 << pool_id2str(pool, s->evr) << "\n";
 
       string pkg = string(pool_id2str(pool, s->name));
@@ -195,7 +193,7 @@ bool Manager::installWithDeps(const vector<string> packageNames) {
                       string(pool_id2str(pool, s->evr));
 
       if (!uninstall(pkg, false)) {
-        std::cerr << "[chump] failed to uninstall package: " << pkg << "\n";
+        std::cerr << chumpPrepend() << "failed to uninstall package: " << pkg << "\n";
 	return false;
       }
     } else if (step_type == SOLVER_TRANSACTION_IGNORE) {
@@ -211,7 +209,7 @@ bool Manager::installWithDeps(const vector<string> packageNames) {
                                ? "Upgrade: "
                                : "Downgrade: ";
 
-      std::cout << "[chump] " << action << pool_id2str(pool, s->name) << " from "
+      std::cout << chumpPrepend() << "" << action << pool_id2str(pool, s->name) << " from "
                 << pool_id2str(pool, s->evr) << " to "
                 << pool_id2str(pool, new_s->evr) << "\n";
 
@@ -221,14 +219,14 @@ bool Manager::installWithDeps(const vector<string> packageNames) {
                       string(pool_id2str(pool, new_s->evr));
 
       if (!uninstall(pkg, false)) {
-	std::cerr << "[chump] failed to uninstall package: " << pkg << "\n";
+	std::cerr << chumpPrepend() << "failed to uninstall package: " << pkg << "\n";
 	return false;
       }
       if (!install(pkgstr)) {
-	std::cerr << "[chump] failed to install package: " << pkg << "\n";
+	std::cerr << chumpPrepend() << "failed to install package: " << pkg << "\n";
       }
     } else {
-      std::cout << "[chump] unaccounted for step type: " << step_type << "\n";
+      std::cout << chumpPrepend() << "unaccounted for step type: " << step_type << "\n";
     }
   }
 
@@ -248,7 +246,7 @@ bool Manager::install(string packageName) {
   auto pkg = package_list->find_package(name);
 
   if (!pkg) {
-    std::cerr << "[chump]: package " << packageName << " not found."
+    std::cerr << chumpPrepend() << "package " << packageName << " not found."
               << std::endl;
     return false;
   }
@@ -261,7 +259,7 @@ bool Manager::install(string packageName) {
       PackageVersion pkgver(version_string.value());
       ver = package.version(pkgver, os, language_version, api_version);
     } catch (std::invalid_argument &e) {
-      std::cerr << "[chump]: " << e.what() << '\n';
+      std::cerr << chumpPrepend() << "" << e.what() << '\n';
       return false;
     }
   } else {
@@ -269,7 +267,7 @@ bool Manager::install(string packageName) {
   }
 
   if (!ver) {
-    std::cerr << "[chump]: unable to find version of package " << package.name
+    std::cerr << chumpPrepend() << "unable to find version of package " << package.name
               << " that works on your system" << std::endl;
 
     return false;
@@ -282,11 +280,11 @@ bool Manager::install(string packageName) {
   fs::path install_dir = packagePath(package, chump_dir);
 
   if (fs::exists(install_dir / "version.json")) {
-    std::cerr << "[chump]: the package '" << package.name << "' already exists."
+    std::cerr << chumpPrepend() << "the package '" << package.name << "' already exists."
               << std::endl;
-    std::cerr << "[chump]: use `chump update " << package.name
+    std::cerr << chumpPrepend() << "use `chump update " << package.name
               << "' to update the existing package" << std::endl;
-    std::cerr << "[chump]: or use `chump uninstall " << package.name
+    std::cerr << chumpPrepend() << "or use `chump uninstall " << package.name
               << "` to remove the package" << std::endl;
     return false;
   }
@@ -304,7 +302,7 @@ bool Manager::install(string packageName) {
     bool result =
         fetch->fetch(url, dir, package, version, temp_dir, file_type, checksum);
     if (!result) {
-      std::cerr << "[chump]: failed to fetch " << url << ", exiting."
+      std::cerr << chumpPrepend() << "failed to fetch " << url << ", exiting."
                 << std::endl;
       return false;
     }
@@ -344,7 +342,7 @@ bool Manager::install(string packageName) {
              fs::copy_options::recursive |
                  fs::copy_options::overwrite_existing);
   } catch (std::filesystem::filesystem_error &e) {
-    std::cerr << "[chump]: " << e.what() << '\n';
+    std::cerr << chumpPrepend() << "" << e.what() << '\n';
     return false;
   }
 
@@ -365,26 +363,26 @@ bool Manager::install(string packageName) {
 bool Manager::install_local(fs::path pkgDefn, fs::path pkgVer,
                             fs::path pkgZip) {
   if (!fs::is_regular_file(pkgDefn)) {
-    std::cerr << "[chump]: package definition " << pkgDefn
+    std::cerr << chumpPrepend() << "package definition " << pkgDefn
               << "is not a file, exiting..." << std::endl;
     return false;
   }
 
   if (!fs::is_regular_file(pkgVer)) {
-    std::cerr << "[chump]: package version " << pkgVer
+    std::cerr << chumpPrepend() << "package version " << pkgVer
               << "is not a file, exiting..." << std::endl;
     return false;
   }
 
   if (!fs::is_regular_file(pkgZip)) {
-    std::cerr << "[chump]: package zip " << pkgZip
+    std::cerr << chumpPrepend() << "package zip " << pkgZip
               << "is not a file, exiting..." << std::endl;
     return false;
   }
 
   // only supporting zip for now
   if (pkgZip.extension() != ".zip") {
-    std::cerr << "[chump]: package path " << pkgZip
+    std::cerr << chumpPrepend() << "package path " << pkgZip
               << "is not a zip file, exiting..." << std::endl;
     return false;
   }
@@ -403,14 +401,14 @@ bool Manager::install_local(fs::path pkgDefn, fs::path pkgVer,
   fs::path install_dir = packagePath(package.value(), chump_dir);
 
   if (fs::exists(install_dir / "version.json")) {
-    std::cerr << "[chump]: the package '" << package.value().name
+    std::cerr << chumpPrepend() << "the package '" << package.value().name
               << "' already exists." << std::endl;
-    std::cerr << "[chump]: uninstalling '" << package.value().name << "'..."
+    std::cerr << chumpPrepend() << "uninstalling '" << package.value().name << "'..."
               << std::endl;
     uninstall(package.value().name, false);
   }
 
-  std::cerr << "[chump]: installing '" << package.value().name << "'..."
+  std::cerr << chumpPrepend() << "installing '" << package.value().name << "'..."
             << std::endl;
   fs::create_directory(install_dir);
   // Unzip the local file to the installed directory
@@ -442,7 +440,7 @@ bool Manager::update(string packageName) {
   auto pkg = package_list->find_package(packageName);
 
   if (!pkg) {
-    std::cerr << "[chump]: package " << packageName << " not found."
+    std::cerr << chumpPrepend() << "package " << packageName << " not found."
               << std::endl;
     return false;
   }
@@ -454,9 +452,9 @@ bool Manager::update(string packageName) {
   fs::path install_dir = packagePath(package, chump_dir);
 
   if (!fs::exists(install_dir)) {
-    std::cerr << "[chump]: the install directory '" << install_dir
+    std::cerr << chumpPrepend() << "the install directory '" << install_dir
               << "' does not exist." << std::endl;
-    std::cerr << "[chump]: use `chump install " << package.name
+    std::cerr << chumpPrepend() << "use `chump install " << package.name
               << "' to install the existing package" << std::endl;
     return false;
   }
@@ -465,12 +463,12 @@ bool Manager::update(string packageName) {
       open_installed_version_file(install_dir / "version.json");
 
   if (!installed_version) {
-    std::cerr << "[chump]: the version definition '"
+    std::cerr << chumpPrepend() << "the version definition '"
               << install_dir / "version.json" << "' does not exist."
               << std::endl;
-    std::cerr << "[chump]: try removing the directory " << install_dir
+    std::cerr << chumpPrepend() << "try removing the directory " << install_dir
               << std::endl;
-    std::cerr << "[chump]: and then calling 'chump install '" << packageName
+    std::cerr << chumpPrepend() << "and then calling 'chump install '" << packageName
               << "'\n";
     return false;
   }
@@ -481,7 +479,7 @@ bool Manager::update(string packageName) {
       package.latest_version(os, arch, language_version, api_version);
 
   if (!ver) {
-    std::cerr << "[chump]: unable to find version of package " << package.name
+    std::cerr << chumpPrepend() << "unable to find version of package " << package.name
               << " that works on your system" << std::endl;
 
     return false;
@@ -490,13 +488,13 @@ bool Manager::update(string packageName) {
   PackageVersion latest_version = ver.value();
 
   if (curr_version == latest_version) {
-    std::cerr << "[chump]: " << package.name << " is already up-to-date."
+    std::cerr << chumpPrepend() << "" << package.name << " is already up-to-date."
               << std::endl;
     return true;
   }
 
   if (curr_version > latest_version) {
-    std::cerr << "[chump]: " << package.name
+    std::cerr << chumpPrepend() << "" << package.name
               << " is installed already with a newer version." << std::endl;
     return true;
   }
@@ -514,7 +512,7 @@ bool Manager::update(string packageName) {
     bool result = fetch->fetch(url, dir, package, latest_version, temp_dir,
                                file_type, checksum);
     if (!result) {
-      std::cerr << "[chump]: failed to fetch " << url << ", exiting."
+      std::cerr << chumpPrepend() << "failed to fetch " << url << ", exiting."
                 << std::endl;
       return false;
     }
@@ -554,7 +552,7 @@ bool Manager::update(string packageName) {
     if (fs::exists(curr_file)) {
       fs::remove(curr_file);
     } else {
-      std::cerr << "[chump]: attempted to remove " << curr_file
+      std::cerr << chumpPrepend() << "attempted to remove " << curr_file
                 << ", but the file was not found, continuing..." << std::endl;
     }
 
@@ -572,7 +570,7 @@ bool Manager::update(string packageName) {
              fs::copy_options::recursive |
                  fs::copy_options::overwrite_existing);
   } catch (fs::filesystem_error &e) {
-    std::cerr << "[chump]: " << e.what() << '\n';
+    std::cerr << chumpPrepend() << "" << e.what() << '\n';
     return false;
   }
 
@@ -592,15 +590,15 @@ bool Manager::uninstall(string packageName, bool force) {
   fs::path install_dir = chump_dir / packageNamePath;
 
   if (!fs::exists(install_dir)) {
-    std::cerr << "[chump]: the install directory '" << install_dir
+    std::cerr << chumpPrepend() << "the install directory '" << install_dir
               << "' does not exist." << std::endl;
-    std::cerr << "[chump]: use `chump install " << packageName
+    std::cerr << chumpPrepend() << "use `chump install " << packageName
               << "' to install the existing package" << std::endl;
     return false;
   }
 
   if (force) {
-    std::cerr << "[chump]: force-uninstall " << packageName
+    std::cerr << chumpPrepend() << "force-uninstall " << packageName
               << " (completely removing the directory)...\n";
     fs::remove_all(install_dir.lexically_normal());
   }
@@ -620,10 +618,10 @@ bool Manager::uninstall(string packageName, bool force) {
     fs::path full_path = install_dir / filepath;
 
     if (fs::exists(full_path)) {
-      std::cerr << "[chump]: removing " << full_path << std::endl;
+      std::cerr << chumpPrepend() << "removing " << full_path << std::endl;
       fs::remove(full_path);
     } else {
-      std::cerr << "[chump]: attempted to remove " << full_path
+      std::cerr << chumpPrepend() << "attempted to remove " << full_path
                 << ", but the file was not found, continuing..." << std::endl;
     }
 
@@ -748,12 +746,12 @@ bool Manager::update_manifest() {
   if (newest_manifest_version &&
       newest_manifest_version.value() > MANIFEST_VERSION_NO) {
     std::cerr
-        << "[chump] there are newer packages available that this version of "
+        << chumpPrepend() << "there are newer packages available that this version of "
            "chump cannot manage. visit https://chuck.stanford.edu/release/ and "
            "install the latest version of chuck (which includes an updated "
            "version of chump). once you have done this, rerun chump for the "
            "latest, greatest, chumpiest experience available\n";
-    std::cerr << "[chump] ~~ don't be a lump, update chump ~~\n";
+    std::cerr << chumpPrepend() << "~~ don't be a lump, update chump ~~\n";
   }
 
   // Create a temporary directory to download our manifest to
@@ -763,7 +761,7 @@ bool Manager::update_manifest() {
   bool result = fetch->fetch_manifest(manifest_url, temp_dir);
 
   if (!result) {
-    std::cerr << "[chump]: failed to fetch manifest.json, continuing..."
+    std::cerr << chumpPrepend() << "failed to fetch manifest.json, continuing..."
               << std::endl;
     return false;
   }
@@ -800,7 +798,7 @@ bool Manager::update_manifest() {
 
   if (are_equal) {
     // since this is now being updated every time chump is called (except for
-    // help), we are now being silent. std::cerr << "[chump]: current manifest
+    // help), we are now being silent. std::cerr << chumpPrepend() << "current manifest
     // is up-to-date, doing nothing"
     //           << std::endl;
     return false;
@@ -812,11 +810,11 @@ bool Manager::update_manifest() {
     fs::copy(temp_dir / "manifest.json", chump_dir / "manifest.json",
              fs::copy_options::overwrite_existing);
   } catch (std::filesystem::filesystem_error &e) {
-    std::cerr << "[chump]: " << e.what() << '\n';
+    std::cerr << chumpPrepend() << e.what() << '\n';
     return false;
   }
 
-  std::cerr << "[chump]: manifest.json was successfully updated!" << std::endl;
+  std::cerr << chumpPrepend() << "manifest.json was successfully updated!" << std::endl;
   return true;
 }
 
@@ -829,13 +827,13 @@ bool Manager::open_doc(string packageName) {
     optional<Package> pkg = getPackage(packageName);
     // check
     if (!pkg) {
-      std::cerr << "[chump]: the package '" << packageName
+      std::cerr << chumpPrepend() << "the package '" << packageName
                 << "' does not exist." << std::endl;
       return false;
     } else {
-      std::cerr << "[chump]: the install directory '" << installDir
+      std::cerr << chumpPrepend() << "the install directory '" << installDir
                 << "' does not exist." << std::endl;
-      std::cerr << "[chump]: use `chump install " << packageName
+      std::cerr << chumpPrepend() << "use `chump install " << packageName
                 << "' to install the existing package" << std::endl;
       return false;
     }
@@ -845,7 +843,7 @@ bool Manager::open_doc(string packageName) {
 
   // the package is installed. check if there is an index.html
   if (!fs::exists(indexPath)) {
-    std::cerr << "[chump]: package '" << packageName
+    std::cerr << chumpPrepend() << "package '" << packageName
               << "' does not have documentation. sorry!" << std::endl;
     return false;
   }
@@ -867,13 +865,13 @@ bool Manager::open_examples(string packageName) {
     optional<Package> pkg = getPackage(packageName);
     // check
     if (!pkg) {
-      std::cerr << "[chump]: the package '" << packageName
+      std::cerr << chumpPrepend() << "the package '" << packageName
                 << "' does not exist." << std::endl;
       return false;
     } else {
-      std::cerr << "[chump]: the install directory '" << installDir
+      std::cerr << chumpPrepend() << "the install directory '" << installDir
                 << "' does not exist." << std::endl;
-      std::cerr << "[chump]: use `chump install " << packageName
+      std::cerr << chumpPrepend() << "use `chump install " << packageName
                 << "' to install the existing package" << std::endl;
       return false;
     }
@@ -882,7 +880,7 @@ bool Manager::open_examples(string packageName) {
 
   // the package is installed. check if there is an index.html
   if (!fs::exists(examplePath)) {
-    std::cerr << "[chump]: package '" << packageName
+    std::cerr << chumpPrepend() << "package '" << packageName
               << "' does not have any examples. sorry!" << std::endl;
     return false;
   }
@@ -895,7 +893,7 @@ optional<Package> Manager::open_package_file(fs::path path) {
   // parse package and version files
   std::ifstream ver_stream(path);
   if (!ver_stream.good()) {
-    std::cerr << "[chump]: unable to open \"" << path << "\"" << std::endl;
+    std::cerr << chumpPrepend() << "unable to open \"" << path << "\"" << std::endl;
     ver_stream.close();
     return {};
   }
@@ -907,7 +905,7 @@ optional<Package> Manager::open_package_file(fs::path path) {
     ver_stream.close();
   } catch (const std::exception &e) {
     ver_stream.close();
-    std::cerr << "[chump]: unable to parse \"" << path << "\": " << e.what()
+    std::cerr << chumpPrepend() << "unable to parse \"" << path << "\": " << e.what()
               << std::endl;
     return {};
   }
@@ -918,7 +916,7 @@ optional<Package> Manager::open_package_file(fs::path path) {
     return version;
   } catch (const std::exception &e) {
     ver_stream.close();
-    std::cerr << "[chump]: unable to cast \"" << path
+    std::cerr << chumpPrepend() << "unable to cast \"" << path
               << "\" to Package: " << e.what() << std::endl;
     return {};
   }
@@ -928,7 +926,7 @@ optional<InstalledVersion> Manager::open_installed_version_file(fs::path path) {
   // parse package and version files
   std::ifstream ver_stream(path);
   if (!ver_stream.good()) {
-    // std::cerr << "[chump]: unable to open \"" << path << "\"" << std::endl;
+    // std::cerr << chumpPrepend() << "unable to open \"" << path << "\"" << std::endl;
     ver_stream.close();
     return {};
   }
@@ -940,7 +938,7 @@ optional<InstalledVersion> Manager::open_installed_version_file(fs::path path) {
     ver_stream.close();
   } catch (const std::exception &e) {
     ver_stream.close();
-    std::cerr << "[chump]: unable to parse \"" << path << "\": " << e.what()
+    std::cerr << chumpPrepend() << "unable to parse \"" << path << "\": " << e.what()
               << std::endl;
     return {};
   }
@@ -951,7 +949,7 @@ optional<InstalledVersion> Manager::open_installed_version_file(fs::path path) {
     return version;
   } catch (const std::exception &e) {
     ver_stream.close();
-    std::cerr << "[chump]: unable to cast \"" << path
+    std::cerr << chumpPrepend() << "unable to cast \"" << path
               << "\" to InstalledVersion: " << e.what() << std::endl;
     return {};
   }
@@ -961,7 +959,7 @@ optional<PackageVersion> Manager::open_package_version_file(fs::path path) {
   // parse package and version files
   std::ifstream ver_stream(path);
   if (!ver_stream.good()) {
-    std::cerr << "[chump]: unable to open \"" << path << "\"" << std::endl;
+    std::cerr << chumpPrepend() << "unable to open \"" << path << "\"" << std::endl;
     ver_stream.close();
     return {};
   }
@@ -973,7 +971,7 @@ optional<PackageVersion> Manager::open_package_version_file(fs::path path) {
     ver_stream.close();
   } catch (const std::exception &e) {
     ver_stream.close();
-    std::cerr << "[chump]: unable to parse \"" << path << "\": " << e.what()
+    std::cerr << chumpPrepend() << "unable to parse \"" << path << "\": " << e.what()
               << std::endl;
     return {};
   }
@@ -984,7 +982,7 @@ optional<PackageVersion> Manager::open_package_version_file(fs::path path) {
     return version;
   } catch (const std::exception &e) {
     ver_stream.close();
-    std::cerr << "[chump]: unable to cast \"" << path
+    std::cerr << chumpPrepend() << "unable to cast \"" << path
               << "\" to PackageVersion: " << e.what() << std::endl;
     return {};
   }
