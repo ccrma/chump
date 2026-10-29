@@ -3,7 +3,7 @@
 #ifndef __MANAGER_H__
 #define __MANAGER_H__
 
-#include <solv/repo.h>
+#include <repo.h>
 #include <string>
 #include <vector>
 

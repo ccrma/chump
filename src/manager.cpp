@@ -3,8 +3,8 @@
 #include "util.h"
 
 #include <regex>
-#include <solv/pool.h>
-#include <solv/solver.h>
+#include <pool.h>
+#include <solver.h>
 #include <sstream>
 #include <unordered_set>
 

@@ -1,7 +1,7 @@
 # basing this on of https://mesonbuild.com/IndepthTutorial
 
 project('chump', ['c', 'cpp'],
-  version : '0.0.9',
+  version : '0.0.3',
   default_options : ['cpp_std=c++17', 'default_library=static'],
   license : '?')
 
@@ -12,6 +12,7 @@ if host_machine.system() == 'darwin'
   add_project_arguments('-mmacosx-version-min=12', language : 'c')
   add_project_arguments('-mmacosx-version-min=12', language : 'cpp')
 endif
+
 
 inc = [include_directories('include')]
 
