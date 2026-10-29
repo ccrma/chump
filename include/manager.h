@@ -3,9 +3,9 @@
 #ifndef __MANAGER_H__
 #define __MANAGER_H__
 
+#include <solv/repo.h>
 #include <string>
 #include <vector>
-#include <solv/repo.h>
 
 #include "chuck_version.h"
 #include "fetch.h"

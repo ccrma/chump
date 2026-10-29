@@ -205,18 +205,20 @@ std::string hash_file(fs::path filename) {
 
 bool validate_manifest(fs::path manifest_path) {
   if (!fs::exists(manifest_path)) {
-    std::cerr
-        << chumpPrepend() << "unable to find package list (manifest.json), fetching..."
-        << std::endl;
+    std::cerr << chumpPrepend()
+              << "unable to find package list (manifest.json), fetching..."
+              << std::endl;
     return false;
   }
 
   try {
     PackageList p(manifest_path);
   } catch (const std::exception &e) {
-    std::cerr << chumpPrepend() << "failed to validate manifest.json with the error: "
-              << e.what() << std::endl;
-    std::cerr << chumpPrepend() << "hint: try updating the chump package list (`chump "
+    std::cerr << chumpPrepend()
+              << "failed to validate manifest.json with the error: " << e.what()
+              << std::endl;
+    std::cerr << chumpPrepend()
+              << "hint: try updating the chump package list (`chump "
                  "list -u`)"
               << std::endl;
     return false;
@@ -251,7 +253,8 @@ fs::path fileTypeToDir(FileType f) {
 bool unzipFile(const std::string &zipPath, const std::string &outputDir) {
   unzFile zipFile = unzOpen64(zipPath.c_str());
   if (zipFile == nullptr) {
-    std::cerr << chumpPrepend() << "error opening ZIP file: " << zipPath << std::endl;
+    std::cerr << chumpPrepend() << "error opening ZIP file: " << zipPath
+              << std::endl;
     return false;
   }
 
@@ -324,14 +327,16 @@ string to_lower(const string &str) {
 // Try to open a verison.json file
 optional<InstalledVersion> getInstalledVersion(fs::path dir) {
   if (!fs::is_directory(dir)) {
-    std::cerr << chumpPrepend() << "path " << dir << " is not a directory" << std::endl;
+    std::cerr << chumpPrepend() << "path " << dir << " is not a directory"
+              << std::endl;
     return {};
   }
 
   fs::path json_path = dir / "version.json";
 
   if (!fs::exists(json_path)) {
-    std::cerr << chumpPrepend() << "file " << json_path << " not found" << std::endl;
+    std::cerr << chumpPrepend() << "file " << json_path << " not found"
+              << std::endl;
     return {};
   }
 
@@ -350,14 +355,13 @@ optional<InstalledVersion> getInstalledVersion(fs::path dir) {
     installed_version = pkg_ver.template get<InstalledVersion>();
   } catch (const std::exception &e) {
     f.close();
-    std::cerr << chumpPrepend() << "exception throw when trying to parse " << json_path
-              << ": " << e.what() << std::endl;
+    std::cerr << chumpPrepend() << "exception throw when trying to parse "
+              << json_path << ": " << e.what() << std::endl;
     return {};
   }
 
   return installed_version;
 }
-
 
 //-----------------------------------------------------------------------------
 // name: makeTempDir()
@@ -369,7 +373,8 @@ fs::path makeTempDir() {
   fs::path base_path = fs::temp_directory_path();
 
   // Random number generator
-  std::mt19937_64 rng(std::chrono::steady_clock::now().time_since_epoch().count());
+  std::mt19937_64 rng(
+      std::chrono::steady_clock::now().time_since_epoch().count());
   std::uniform_int_distribution<uint64_t> dist;
 
   // find a valid, unused dirname
@@ -545,5 +550,3 @@ std::string TC::set_bg_default() {
     return "";
   return TC::set(BG_DEFAULT);
 }
-
-

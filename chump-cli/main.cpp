@@ -11,9 +11,9 @@
 #include <filesystem>
 #include <sstream>
 #include <string>
-#include <vector>
 #include <thread>
 #include <unordered_set>
+#include <vector>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -21,9 +21,9 @@
 
 namespace fs = std::filesystem;
 using std::cerr;
+using std::endl;
 using std::string;
 using std::vector;
-using std::endl;
 
 // TODO: move back to release manifest once testing is done
 // #define BASE_URL "https://chuck.stanford.edu/release/chump/manifest/"
@@ -183,8 +183,8 @@ int main(int argc, const char **argv) {
 
   // if there's no subcommand then print error message
   if (subcommand == "") {
-    cerr << chumpPrepend() << "" << TC::orange("insufficient arguments...", TRUE)
-         << endl;
+    cerr << chumpPrepend() << ""
+         << TC::orange("insufficient arguments...", TRUE) << endl;
     cerr << "(run `chump --help` for more information)" << endl;
     return 0;
   }
@@ -264,7 +264,8 @@ int main(int argc, const char **argv) {
     optional<Package> pkg = manager->getPackage(info_package_name);
     // check
     if (!pkg) {
-      std::cerr << "[chump] unable to find package " << info_package_name << std::endl;
+      std::cerr << "[chump] unable to find package " << info_package_name
+                << std::endl;
       return 1;
     }
     printPackage(manager, pkg.value());
@@ -466,8 +467,8 @@ int main(int argc, const char **argv) {
          << TC::orange(" is not a valid chump command...", TRUE) << endl;
     cerr << "(run `chump --help` for more information)" << endl;
   } else {
-    cerr << chumpPrepend() << "" << TC::orange("insufficient arguments...", TRUE)
-         << endl;
+    cerr << chumpPrepend() << ""
+         << TC::orange("insufficient arguments...", TRUE) << endl;
     cerr << "(run `chump --help` for more information)" << endl;
   }
 
@@ -720,8 +721,8 @@ t_CKBOOL ChumpArgParser::parse(int argc, const char **argv) {
 
     default: {
       // internal error
-      cerr << chumpPrepend() << "(internal error) unexpected state in argument parser..."
-           << endl;
+      cerr << chumpPrepend()
+           << "(internal error) unexpected state in argument parser..." << endl;
       return FALSE;
     }
     }

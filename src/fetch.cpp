@@ -120,7 +120,8 @@ bool Fetch::fetch(std::string url, fs::path dir, Package package,
 #endif
 
   if (!fp) {
-    std::cerr << chumpPrepend() << "error opening file for writing" << std::endl;
+    std::cerr << chumpPrepend() << "error opening file for writing"
+              << std::endl;
     return false;
   }
 
@@ -164,7 +165,8 @@ bool Fetch::fetch(std::string url, fs::path dir, Package package,
     fclose(fp);
 
     if (res != CURLE_OK) {
-      std::cerr << chumpPrepend() << "failed to download: " << curl_easy_strerror(res)
+      std::cerr << chumpPrepend()
+                << "failed to download: " << curl_easy_strerror(res)
                 << std::endl;
       return false;
     }
@@ -225,8 +227,8 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
 #endif
 
   if (!fp) {
-    std::cerr << chumpPrepend() << "error opening file for writing manifest.json"
-              << std::endl;
+    std::cerr << chumpPrepend()
+              << "error opening file for writing manifest.json" << std::endl;
     return false;
   }
 
@@ -322,8 +324,7 @@ optional<int> Fetch::fetch_newest_manifest_version(string url) {
   /* check for errors */
   if (res != CURLE_OK) {
     fprintf(stderr, "%sfailed to fetch latest manifest version: %s\n",
-	    chumpPrepend().c_str(),
-            curl_easy_strerror(res));
+            chumpPrepend().c_str(), curl_easy_strerror(res));
     return {};
   }
 
@@ -339,8 +340,9 @@ optional<int> Fetch::fetch_newest_manifest_version(string url) {
     int ver_no = std::stoi(chunk);
     return ver_no;
   } catch (std::invalid_argument const &ex) {
-    std::cerr << chumpPrepend() << "failed to fetch latest manifest version: "
-              << ex.what() << std::endl;
+    std::cerr << chumpPrepend()
+              << "failed to fetch latest manifest version: " << ex.what()
+              << std::endl;
     return {};
   }
 

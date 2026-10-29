@@ -94,18 +94,14 @@ void to_json(json &j, const Package &p);
 void from_json(const json &j, Package &p);
 
 static const map<string, Architecture> stringToArchitecture = {
-    {"all", ARCH_ALL_CHMP},
-    {"x86", X86},
-    {"x86_64", X86_64},
-    {"arm64", ARM64},
+    {"all", ARCH_ALL_CHMP},       {"x86", X86},
+    {"x86_64", X86_64},           {"arm64", ARM64},
     {"universal", MAC_UNIVERSAL},
 };
 
 static const map<Architecture, string> architectureToString = {
-    {ARCH_ALL_CHMP, "all"},
-    {X86, "x86"},
-    {X86_64, "x86_64"},
-    {ARM64, "arm64"},
+    {ARCH_ALL_CHMP, "all"},       {X86, "x86"},
+    {X86_64, "x86_64"},           {ARM64, "arm64"},
     {MAC_UNIVERSAL, "universal"},
 };
 
@@ -214,7 +210,6 @@ struct InstalledVersion {
 // Function declarations for JSON serialization/deserialization
 void to_json(json &j, const InstalledVersion &p);
 void from_json(const json &j, InstalledVersion &p);
-
 
 //-----------------------------------------------------------------------------
 // Dependency describes a package's dependency.

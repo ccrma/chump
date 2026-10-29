@@ -276,9 +276,7 @@ void to_json(json &j, const PackageVersion &p) {
   j = json{
       {"version", version}, {"language_version_min", p.language_version_min},
       {"os", p.os},         {"arch", architectureToString.at(p.arch)},
-      {"files", p.files},
-      {"dependencies", p.dependencies}
-  };
+      {"files", p.files},   {"dependencies", p.dependencies}};
 
   if (p.language_version_max) {
     j["language_version_max"] = p.language_version_max.value();
@@ -637,8 +635,6 @@ void to_json(json &j, const Dependency &p) {
     j["version_max"] = p.version_max.value().getVersionString();
 }
 
-
-
 void from_json(const json &j, Dependency &p) {
   j.at("name").get_to(p.name);
 
@@ -646,7 +642,6 @@ void from_json(const json &j, Dependency &p) {
     string version_str = j.at("version_min");
     p.version_min = PackageVersion(version_str);
   }
-
 
   if (j.contains("version_max") && !j["version_max"].is_null()) {
     string version_str = j.at("version_max");

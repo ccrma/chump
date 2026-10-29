@@ -154,7 +154,6 @@ void printPackagesMultiLine(Manager *mgr, bool print_installed,
   }
 }
 
-
 // Print all packages, regardless of whether they're installed or not
 void printAllPackages(Manager *mgr) {
   vector<Package> packages = mgr->listPackages();
@@ -188,8 +187,6 @@ void printAllPackages(Manager *mgr) {
               << truncate(p.description, 100, true) << std::endl;
   }
 }
-
-
 
 // Print only installed packages (and relevant information such as install path)
 void printInstalledPackages(Manager *mgr) {
@@ -370,8 +367,6 @@ void printPackage(Manager *mgr, Package p) {
   }
 }
 
-
-
 void get_terminal_size(int &width, int &height) {
   width = height = 0;
 #if defined(_WIN32)
@@ -387,7 +382,6 @@ void get_terminal_size(int &width, int &height) {
 #endif // Windows/Linux
 }
 
-
 void clear() {
 #if defined _WIN32
   system("cls");
@@ -399,8 +393,6 @@ void clear() {
   system("clear");
 #endif
 }
-
-
 
 std::string jumbleColors(std::string str, int counter) {
   std::default_random_engine generator;
@@ -446,8 +438,6 @@ std::string jumbleColors(std::string str, int counter) {
 
   return output;
 }
-
-
 
 std::string riverColors(std::string str, int counter) {
   std::default_random_engine generator;
@@ -510,8 +500,6 @@ std::string riverColors(std::string str, int counter) {
 
   return output;
 }
-
-
 
 std::string dimColors(std::string str, int counter) {
   std::default_random_engine generator;
@@ -580,7 +568,6 @@ std::string dimColors(std::string str, int counter) {
   return output;
 }
 
-
 std::string bedtimeColors(std::string str, int counter) {
   std::default_random_engine generator;
   std::uniform_int_distribution<int> distribution(0, 3);
@@ -643,7 +630,6 @@ std::string bedtimeColors(std::string str, int counter) {
   return output;
 }
 
-
 std::string bedtimeLogo(int counter) {
   // clang-format off
   std::string logo = R"(
@@ -684,8 +670,6 @@ std::string bedtimeLogo(int counter) {
 
   return logo;
 }
-
-
 
 std::string dimLogo(int counter) {
   int width = 0, height = 0;
@@ -762,7 +746,6 @@ std::string dimLogo(int counter) {
   return logo_combined;
 }
 
-
 std::string riverLogo(int counter) {
   int width = 0, height = 0;
   get_terminal_size(width, height);
@@ -823,8 +806,6 @@ std::string riverLogo(int counter) {
 
   return logo_combined;
 }
-
-
 
 std::string jumbleLogo(int counter) {
   int width = 0, height = 0;
@@ -887,8 +868,6 @@ std::string jumbleLogo(int counter) {
 
   return logo_combined;
 }
-
-
 
 std::string printLogo() {
   std::ostringstream o;

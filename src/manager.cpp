@@ -2,9 +2,9 @@
 #include "manager.h"
 #include "util.h"
 
+#include <regex>
 #include <solv/pool.h>
 #include <solv/solver.h>
-#include <regex>
 #include <sstream>
 #include <unordered_set>
 
@@ -64,7 +64,7 @@ bool Manager::installWithDeps(const vector<string> packageNames) {
 
     if (!pkg) {
       std::cerr << chumpPrepend() << "package " << packageName << " not found."
-		<< std::endl;
+                << std::endl;
       return false;
     }
 
@@ -90,8 +90,8 @@ bool Manager::installWithDeps(const vector<string> packageNames) {
   }
 
   // std::cout << "--- libsolv Pool State Dump ---\n";
-  // // Solvables are stored in a contiguous array from index 1 to pool->nsolvables
-  // for (int i = 1; i < pool->nsolvables; i++) {
+  // // Solvables are stored in a contiguous array from index 1 to
+  // pool->nsolvables for (int i = 1; i < pool->nsolvables; i++) {
   //   Solvable *s = pool->solvables + i;
 
   //   // Only print actual packages, skip empty slots
@@ -107,7 +107,8 @@ bool Manager::installWithDeps(const vector<string> packageNames) {
   // Create and run solver
   Solver *solver = solver_create(pool);
 
-  // Allow the solver to downgrade installed packages if a dependency requires it
+  // Allow the solver to downgrade installed packages if a dependency requires
+  // it
   solver_set_flag(solver, SOLVER_FLAG_ALLOW_DOWNGRADE, 1);
 
   // Solve it!
@@ -116,10 +117,12 @@ bool Manager::installWithDeps(const vector<string> packageNames) {
   // check for solver success
   int problem_count = solver_problem_count(solver);
   if (problem_count > 0) {
-    std::cerr << chumpPrepend() << "dependency resolution failed with " << problem_count << " problems:\n";
+    std::cerr << chumpPrepend() << "dependency resolution failed with "
+              << problem_count << " problems:\n";
 
     Id problem = 0;
-    // Pass 0 to get the first problem, then pass the previous ID to get the next
+    // Pass 0 to get the first problem, then pass the previous ID to get the
+    // next
     while ((problem = solver_next_problem(solver, problem)) != 0) {
       std::cerr << " - " << solver_problem2str(solver, problem) << "\n";
     }
@@ -128,18 +131,20 @@ bool Manager::installWithDeps(const vector<string> packageNames) {
   }
 
   // parse the transaction and install/erase/upgrade
-  // there are a lot of options: https://github.com/openSUSE/libsolv/blob/c9ee7a3b946e8870f056dddc22032e4d43a40636/src/transaction.h#L45
+  // there are a lot of options:
+  // https://github.com/openSUSE/libsolv/blob/c9ee7a3b946e8870f056dddc22032e4d43a40636/src/transaction.h#L45
   Transaction *trans = solver_create_transaction(solver);
 
   if (trans->steps.count == 0) {
-    std::cerr << chumpPrepend() << "the requested packages are already installed."
-              << std::endl;
-    std::cerr << chumpPrepend() << "use `chump update <package>' to update the existing "
+    std::cerr << chumpPrepend()
+              << "the requested packages are already installed." << std::endl;
+    std::cerr << chumpPrepend()
+              << "use `chump update <package>' to update the existing "
                  "package"
               << std::endl;
-    std::cerr
-        << chumpPrepend() << "or use `chump uninstall <package>` to remove the package"
-        << std::endl;
+    std::cerr << chumpPrepend()
+              << "or use `chump uninstall <package>` to remove the package"
+              << std::endl;
 
     transaction_free(trans);
     solver_free(solver);
@@ -172,34 +177,40 @@ bool Manager::installWithDeps(const vector<string> packageNames) {
 
       // Print different message depending on if it's dependency or not
       if (is_requested) {
-	std::cout << chumpPrepend() << "installing package: " << packageStr(s_name, s_evr) << "\n";
+        std::cout << chumpPrepend()
+                  << "installing package: " << packageStr(s_name, s_evr)
+                  << "\n";
       } else {
-        std::cout << chumpPrepend() << "installing dependency: " << packageStr(s_name, s_evr) << "\n";
+        std::cout << chumpPrepend()
+                  << "installing dependency: " << packageStr(s_name, s_evr)
+                  << "\n";
       }
 
-      string pkgstr =
-	string(pool_id2str(pool, s->name)) + "=" + string(pool_id2str(pool, s->evr));
+      string pkgstr = string(pool_id2str(pool, s->name)) + "=" +
+                      string(pool_id2str(pool, s->evr));
 
       if (!install(pkgstr)) {
-	std::cerr << "Failed to install\n";
-	return false;
+        std::cerr << "Failed to install\n";
+        return false;
       }
     } else if (step_type == SOLVER_TRANSACTION_ERASE) {
-      std::cout << chumpPrepend() << "removing package: " << pool_id2str(pool, s->name) << "="
+      std::cout << chumpPrepend()
+                << "removing package: " << pool_id2str(pool, s->name) << "="
                 << pool_id2str(pool, s->evr) << "\n";
 
       string pkg = string(pool_id2str(pool, s->name));
-      string pkgstr = pkg + "=" +
-                      string(pool_id2str(pool, s->evr));
+      string pkgstr = pkg + "=" + string(pool_id2str(pool, s->evr));
 
       if (!uninstall(pkg, false)) {
-        std::cerr << chumpPrepend() << "failed to uninstall package: " << pkg << "\n";
-	return false;
+        std::cerr << chumpPrepend() << "failed to uninstall package: " << pkg
+                  << "\n";
+        return false;
       }
     } else if (step_type == SOLVER_TRANSACTION_IGNORE) {
       // std::cout << "Ignoring: " << pool_id2str(pool, s->name) << "="
       //           << pool_id2str(pool, s->evr) << "\n";
-    } else if (step_type == SOLVER_TRANSACTION_UPGRADED || step_type == SOLVER_TRANSACTION_DOWNGRADED) {
+    } else if (step_type == SOLVER_TRANSACTION_UPGRADED ||
+               step_type == SOLVER_TRANSACTION_DOWNGRADED) {
       // 's' is the OLD package being removed.
       // need to ask libsolv what the NEW package is
       Id new_p = transaction_obs_pkg(trans, p);
@@ -209,24 +220,26 @@ bool Manager::installWithDeps(const vector<string> packageNames) {
                                ? "Upgrade: "
                                : "Downgrade: ";
 
-      std::cout << chumpPrepend() << "" << action << pool_id2str(pool, s->name) << " from "
-                << pool_id2str(pool, s->evr) << " to "
+      std::cout << chumpPrepend() << "" << action << pool_id2str(pool, s->name)
+                << " from " << pool_id2str(pool, s->evr) << " to "
                 << pool_id2str(pool, new_s->evr) << "\n";
 
       // install the new package
       string pkg = string(pool_id2str(pool, new_s->name));
-      string pkgstr = pkg + "=" +
-                      string(pool_id2str(pool, new_s->evr));
+      string pkgstr = pkg + "=" + string(pool_id2str(pool, new_s->evr));
 
       if (!uninstall(pkg, false)) {
-	std::cerr << chumpPrepend() << "failed to uninstall package: " << pkg << "\n";
-	return false;
+        std::cerr << chumpPrepend() << "failed to uninstall package: " << pkg
+                  << "\n";
+        return false;
       }
       if (!install(pkgstr)) {
-	std::cerr << chumpPrepend() << "failed to install package: " << pkg << "\n";
+        std::cerr << chumpPrepend() << "failed to install package: " << pkg
+                  << "\n";
       }
     } else {
-      std::cout << chumpPrepend() << "unaccounted for step type: " << step_type << "\n";
+      std::cout << chumpPrepend() << "unaccounted for step type: " << step_type
+                << "\n";
     }
   }
 
@@ -267,8 +280,8 @@ bool Manager::install(string packageName) {
   }
 
   if (!ver) {
-    std::cerr << chumpPrepend() << "unable to find version of package " << package.name
-              << " that works on your system" << std::endl;
+    std::cerr << chumpPrepend() << "unable to find version of package "
+              << package.name << " that works on your system" << std::endl;
 
     return false;
   }
@@ -280,8 +293,8 @@ bool Manager::install(string packageName) {
   fs::path install_dir = packagePath(package, chump_dir);
 
   if (fs::exists(install_dir / "version.json")) {
-    std::cerr << chumpPrepend() << "the package '" << package.name << "' already exists."
-              << std::endl;
+    std::cerr << chumpPrepend() << "the package '" << package.name
+              << "' already exists." << std::endl;
     std::cerr << chumpPrepend() << "use `chump update " << package.name
               << "' to update the existing package" << std::endl;
     std::cerr << chumpPrepend() << "or use `chump uninstall " << package.name
@@ -403,13 +416,13 @@ bool Manager::install_local(fs::path pkgDefn, fs::path pkgVer,
   if (fs::exists(install_dir / "version.json")) {
     std::cerr << chumpPrepend() << "the package '" << package.value().name
               << "' already exists." << std::endl;
-    std::cerr << chumpPrepend() << "uninstalling '" << package.value().name << "'..."
-              << std::endl;
+    std::cerr << chumpPrepend() << "uninstalling '" << package.value().name
+              << "'..." << std::endl;
     uninstall(package.value().name, false);
   }
 
-  std::cerr << chumpPrepend() << "installing '" << package.value().name << "'..."
-            << std::endl;
+  std::cerr << chumpPrepend() << "installing '" << package.value().name
+            << "'..." << std::endl;
   fs::create_directory(install_dir);
   // Unzip the local file to the installed directory
   if (!unzipFile(pkgZip.string(), install_dir.string()))
@@ -468,8 +481,8 @@ bool Manager::update(string packageName) {
               << std::endl;
     std::cerr << chumpPrepend() << "try removing the directory " << install_dir
               << std::endl;
-    std::cerr << chumpPrepend() << "and then calling 'chump install '" << packageName
-              << "'\n";
+    std::cerr << chumpPrepend() << "and then calling 'chump install '"
+              << packageName << "'\n";
     return false;
   }
 
@@ -479,8 +492,8 @@ bool Manager::update(string packageName) {
       package.latest_version(os, arch, language_version, api_version);
 
   if (!ver) {
-    std::cerr << chumpPrepend() << "unable to find version of package " << package.name
-              << " that works on your system" << std::endl;
+    std::cerr << chumpPrepend() << "unable to find version of package "
+              << package.name << " that works on your system" << std::endl;
 
     return false;
   }
@@ -488,8 +501,8 @@ bool Manager::update(string packageName) {
   PackageVersion latest_version = ver.value();
 
   if (curr_version == latest_version) {
-    std::cerr << chumpPrepend() << "" << package.name << " is already up-to-date."
-              << std::endl;
+    std::cerr << chumpPrepend() << "" << package.name
+              << " is already up-to-date." << std::endl;
     return true;
   }
 
@@ -691,8 +704,6 @@ std::vector<Package> Manager::listPackages() {
   return pkg_list;
 }
 
-
-
 //-----------------------------------------------------------------------------
 // name: listInstalledVersions()
 // desc: Return a list of all currently installed package versions. These do not
@@ -722,7 +733,6 @@ std::vector<InstalledVersion> Manager::listInstalledVersions() {
   return version_list;
 }
 
-
 bool Manager::is_installed(Package pkg) {
   fs::path install_dir = packagePath(pkg, chump_dir);
 
@@ -746,7 +756,8 @@ bool Manager::update_manifest() {
   if (newest_manifest_version &&
       newest_manifest_version.value() > MANIFEST_VERSION_NO) {
     std::cerr
-        << chumpPrepend() << "there are newer packages available that this version of "
+        << chumpPrepend()
+        << "there are newer packages available that this version of "
            "chump cannot manage. visit https://chuck.stanford.edu/release/ and "
            "install the latest version of chuck (which includes an updated "
            "version of chump). once you have done this, rerun chump for the "
@@ -761,8 +772,8 @@ bool Manager::update_manifest() {
   bool result = fetch->fetch_manifest(manifest_url, temp_dir);
 
   if (!result) {
-    std::cerr << chumpPrepend() << "failed to fetch manifest.json, continuing..."
-              << std::endl;
+    std::cerr << chumpPrepend()
+              << "failed to fetch manifest.json, continuing..." << std::endl;
     return false;
   }
 
@@ -798,8 +809,8 @@ bool Manager::update_manifest() {
 
   if (are_equal) {
     // since this is now being updated every time chump is called (except for
-    // help), we are now being silent. std::cerr << chumpPrepend() << "current manifest
-    // is up-to-date, doing nothing"
+    // help), we are now being silent. std::cerr << chumpPrepend() << "current
+    // manifest is up-to-date, doing nothing"
     //           << std::endl;
     return false;
   }
@@ -814,7 +825,8 @@ bool Manager::update_manifest() {
     return false;
   }
 
-  std::cerr << chumpPrepend() << "manifest.json was successfully updated!" << std::endl;
+  std::cerr << chumpPrepend() << "manifest.json was successfully updated!"
+            << std::endl;
   return true;
 }
 
@@ -893,7 +905,8 @@ optional<Package> Manager::open_package_file(fs::path path) {
   // parse package and version files
   std::ifstream ver_stream(path);
   if (!ver_stream.good()) {
-    std::cerr << chumpPrepend() << "unable to open \"" << path << "\"" << std::endl;
+    std::cerr << chumpPrepend() << "unable to open \"" << path << "\""
+              << std::endl;
     ver_stream.close();
     return {};
   }
@@ -905,8 +918,8 @@ optional<Package> Manager::open_package_file(fs::path path) {
     ver_stream.close();
   } catch (const std::exception &e) {
     ver_stream.close();
-    std::cerr << chumpPrepend() << "unable to parse \"" << path << "\": " << e.what()
-              << std::endl;
+    std::cerr << chumpPrepend() << "unable to parse \"" << path
+              << "\": " << e.what() << std::endl;
     return {};
   }
 
@@ -926,7 +939,8 @@ optional<InstalledVersion> Manager::open_installed_version_file(fs::path path) {
   // parse package and version files
   std::ifstream ver_stream(path);
   if (!ver_stream.good()) {
-    // std::cerr << chumpPrepend() << "unable to open \"" << path << "\"" << std::endl;
+    // std::cerr << chumpPrepend() << "unable to open \"" << path << "\"" <<
+    // std::endl;
     ver_stream.close();
     return {};
   }
@@ -938,8 +952,8 @@ optional<InstalledVersion> Manager::open_installed_version_file(fs::path path) {
     ver_stream.close();
   } catch (const std::exception &e) {
     ver_stream.close();
-    std::cerr << chumpPrepend() << "unable to parse \"" << path << "\": " << e.what()
-              << std::endl;
+    std::cerr << chumpPrepend() << "unable to parse \"" << path
+              << "\": " << e.what() << std::endl;
     return {};
   }
 
@@ -959,7 +973,8 @@ optional<PackageVersion> Manager::open_package_version_file(fs::path path) {
   // parse package and version files
   std::ifstream ver_stream(path);
   if (!ver_stream.good()) {
-    std::cerr << chumpPrepend() << "unable to open \"" << path << "\"" << std::endl;
+    std::cerr << chumpPrepend() << "unable to open \"" << path << "\""
+              << std::endl;
     ver_stream.close();
     return {};
   }
@@ -971,8 +986,8 @@ optional<PackageVersion> Manager::open_package_version_file(fs::path path) {
     ver_stream.close();
   } catch (const std::exception &e) {
     ver_stream.close();
-    std::cerr << chumpPrepend() << "unable to parse \"" << path << "\": " << e.what()
-              << std::endl;
+    std::cerr << chumpPrepend() << "unable to parse \"" << path
+              << "\": " << e.what() << std::endl;
     return {};
   }
 
@@ -988,8 +1003,6 @@ optional<PackageVersion> Manager::open_package_version_file(fs::path path) {
   }
 }
 
-
-
 //-----------------------------------------------------------------------------
 // name: initializeSystemRepo()
 // desc: Create a libsolv repo of all the packages installed on your system
@@ -997,7 +1010,8 @@ optional<PackageVersion> Manager::open_package_version_file(fs::path path) {
 //-----------------------------------------------------------------------------
 Repo *Manager::initializeSystemRepo() {
   Repo *repo = repo_create(pool, "@System");
-  pool_set_installed(pool, repo); // mark @System as the repo of installed packages
+  pool_set_installed(pool,
+                     repo); // mark @System as the repo of installed packages
 
   std::vector<InstalledVersion> installed_versions = listInstalledVersions();
 
@@ -1008,11 +1022,13 @@ Repo *Manager::initializeSystemRepo() {
   Solvable *s_lang = pool_id2solvable(pool, ck_lang_id);
 
   s_lang->name = pool_str2id(pool, "chuck-system-version", 1);
-  s_lang->evr = pool_str2id(pool, language_version.getVersionString().c_str(), 1);
+  s_lang->evr =
+      pool_str2id(pool, language_version.getVersionString().c_str(), 1);
 
   // Provide the virtual capability (e.g. "chuck-version = 1.5.5.9"
   Id cap_ck_name = pool_str2id(pool, "chuck-version", 1);
-  Id cap_ck_ver  = pool_str2id(pool, language_version.getVersionString().c_str(), 1);
+  Id cap_ck_ver =
+      pool_str2id(pool, language_version.getVersionString().c_str(), 1);
   Id prov_rel_ck = pool_rel2id(pool, cap_ck_name, cap_ck_ver, REL_EQ, 1);
 
   solvable_add_deparray(s_lang, SOLVABLE_PROVIDES, prov_rel_ck, 0);
@@ -1026,7 +1042,7 @@ Repo *Manager::initializeSystemRepo() {
 
   // Provide the virtual capability (e.g. "chuck-version = 1.5.5.9"
   Id cap_api_name = pool_str2id(pool, "chuck-api", 1);
-  Id cap_api_ver  = pool_str2id(pool, api_version.getVersionString().c_str(), 1);
+  Id cap_api_ver = pool_str2id(pool, api_version.getVersionString().c_str(), 1);
   Id prov_rel_api = pool_rel2id(pool, cap_api_name, cap_api_ver, REL_EQ, 1);
 
   solvable_add_deparray(s_api, SOLVABLE_PROVIDES, prov_rel_api, 0);
@@ -1053,14 +1069,16 @@ Repo *Manager::initializeSystemRepo() {
     // add chuck language version constraint
     Id min_ck_ver = pool_str2id(
         pool, ver.language_version_min.getVersionString().c_str(), 1);
-    Id req_min_ck_ver = pool_rel2id(pool, cap_ck_name, min_ck_ver, REL_GT | REL_EQ, 1);
+    Id req_min_ck_ver =
+        pool_rel2id(pool, cap_ck_name, min_ck_ver, REL_GT | REL_EQ, 1);
     solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_min_ck_ver, 0);
 
     // set max lang version (if exists)
     if (ver.language_version_max) {
       Id max_ck_ver = pool_str2id(
           pool, ver.language_version_max.value().getVersionString().c_str(), 1);
-      Id req_max_ck_ver = pool_rel2id(pool, cap_ck_name, max_ck_ver, REL_LT | REL_EQ, 1);
+      Id req_max_ck_ver =
+          pool_rel2id(pool, cap_ck_name, max_ck_ver, REL_LT | REL_EQ, 1);
       solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_max_ck_ver, 0);
     }
 
@@ -1078,23 +1096,25 @@ Repo *Manager::initializeSystemRepo() {
 
       // optionally, add min/max version bounds of the dependency
       if (dep.version_min) {
-	Id evr_id = pool_str2id(pool, dep.version_min.value().getVersionString().c_str(), 1);
+        Id evr_id = pool_str2id(
+            pool, dep.version_min.value().getVersionString().c_str(), 1);
 
-	// create an relational ID (i.e. "Rec >= 1.1.0")
-	Id rel_id = pool_rel2id(pool, name_id, evr_id, REL_GT | REL_EQ, 1);
-	solvable_add_deparray(solv, SOLVABLE_REQUIRES, rel_id, 0);
+        // create an relational ID (i.e. "Rec >= 1.1.0")
+        Id rel_id = pool_rel2id(pool, name_id, evr_id, REL_GT | REL_EQ, 1);
+        solvable_add_deparray(solv, SOLVABLE_REQUIRES, rel_id, 0);
       }
 
       if (dep.version_max) {
-	Id evr_id = pool_str2id(pool, dep.version_max.value().getVersionString().c_str(), 1);
+        Id evr_id = pool_str2id(
+            pool, dep.version_max.value().getVersionString().c_str(), 1);
 
-	// create an relational ID (i.e. "Rec <= 1.1.0")
-	Id rel_id = pool_rel2id(pool, name_id, evr_id, REL_LT | REL_EQ, 1);
-	solvable_add_deparray(solv, SOLVABLE_REQUIRES, rel_id, 0);
+        // create an relational ID (i.e. "Rec <= 1.1.0")
+        Id rel_id = pool_rel2id(pool, name_id, evr_id, REL_LT | REL_EQ, 1);
+        solvable_add_deparray(solv, SOLVABLE_REQUIRES, rel_id, 0);
       }
 
       if (!dep.version_min && !dep.version_max) {
-	  solvable_add_deparray(solv, SOLVABLE_REQUIRES, name_id, 0);
+        solvable_add_deparray(solv, SOLVABLE_REQUIRES, name_id, 0);
       }
     }
   }
@@ -1106,8 +1126,6 @@ Repo *Manager::initializeSystemRepo() {
 
   return repo;
 }
-
-
 
 //-----------------------------------------------------------------------------
 // name: initializeManifestRepo()
@@ -1147,7 +1165,8 @@ Repo *Manager::initializeManifestRepo() {
 
       Id min_ck_ver = pool_str2id(
           pool, ver.language_version_min.getVersionString().c_str(), 1);
-      Id req_min_ck_ver = pool_rel2id(pool, cap_ck_name, min_ck_ver, REL_GT | REL_EQ, 1);
+      Id req_min_ck_ver =
+          pool_rel2id(pool, cap_ck_name, min_ck_ver, REL_GT | REL_EQ, 1);
       solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_min_ck_ver, 0);
 
       // set max lang version (if exists)
@@ -1155,44 +1174,47 @@ Repo *Manager::initializeManifestRepo() {
         Id max_ck_ver = pool_str2id(
             pool, ver.language_version_max.value().getVersionString().c_str(),
             1);
-	Id req_max_ck_ver = pool_rel2id(pool, cap_ck_name, max_ck_ver, REL_LT | REL_EQ, 1);
-	solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_max_ck_ver, 0);
+        Id req_max_ck_ver =
+            pool_rel2id(pool, cap_ck_name, max_ck_ver, REL_LT | REL_EQ, 1);
+        solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_max_ck_ver, 0);
       }
 
       // set api version (if exists)
       if (ver.api_version) {
-	Id api_name = pool_str2id(pool, "chuck-api", 1);
+        Id api_name = pool_str2id(pool, "chuck-api", 1);
         Id api_ver = pool_str2id(
             pool, ver.api_version.value().getVersionString().c_str(), 1);
-	Id req_api_ver = pool_rel2id(pool, api_name, api_ver, REL_EQ, 1);
-	solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_api_ver, 0);
+        Id req_api_ver = pool_rel2id(pool, api_name, api_ver, REL_EQ, 1);
+        solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_api_ver, 0);
       }
 
       // add dependencies (weeee)
       for (Dependency dep : ver.dependencies) {
-	// std::cout << "Dependency: " << dep.name << "\n";
+        // std::cout << "Dependency: " << dep.name << "\n";
         Id name_id = pool_str2id(pool, dep.name.c_str(), 1);
 
-	// optionally, add min/max version bounds of the dependency
+        // optionally, add min/max version bounds of the dependency
         if (dep.version_min) {
-          Id evr_id = pool_str2id(pool, dep.version_min.value().getVersionString().c_str(), 1);
+          Id evr_id = pool_str2id(
+              pool, dep.version_min.value().getVersionString().c_str(), 1);
 
           // create an relational ID (i.e. "Rec >= 1.1.0")
           Id rel_id = pool_rel2id(pool, name_id, evr_id, REL_GT | REL_EQ, 1);
-	  solvable_add_deparray(solv, SOLVABLE_REQUIRES, rel_id, 0);
+          solvable_add_deparray(solv, SOLVABLE_REQUIRES, rel_id, 0);
         }
 
-	if (dep.version_max) {
-          Id evr_id = pool_str2id(pool, dep.version_max.value().getVersionString().c_str(), 1);
+        if (dep.version_max) {
+          Id evr_id = pool_str2id(
+              pool, dep.version_max.value().getVersionString().c_str(), 1);
 
           // create an relational ID (i.e. "Rec <= 1.1.0")
           Id rel_id = pool_rel2id(pool, name_id, evr_id, REL_LT | REL_EQ, 1);
-	  solvable_add_deparray(solv, SOLVABLE_REQUIRES, rel_id, 0);
+          solvable_add_deparray(solv, SOLVABLE_REQUIRES, rel_id, 0);
         }
 
         if (!dep.version_min && !dep.version_max) {
-	  solvable_add_deparray(solv, SOLVABLE_REQUIRES, name_id, 0);
-	}
+          solvable_add_deparray(solv, SOLVABLE_REQUIRES, name_id, 0);
+        }
       }
     }
   }
@@ -1205,41 +1227,42 @@ Repo *Manager::initializeManifestRepo() {
   return repo;
 }
 
-
-
 void printDependencies(Pool *pool, const char *packageName) {
-    // 1. Get the ID for the name (pass create=0 because we only want to lookup)
-    Id name_id = pool_str2id(pool, packageName, 0);
-    if (!name_id) {
-        std::cout << "Package '" << packageName << "' does not exist in the pool.\n";
-        return;
+  // 1. Get the ID for the name (pass create=0 because we only want to lookup)
+  Id name_id = pool_str2id(pool, packageName, 0);
+  if (!name_id) {
+    std::cout << "Package '" << packageName
+              << "' does not exist in the pool.\n";
+    return;
+  }
+
+  // 2. Prepare the pool for querying (builds the provider index)
+  pool_createwhatprovides(pool);
+
+  // 3. Iterate through every solvable that provides this name
+  Id p, pp;
+  FOR_PROVIDES(p, pp, name_id) {
+    Solvable *s = pool_id2solvable(pool, p);
+
+    // Print the package name and version
+    std::cout << "Dependencies for " << pool_id2str(pool, s->name) << "="
+              << pool_id2str(pool, s->evr) << ":\n";
+
+    // 4. Iterate through the SOLVABLE_REQUIRES array
+    if (s->requires) {
+      Id req;
+      // FIX 2: The internal array is named 'idarraydata'
+      Id *reqp = s->repo->idarraydata + s->
+                                          requires;
+
+      // The array is 0-terminated
+      while ((req = *reqp++) != 0) {
+        // pool_dep2str handles both simple names ("foo") and relations ("foo
+        // >= 1.0")
+        std::cout << "  - " << pool_dep2str(pool, req) << "\n";
+      }
+    } else {
+      std::cout << "  (none)\n";
     }
-
-    // 2. Prepare the pool for querying (builds the provider index)
-    pool_createwhatprovides(pool);
-
-    // 3. Iterate through every solvable that provides this name
-    Id p, pp;
-    FOR_PROVIDES(p, pp, name_id) {
-        Solvable *s = pool_id2solvable(pool, p);
-
-        // Print the package name and version
-        std::cout << "Dependencies for " << pool_id2str(pool, s->name)
-                  << "=" << pool_id2str(pool, s->evr) << ":\n";
-
-        // 4. Iterate through the SOLVABLE_REQUIRES array
-        if (s->requires) {
-	  Id req;
-	  // FIX 2: The internal array is named 'idarraydata'
-	  Id *reqp = s->repo->idarraydata + s->requires;
-
-	  // The array is 0-terminated
-	  while ((req = *reqp++) != 0) {
-	    // pool_dep2str handles both simple names ("foo") and relations ("foo >= 1.0")
-	    std::cout << "  - " << pool_dep2str(pool, req) << "\n";
-	  }
-        } else {
-            std::cout << "  (none)\n";
-        }
-    }
+  }
 }
