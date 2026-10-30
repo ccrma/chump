@@ -37,6 +37,7 @@ public:
   bool install(string packageName);
   bool installWithDeps(const vector<string> packageNames);
   bool install_local(fs::path pkgDefn, fs::path pkgVer, fs::path pkgZip);
+  bool install_local_with_deps(fs::path pkgDefn, fs::path pkgVer, fs::path pkgZip);
   bool uninstall(string packageName, bool force);
   bool update(string packageName);
   bool update_manifest();                 // Download a new package manifest

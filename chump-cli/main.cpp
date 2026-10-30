@@ -305,7 +305,7 @@ int main(int argc, const char **argv) {
     }
 
     // install a package by name
-    manager->install_local(targets[0], targets[1], targets[2]);
+    manager->install_local_with_deps(targets[0], targets[1], targets[2]);
   } else if (subcommand == "uninstall") {
     // check
     if (install_package_names.size() == 0) {
