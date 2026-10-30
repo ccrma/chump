@@ -46,8 +46,11 @@ optional<PackageVersion> Manager::latestPackageVersion(string name) {
       name, os, arch, language_version, api_version);
 }
 
-// Install, but with dependencies!
-// Uses libsolv to resolve package dependencies via a sat solver
+//-----------------------------------------------------------------------------
+// name: installWithDeps()
+// desc: Install, but with dependencies!
+//       Uses libsolv to resolve package dependencies via a sat solver
+//-----------------------------------------------------------------------------
 bool Manager::installWithDeps(const vector<string> packageNames) {
   // make install list
   Queue job;
@@ -91,7 +94,9 @@ bool Manager::installWithDeps(const vector<string> packageNames) {
 
   // std::cout << "--- libsolv Pool State Dump ---\n";
   // // Solvables are stored in a contiguous array from index 1 to
-  // pool->nsolvables for (int i = 1; i < pool->nsolvables; i++) {
+  // // pool->nsolvables
+  //
+  // for (int i = 1; i < pool->nsolvables; i++) {
   //   Solvable *s = pool->solvables + i;
 
   //   // Only print actual packages, skip empty slots
@@ -805,6 +810,135 @@ bool Manager::update(string packageName) {
   return true;
 }
 
+//-----------------------------------------------------------------------------
+// name: uninstall_with_deps()
+// desc: Uninstall the package with dependency managment. If another
+//       package depends on the package you're trying to uninstall, it
+//       will tell you to uninstall those first. At the moment this can't
+//       uninstall dependencies as we don't currently track what was
+//       installed as a dependency and what wasn't.
+//-----------------------------------------------------------------------------
+bool Manager::uninstall_with_deps(string packageName, bool force) {
+  Queue job;
+  queue_init(&job);
+
+  auto [name, version_string] = parsePackageName(packageName);
+
+  // define job
+  Id name_id = pool_str2id(pool, name.c_str(), 1);
+
+  queue_push2(&job, SOLVER_ERASE | SOLVER_SOLVABLE_NAME, name_id);
+
+  // std::cout << "--- libsolv Pool State Dump ---\n";
+  // // Solvables are stored in a contiguous array from index 1 to
+  // // pool->nsolvables
+  // for (int i = 1; i < pool->nsolvables; i++) {
+  //   Solvable *s = pool->solvables + i;
+
+  //   // Only print actual packages, skip empty slots
+  //   if (s->repo) {
+  //     std::cout << "Repo: " << s->repo->name
+  // 		<< " | Pkg: '" << pool_id2str(pool, s->name) << "'"
+  // 		<< " ver '" << pool_id2str(pool, s->evr) << "'"
+  // 		<< " (Name ID: " << s->name << ")\n";
+  //   }
+  // }
+  // std::cout << "-------------------------------\n";
+
+  // Mark all system packages as locked, so that the solver cannot
+  // continue if the uninstalling package is a dependency of anything
+  for (int i = 1; i < pool->nsolvables; i++) {
+    Solvable *s = pool->solvables + i;
+
+    if (s->repo && strcmp(s->repo->name, "@System") == 0 &&
+        s->name != name_id) {
+      queue_push2(&job, SOLVER_LOCK | SOLVER_SOLVABLE_NAME, s->name);
+    }
+  }
+
+  // Empty all non-system repos so the solver cannot use them as fallbacks
+  for (int i = 0; i < pool->nrepos; i++) {
+    Repo *repo = pool->repos[i];
+    if (repo && strcmp(repo->name, "@System") != 0) {
+      repo_empty(repo, 0);
+    }
+  }
+
+  // Rebuild the lookup index without the manifest packages
+  pool_createwhatprovides(pool);
+
+  // Create and run solver
+  Solver *solver = solver_create(pool);
+
+  // might need to set SOLVER_FLAG_ALLOW_UNINSTALL
+  solver_set_flag(solver, SOLVER_FLAG_ALLOW_UNINSTALL, 1);
+
+  // Solve it!
+  solver_solve(solver, &job);
+
+  // check for solver success
+  int problem_count = solver_problem_count(solver);
+  if (problem_count > 0) {
+    std::cerr << chumpPrepend();
+    if (force) {
+      std::cerr << TC::red("WARNING") << ": ";
+    }
+
+    std::cerr << "dependency resolution failed while attempting to uninstall " << packageName << " with ";
+
+    if (problem_count > 1)
+      std::cerr << problem_count << " problems:\n";
+    else std::cerr << "1 problem:\n";
+
+    Id problem = 0;
+    // Pass 0 to get the first problem, then pass the previous ID to get the
+    // next
+    while ((problem = solver_next_problem(solver, problem)) != 0) {
+      std::cerr << " - " << solver_problem2str(solver, problem) << "\n";
+    }
+
+    if (force) {
+      std::cerr << chumpPrepend() << "attempting to uninstall anyways...\n";
+      return uninstall(packageName, force);
+    }
+
+    return false;
+  }
+
+  // parse the transaction and install/erase/upgrade
+  // there are a lot of options:
+  // https://github.com/openSUSE/libsolv/blob/c9ee7a3b946e8870f056dddc22032e4d43a40636/src/transaction.h#L45
+  Transaction *trans = solver_create_transaction(solver);
+
+  // No steps means that there's nothing to be done, which means that the package wasn't installed
+  if (trans->steps.count == 0) {
+    if (!force) {
+      std::cerr << chumpPrepend() << "the package " << TC::bold(packageName)
+                << " was not found, could not uninstall" << std::endl;
+    }
+
+    transaction_free(trans);
+    solver_free(solver);
+    queue_free(&job);
+
+    // if we are forcing, we're gonna try anyway (because the version.json could have been deleted)
+    if (force) {
+      return uninstall(packageName, force);
+    }
+  }
+
+  // topologically order transactions
+  // transaction_order(trans, 0);
+
+  // Because we are not uninstalling dependencies we shouldn't need to traverse
+  // the solver's steps. It's just for validating.
+  transaction_free(trans);
+  solver_free(solver);
+  queue_free(&job);
+
+  return uninstall(packageName, force);
+}
+
 bool Manager::uninstall(string packageName, bool force) {
   // if there isn't already a .chump/PACKAGE directory, error out and tell the
   // user to install
@@ -819,10 +953,15 @@ bool Manager::uninstall(string packageName, bool force) {
     return false;
   }
 
+  std::cout << chumpPrepend()
+	    << TC::blue("uninstalling package", TRUE) << ": " << packageStr(packageName)
+	    << "\n";
+
   if (force) {
     std::cerr << chumpPrepend() << "force-uninstall " << packageName
-              << " (completely removing the directory)...\n";
+              << " (completely removing the installation directory)...\n";
     fs::remove_all(install_dir.lexically_normal());
+    return true;
   }
 
   optional<InstalledVersion> installed_ver =
@@ -840,11 +979,18 @@ bool Manager::uninstall(string packageName, bool force) {
     fs::path full_path = install_dir / filepath;
 
     if (fs::exists(full_path)) {
-      std::cerr << chumpPrepend() << "removing " << full_path << std::endl;
-      fs::remove(full_path);
+         fs::remove(full_path);
+
+      std::string line = string("   └─[") + TC::green("REMOVED", TRUE) + "] " +
+                     TC::blue(full_path);
+      std::cerr << chumpPrepend() << line << std::endl;
     } else {
-      std::cerr << chumpPrepend() << "attempted to remove " << full_path
-                << ", but the file was not found, continuing..." << std::endl;
+      std::cerr << chumpPrepend() << string("   └─[") << TC::red("ERROR", TRUE)
+                << "] "
+                << "attempted to remove " << TC::blue(full_path) << "," << std::endl;
+      std::cerr << "                     "
+                << "but the file was not found, continuing..." << std::endl;
+
     }
 
     fs::path parent = filepath.parent_path();

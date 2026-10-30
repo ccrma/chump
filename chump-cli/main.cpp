@@ -21,6 +21,7 @@
 
 namespace fs = std::filesystem;
 using std::cerr;
+using std::cout;
 using std::endl;
 using std::string;
 using std::vector;
@@ -318,7 +319,11 @@ int main(int argc, const char **argv) {
     // uninstall a package by name
     for (string uninstall_package_name : uninstall_package_names) {
       try {
-        manager->uninstall(uninstall_package_name, uninstall_force);
+        if (manager->uninstall_with_deps(uninstall_package_name, uninstall_force)) {
+          cout << chumpPrepend() << "uninstall successful" << endl;
+        } else {
+	  cout << chumpPrepend() << "uninstall failed" << endl;
+	}
       } catch (const std::exception &e) {
         cerr << e.what() << endl;
       }

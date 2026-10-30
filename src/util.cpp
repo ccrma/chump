@@ -35,6 +35,10 @@ std::string packageStr(std::string pkg, std::string ver) {
   return TC::bold(pkg) + " (" + ver + ")";
 }
 
+std::string packageStr(std::string pkg) {
+  return TC::bold(pkg);
+}
+
 // Returns the path to the directory where a package will be installed
 // TODO expand to other OS
 fs::path packagePath(Package p, fs::path install_dir) {
@@ -427,8 +431,8 @@ t_CKBOOL TC::globalBypass = TRUE;
 //-----------------------------------------------------------------------------
 // on/off switches
 //-----------------------------------------------------------------------------
-// void TC::on() { isEnabled = TRUE; }
-// void TC::off() { isEnabled = FALSE; }
+void TC::on() { isEnabled = TRUE; }
+void TC::off() { isEnabled = FALSE; }
 //-----------------------------------------------------------------------------
 // a more global disable, overriding on() for the text transformation and
 // TC::set*() the former will bypass and return the input without modification;
