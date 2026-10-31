@@ -51,7 +51,7 @@ optional<PackageVersion> Manager::latestPackageVersion(string name) {
 // desc: Install, but with dependencies!
 //       Uses libsolv to resolve package dependencies via a sat solver
 //-----------------------------------------------------------------------------
-bool Manager::installWithDeps(const vector<string> packageNames) {
+bool Manager::installWithDeps(const vector<string> packageNames, bool update) {
   // make install list
   Queue job;
   queue_init(&job);
@@ -78,6 +78,8 @@ bool Manager::installWithDeps(const vector<string> packageNames) {
 
     requestedPackages.insert(name_id);
 
+    auto strategy = update ? SOLVER_UPDATE : SOLVER_INSTALL;
+
     // If a package version is specified, have both the name
     // and version as solver constraints, otherwise, just
     // constrain on the name.
@@ -86,9 +88,9 @@ bool Manager::installWithDeps(const vector<string> packageNames) {
 
       // create a relational ID (i.e. "Rec = 1.1.0")
       Id rel_id = pool_rel2id(pool, name_id, evr_id, REL_EQ, 1);
-      queue_push2(&job, SOLVER_INSTALL | SOLVER_SOLVABLE_PROVIDES, rel_id);
+      queue_push2(&job, strategy | SOLVER_SOLVABLE_PROVIDES, rel_id);
     } else {
-      queue_push2(&job, SOLVER_INSTALL | SOLVER_SOLVABLE_NAME, name_id);
+      queue_push2(&job, strategy | SOLVER_SOLVABLE_NAME, name_id);
     }
   }
 

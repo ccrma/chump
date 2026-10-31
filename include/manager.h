@@ -35,7 +35,7 @@ public:
   optional<PackageVersion> latestPackageVersion(string name);
 
   bool install(string packageName);
-  bool installWithDeps(const vector<string> packageNames);
+  bool installWithDeps(const vector<string> packageNames, bool update = false);
   bool install_local(fs::path pkgDefn, fs::path pkgVer, fs::path pkgZip);
   bool install_local_with_deps(fs::path pkgDefn, fs::path pkgVer,
                                fs::path pkgZip);

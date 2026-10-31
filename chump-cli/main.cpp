@@ -344,7 +344,7 @@ int main(int argc, const char **argv) {
       return 1;
     }
     // update package
-    manager->update(update_package_name);
+    manager->installWithDeps({update_package_name}, true);
   } else if (subcommand == "doc") {
     // open up doc file - an index.html to be opened in the browser
     if (n_targets != 1) {
