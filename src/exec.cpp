@@ -2,6 +2,7 @@
 #include "util.h"
 
 #define NOMINMAX // to get std::min/std::max working on windows
+#include <algorithm>
 #include <cctype>
 #include <chrono>
 #include <filesystem>
@@ -325,6 +326,9 @@ void printPackage(Manager *mgr, Package p) {
   std::cout << " │\n";
 
   std::cout << " └─ " << TC::blue("Versions ", TRUE) << std::endl;
+
+  // sort versions in descending order of version no.
+  std::sort(p.versions.begin(), p.versions.end(), std::greater<PackageVersion>());
 
   for (int i = 0; i < p.versions.size(); i++) {
     string prepend = "    │";
