@@ -1589,6 +1589,7 @@ Repo *Manager::initializeManifestRepo() {
   return repo;
 }
 
+// this is a debugging function, it should not be used in actual release code
 void printDependencies(Pool *pool, const char *packageName) {
   // 1. Get the ID for the name (pass create=0 because we only want to lookup)
   Id name_id = pool_str2id(pool, packageName, 0);
@@ -1614,8 +1615,9 @@ void printDependencies(Pool *pool, const char *packageName) {
     if (s->requires) {
       Id req;
       // FIX 2: The internal array is named 'idarraydata'
-      Id *reqp = s->repo->idarraydata + s->
-                                          requires;
+      // clang-format off
+      Id *reqp = s->repo->idarraydata + s->requires;
+      // clang-format on
 
       // The array is 0-terminated
       while ((req = *reqp++) != 0) {
