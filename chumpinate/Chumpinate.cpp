@@ -61,6 +61,8 @@ using json = nlohmann::json;
 
 namespace fs = std::filesystem;
 
+#define CHUMPINATE_VERSION "0.2.0"
+
 // declaration of chugin constructor
 CK_DLL_CTOR(package_ctor);
 CK_DLL_CTOR(package_ctor_name);
@@ -101,6 +103,9 @@ CK_DLL_CTOR(package_version_ctor_string);
 CK_DLL_CTOR(package_version_ctor_ints);
 // declaration of chugin desctructor
 CK_DLL_DTOR(package_version_dtor);
+
+// get Chumpinate version
+CK_DLL_SFUN(package_getVersion);
 
 // example of getter/setter
 CK_DLL_MFUN(package_version_setParam);
@@ -289,7 +294,7 @@ private:
 //-----------------------------------------------------------------------------
 CK_DLL_INFO(Chumpinate) {
   // the version string of this chugin, e.g., "v1.2.1"
-  QUERY->setinfo(QUERY, CHUGIN_INFO_CHUGIN_VERSION, "v0.1.0");
+  QUERY->setinfo(QUERY, CHUGIN_INFO_CHUGIN_VERSION, CHUMPINATE_VERSION);
   // the author(s) of this chugin, e.g., "Alice Baker & Carl Donut"
   QUERY->setinfo(QUERY, CHUGIN_INFO_AUTHORS, "Nick Shaheed");
   // text description of this chugin; what is it? what does it do? who is it
@@ -338,6 +343,9 @@ CK_DLL_QUERY(Chumpinate) {
 
   // register the destructor (probably no need to change)
   QUERY->add_dtor(QUERY, package_dtor);
+
+  QUERY->add_sfun(QUERY, package_getVersion, "string", "version");
+  QUERY->doc_func(QUERY, "Get Chumpinate package version");
 
   QUERY->add_mfun(QUERY, package_setName, "string", "name");
   QUERY->add_arg(QUERY, "string", "name");
@@ -728,6 +736,12 @@ CK_DLL_DTOR(package_dtor) {
   CK_SAFE_DELETE(c_obj);
   // set the data field to 0
   OBJ_MEMBER_INT(SELF, package_data_offset) = 0;
+}
+
+// get chumpinate package version
+CK_DLL_SFUN(package_getVersion) {
+  RETURN->v_string =
+      (Chuck_String *)API->object->create_string(VM, CHUMPINATE_VERSION, false);
 }
 
 CK_DLL_MFUN(package_setName) {
@@ -1589,7 +1603,7 @@ CK_DLL_MFUN(package_version_getArch) {
   PackageVersionChumpinate *c_obj =
       (PackageVersionChumpinate *)OBJ_MEMBER_INT(SELF, package_data_offset);
 
-  q string val = c_obj->getArch();
+  string val = c_obj->getArch();
 
   RETURN->v_string =
       (Chuck_String *)API->object->create_string(VM, val.c_str(), false);
