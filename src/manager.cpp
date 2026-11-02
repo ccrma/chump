@@ -438,7 +438,7 @@ bool Manager::install_local_with_deps(fs::path pkgDefn, fs::path pkgVer,
     // optionally, add min/max version bounds of the dependency
     if (dep.version_min) {
       Id evr_id = pool_str2id(
-			      pool, dep.version_min.value().getVersionString().c_str(), 1);
+          pool, dep.version_min.value().getVersionString().c_str(), 1);
 
       // create an relational ID (i.e. "Rec >= 1.1.0")
       Id rel_id = pool_rel2id(pool, name_id, evr_id, REL_GT | REL_EQ, 1);
@@ -447,7 +447,7 @@ bool Manager::install_local_with_deps(fs::path pkgDefn, fs::path pkgVer,
 
     if (dep.version_max) {
       Id evr_id = pool_str2id(
-			      pool, dep.version_max.value().getVersionString().c_str(), 1);
+          pool, dep.version_max.value().getVersionString().c_str(), 1);
 
       // create an relational ID (i.e. "Rec <= 1.1.0")
       Id rel_id = pool_rel2id(pool, name_id, evr_id, REL_LT | REL_EQ, 1);
@@ -511,8 +511,8 @@ bool Manager::install_local_with_deps(fs::path pkgDefn, fs::path pkgVer,
 
       // Print different message depending on if it's dependency or not
       std::cout << chumpPrepend()
-		<< "installing dependency: " << packageStr(s_name, s_evr)
-		<< "\n";
+                << "installing dependency: " << packageStr(s_name, s_evr)
+                << "\n";
 
       string pkg = string(pool_id2str(pool, s->name));
       string ver = string(pool_id2str(pool, s->evr));
@@ -520,7 +520,8 @@ bool Manager::install_local_with_deps(fs::path pkgDefn, fs::path pkgVer,
 
       // do installation here
       if (!install(pkgstr)) {
-	std::cerr << chumpPrepend() << "failed to install dependency " << packageStr(pkg, ver) << "\n";
+        std::cerr << chumpPrepend() << "failed to install dependency "
+                  << packageStr(pkg, ver) << "\n";
       }
     } else if (step_type == SOLVER_TRANSACTION_ERASE) {
       std::cout << chumpPrepend()
@@ -567,7 +568,8 @@ bool Manager::install_local_with_deps(fs::path pkgDefn, fs::path pkgVer,
 
       // instsall
       if (!install(pkgstr)) {
-	std::cerr << chumpPrepend() << "failed to install dependency " << packageStr(pkg, ver) << "\n";
+        std::cerr << chumpPrepend() << "failed to install dependency "
+                  << packageStr(pkg, ver) << "\n";
       }
     } else {
       std::cout << chumpPrepend() << "unaccounted for step type: " << step_type
@@ -587,8 +589,8 @@ bool Manager::install_local_with_deps(fs::path pkgDefn, fs::path pkgVer,
   return install_local(pkgDefn, pkgVer, pkgZip);
 }
 
-
-// installing locally with the package dir (to be called from install_local_with_deps)
+// installing locally with the package dir (to be called from
+// install_local_with_deps)
 bool Manager::install_local(fs::path pkgDefn, fs::path pkgVer,
                             fs::path pkgZip) {
   if (!fs::is_regular_file(pkgDefn)) {
@@ -886,11 +888,13 @@ bool Manager::uninstall_with_deps(string packageName, bool force) {
       std::cerr << TC::red("WARNING") << ": ";
     }
 
-    std::cerr << "dependency resolution failed while attempting to uninstall " << packageName << " with ";
+    std::cerr << "dependency resolution failed while attempting to uninstall "
+              << packageName << " with ";
 
     if (problem_count > 1)
       std::cerr << problem_count << " problems:\n";
-    else std::cerr << "1 problem:\n";
+    else
+      std::cerr << "1 problem:\n";
 
     Id problem = 0;
     // Pass 0 to get the first problem, then pass the previous ID to get the
@@ -912,7 +916,8 @@ bool Manager::uninstall_with_deps(string packageName, bool force) {
   // https://github.com/openSUSE/libsolv/blob/c9ee7a3b946e8870f056dddc22032e4d43a40636/src/transaction.h#L45
   Transaction *trans = solver_create_transaction(solver);
 
-  // No steps means that there's nothing to be done, which means that the package wasn't installed
+  // No steps means that there's nothing to be done, which means that the
+  // package wasn't installed
   if (trans->steps.count == 0) {
     if (!force) {
       std::cerr << chumpPrepend() << "the package " << TC::bold(packageName)
@@ -923,7 +928,8 @@ bool Manager::uninstall_with_deps(string packageName, bool force) {
     solver_free(solver);
     queue_free(&job);
 
-    // if we are forcing, we're gonna try anyway (because the version.json could have been deleted)
+    // if we are forcing, we're gonna try anyway (because the version.json could
+    // have been deleted)
     if (force) {
       return uninstall(packageName, force);
     }
@@ -955,9 +961,8 @@ bool Manager::uninstall(string packageName, bool force) {
     return false;
   }
 
-  std::cout << chumpPrepend()
-	    << TC::blue("uninstalling package", TRUE) << ": " << packageStr(packageName)
-	    << "\n";
+  std::cout << chumpPrepend() << TC::blue("uninstalling package", TRUE) << ": "
+            << packageStr(packageName) << "\n";
 
   if (force) {
     std::cerr << chumpPrepend() << "force-uninstall " << packageName
@@ -981,18 +986,18 @@ bool Manager::uninstall(string packageName, bool force) {
     fs::path full_path = install_dir / filepath;
 
     if (fs::exists(full_path)) {
-         fs::remove(full_path);
+      fs::remove(full_path);
 
       std::string line = string("   └─[") + TC::green("REMOVED", TRUE) + "] " +
-                     TC::blue(full_path);
+                         TC::blue(full_path);
       std::cerr << chumpPrepend() << line << std::endl;
     } else {
       std::cerr << chumpPrepend() << string("   └─[") << TC::red("ERROR", TRUE)
                 << "] "
-                << "attempted to remove " << TC::blue(full_path) << "," << std::endl;
+                << "attempted to remove " << TC::blue(full_path) << ","
+                << std::endl;
       std::cerr << "                     "
                 << "but the file was not found, continuing..." << std::endl;
-
     }
 
     fs::path parent = filepath.parent_path();

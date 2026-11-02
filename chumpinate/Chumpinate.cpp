@@ -641,13 +641,15 @@ CK_DLL_QUERY(Chumpinate) {
       QUERY, "Add dependency file to list of files. This will be stored in the "
              "directory ./_deps/pkg_dir");
 
-  QUERY->add_mfun(QUERY, package_version_addPackageDependency, "void", "addPackageDependency");
+  QUERY->add_mfun(QUERY, package_version_addPackageDependency, "void",
+                  "addPackageDependency");
   QUERY->add_arg(QUERY, "string", "packageName");
   QUERY->doc_func(
       QUERY, "Add a package dependency. When your package is installed, chump "
              "will automatically download this package (if needed).");
 
-  QUERY->add_mfun(QUERY, package_version_addPackageDependencyBounds, "void", "addPackageDependency");
+  QUERY->add_mfun(QUERY, package_version_addPackageDependencyBounds, "void",
+                  "addPackageDependency");
   QUERY->add_arg(QUERY, "string", "packageName");
   QUERY->add_arg(QUERY, "string", "minVersion");
   QUERY->add_arg(QUERY, "string", "maxVersion");
@@ -658,7 +660,6 @@ CK_DLL_QUERY(Chumpinate) {
       "will automatically download this package (if needed). If "
       "you do not want to specify a minimum or maximum version, pass the empty "
       "string (\"\") to that argument.");
-
 
   QUERY->add_mfun(QUERY, package_version_createZip, "int", "generateVersion");
   QUERY->add_arg(QUERY, "string", "dir");
@@ -1067,7 +1068,7 @@ public:
 
   string setOS(string _os) {
     ver.os = _os;
-    os_is_set= true;
+    os_is_set = true;
 
     return _os;
   }
@@ -1269,7 +1270,6 @@ public:
     return result;
   }
 
-
   t_CKINT generateVersionDefinition2(fs::path filename, fs::path pkg_dir) {
     // validation
     if (!language_version_min_is_set) {
@@ -1397,7 +1397,7 @@ CK_DLL_MFUN(package_version_setVersion_string) {
   try {
     string val = c_obj->setVersion(version);
     RETURN->v_string =
-      (Chuck_String *)API->object->create_string(VM, val.c_str(), false);
+        (Chuck_String *)API->object->create_string(VM, val.c_str(), false);
   } catch (const std::exception &e) {
     API->vm->throw_exception(e.what(), "", SHRED);
   }
@@ -1436,7 +1436,7 @@ CK_DLL_MFUN(package_version_setApi_string) {
   try {
     string val = c_obj->setApiVersion(version);
     RETURN->v_string =
-      (Chuck_String *)API->object->create_string(VM, val.c_str(), false);
+        (Chuck_String *)API->object->create_string(VM, val.c_str(), false);
   } catch (const std::exception &e) {
     API->vm->throw_exception(e.what(), "", SHRED);
   }
@@ -1474,7 +1474,7 @@ CK_DLL_MFUN(package_version_setCkVerMin_string) {
   try {
     string val = c_obj->setMinCkVersion(version);
     RETURN->v_string =
-      (Chuck_String *)API->object->create_string(VM, val.c_str(), false);
+        (Chuck_String *)API->object->create_string(VM, val.c_str(), false);
   } catch (const std::exception &e) {
     API->vm->throw_exception(e.what(), "", SHRED);
   }
@@ -1514,7 +1514,7 @@ CK_DLL_MFUN(package_version_setCkVerMax_string) {
   try {
     string val = c_obj->setMaxCkVersion(version);
     RETURN->v_string =
-      (Chuck_String *)API->object->create_string(VM, val.c_str(), false);
+        (Chuck_String *)API->object->create_string(VM, val.c_str(), false);
   } catch (const std::exception &e) {
     API->vm->throw_exception(e.what(), "", SHRED);
   }
@@ -1554,7 +1554,7 @@ CK_DLL_MFUN(package_version_setOS) {
   try {
     string val = c_obj->setOS(os);
     RETURN->v_string =
-      (Chuck_String *)API->object->create_string(VM, val.c_str(), false);
+        (Chuck_String *)API->object->create_string(VM, val.c_str(), false);
   } catch (const std::exception &e) {
     API->vm->throw_exception(e.what(), "", SHRED);
   }
@@ -1579,7 +1579,7 @@ CK_DLL_MFUN(package_version_setArch) {
   try {
     string val = c_obj->setArch(arch);
     RETURN->v_string =
-      (Chuck_String *)API->object->create_string(VM, val.c_str(), false);
+        (Chuck_String *)API->object->create_string(VM, val.c_str(), false);
   } catch (const std::exception &e) {
     API->vm->throw_exception(e.what(), "", SHRED);
   }
@@ -1589,7 +1589,7 @@ CK_DLL_MFUN(package_version_getArch) {
   PackageVersionChumpinate *c_obj =
       (PackageVersionChumpinate *)OBJ_MEMBER_INT(SELF, package_data_offset);
 
-q  string val = c_obj->getArch();
+  q string val = c_obj->getArch();
 
   RETURN->v_string =
       (Chuck_String *)API->object->create_string(VM, val.c_str(), false);

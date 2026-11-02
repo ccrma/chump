@@ -31,7 +31,8 @@ InstalledVersion openVer(fs::path path) {
   return ver;
 }
 
-void validateInstall(fs::path installPath, string package, string version = "") {
+void validateInstall(fs::path installPath, string package,
+                     string version = "") {
   REQUIRE(fs::exists(installPath / package));
   REQUIRE(fs::exists(installPath / package / "version.json"));
 
@@ -227,7 +228,6 @@ TEST_CASE("Dependency Tests - conflicting dependencies") {
   REQUIRE_FALSE(m->installWithDeps({"H"}));
 }
 
-
 TEST_CASE("Dependency Tests - uninstall dependant pacakge") {
   TC::off();
   INFO("Test case start");
@@ -243,7 +243,6 @@ TEST_CASE("Dependency Tests - uninstall dependant pacakge") {
   Manager *m = new Manager(dataPath, installPath, ckVersion, langVersion,
                            "linux", X86_64, manifest_url_deps, false);
 
-
   // install package
   INFO("Installing package C");
   REQUIRE(m->installWithDeps({"C"}));
@@ -252,8 +251,8 @@ TEST_CASE("Dependency Tests - uninstall dependant pacakge") {
   validateInstall(installPath, "B");
   validateInstall(installPath, "C");
 
-  m = new Manager(dataPath, installPath, ckVersion, langVersion,
-		  "linux", X86_64, manifest_url_deps, false);
+  m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux",
+                  X86_64, manifest_url_deps, false);
 
   INFO("Attempt to uninstall package A");
   // This should not succeed because B and C depend on A
@@ -287,15 +286,14 @@ TEST_CASE("Dependency Tests - uninstall a pacakge") {
   Manager *m = new Manager(dataPath, installPath, ckVersion, langVersion,
                            "linux", X86_64, manifest_url_deps, false);
 
-
   // install package
   INFO("Installing package A");
   REQUIRE(m->installWithDeps({"A"}));
 
   validateInstall(installPath, "A");
 
-  m = new Manager(dataPath, installPath, ckVersion, langVersion,
-		  "linux", X86_64, manifest_url_deps, false);
+  m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux",
+                  X86_64, manifest_url_deps, false);
 
   INFO("Attempt to uninstall package A");
   // This should not succeed because B and C depend on A
@@ -303,7 +301,6 @@ TEST_CASE("Dependency Tests - uninstall a pacakge") {
 
   validateUninstall(installPath, "A");
 }
-
 
 TEST_CASE("Dependency Tests - will install auto update?") {
   TC::off();
@@ -316,11 +313,10 @@ TEST_CASE("Dependency Tests - will install auto update?") {
   ChuckVersion ckVersion = ChuckVersion("1.5.2.1");
   ApiVersion langVersion = ApiVersion("9.1");
 
-  SECTION ("A") {
+  SECTION("A") {
     INFO("Set up Manager");
     Manager *m = new Manager(dataPath, installPath, ckVersion, langVersion,
-			     "linux", X86_64, manifest_url_deps, false);
-
+                             "linux", X86_64, manifest_url_deps, false);
 
     // install package
     INFO("Installing package E (1.0.0)");
@@ -328,8 +324,8 @@ TEST_CASE("Dependency Tests - will install auto update?") {
 
     validateInstall(installPath, "E", "1.0.0");
 
-    m = new Manager(dataPath, installPath, ckVersion, langVersion,
-		    "linux", X86_64, manifest_url_deps, false);
+    m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux",
+                    X86_64, manifest_url_deps, false);
 
     INFO("Should update E to 2.0.0");
     REQUIRE(m->installWithDeps({"E"}, true));
@@ -340,8 +336,7 @@ TEST_CASE("Dependency Tests - will install auto update?") {
   SECTION("B") {
     INFO("Set up Manager");
     Manager *m = new Manager(dataPath, installPath, ckVersion, langVersion,
-			     "linux", X86_64, manifest_url_deps, false);
-
+                             "linux", X86_64, manifest_url_deps, false);
 
     // install package
     INFO("Installing package F (1.0.0)");
@@ -350,8 +345,8 @@ TEST_CASE("Dependency Tests - will install auto update?") {
     validateInstall(installPath, "F", "1.0.0");
     validateInstall(installPath, "E", "2.0.0");
 
-    m = new Manager(dataPath, installPath, ckVersion, langVersion,
-		    "linux", X86_64, manifest_url_deps, false);
+    m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux",
+                    X86_64, manifest_url_deps, false);
 
     INFO("Upgrade F to 2.0.0");
     // This should not succeed because B and C depend on A

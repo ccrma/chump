@@ -35,9 +35,7 @@ std::string packageStr(std::string pkg, std::string ver) {
   return TC::bold(pkg) + " (" + ver + ")";
 }
 
-std::string packageStr(std::string pkg) {
-  return TC::bold(pkg);
-}
+std::string packageStr(std::string pkg) { return TC::bold(pkg); }
 
 // Returns the path to the directory where a package will be installed
 // TODO expand to other OS
