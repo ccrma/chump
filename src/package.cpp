@@ -91,6 +91,18 @@ PackageVersion::PackageVersion(string version, string _language_ver_min,
   arch = _arch;
 }
 
+void PackageVersion::setVersion(int _major, int _minor, int _patch) {
+  if (_major < 0 || _minor < 0 || _patch < 0) {
+    throw std::invalid_argument(
+        "Version numbers cannot be negative. (" + std::to_string(major) + "." +
+        std::to_string(minor) + "." + std::to_string(patch) + ")");
+  }
+
+  major = _major;
+  minor = _minor;
+  patch = _patch;
+}
+
 void PackageVersion::setVersionString(string versionStr) {
   vector<int> values;
 

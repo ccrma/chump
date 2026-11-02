@@ -53,6 +53,8 @@ mac osx: mac-universal
 .PHONY: mac-arm64
 mac-arm64: build-mac-arm64
 	cp builddir-arm64/chump-cli/chump chump
+	cp builddir-arm64/chumpinate/Chumpinate.chug .
+	cp builddir-arm64/chumpinate/Chumpinate.chug ./chumpinate
 
 linux-debug: build-debug
 	meson compile -C builddir-debug

@@ -151,6 +151,7 @@ struct PackageVersion {
   // Output stream operator overload
   friend std::ostream &operator<<(std::ostream &os, const PackageVersion &pkg);
 
+  void setVersion(int major, int minor, int patch);
   void setVersionString(string version);
   string getVersionString() const;
 };

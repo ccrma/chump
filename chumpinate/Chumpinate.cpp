@@ -143,6 +143,9 @@ CK_DLL_MFUN(package_version_addDocsFile_dir);
 CK_DLL_MFUN(package_version_addDepsFile);
 CK_DLL_MFUN(package_version_addDepsFile_dir);
 
+CK_DLL_MFUN(package_version_addPackageDependency);
+CK_DLL_MFUN(package_version_addPackageDependencyBounds);
+
 CK_DLL_MFUN(package_version_createZip);
 CK_DLL_MFUN(package_version_generateVersionDefinition);
 
@@ -270,7 +273,6 @@ public:
 
 private:
   // instance data
-  // t_CKFLOAT m_param;
   string name;
   vector<string> authors;
   optional<string> homepage;
@@ -639,6 +641,25 @@ CK_DLL_QUERY(Chumpinate) {
       QUERY, "Add dependency file to list of files. This will be stored in the "
              "directory ./_deps/pkg_dir");
 
+  QUERY->add_mfun(QUERY, package_version_addPackageDependency, "void", "addPackageDependency");
+  QUERY->add_arg(QUERY, "string", "packageName");
+  QUERY->doc_func(
+      QUERY, "Add a package dependency. When your package is installed, chump "
+             "will automatically download this package (if needed).");
+
+  QUERY->add_mfun(QUERY, package_version_addPackageDependencyBounds, "void", "addPackageDependency");
+  QUERY->add_arg(QUERY, "string", "packageName");
+  QUERY->add_arg(QUERY, "string", "minVersion");
+  QUERY->add_arg(QUERY, "string", "maxVersion");
+  QUERY->doc_func(
+      QUERY,
+      "Add a package dependency, with minimum/maximum version "
+      "bounds. When your package is installed, chump "
+      "will automatically download this package (if needed). If "
+      "you do not want to specify a minimum or maximum version, pass the empty "
+      "string (\"\") to that argument.");
+
+
   QUERY->add_mfun(QUERY, package_version_createZip, "int", "generateVersion");
   QUERY->add_arg(QUERY, "string", "dir");
   QUERY->add_arg(QUERY, "string", "filename");
@@ -961,6 +982,10 @@ public:
     ver = p;
 
     package_name = _pkg_name;
+
+    os_is_set = false;
+    arch_is_set = false;
+    language_version_min_is_set = false;
   }
 
   PackageVersionChumpinate(string _pkg_name, int major, int minor, int patch) {
@@ -968,94 +993,118 @@ public:
     ver = p;
 
     package_name = _pkg_name;
-  }
 
-  // set parameter example
-  t_CKFLOAT setParam(t_CKFLOAT p) {
-    m_param = p;
-    return p;
+    os_is_set = false;
+    arch_is_set = false;
+    language_version_min_is_set = false;
   }
-
-  // get parameter example
-  t_CKFLOAT getParam() { return m_param; }
 
   string setVersion(string _ver) {
-    PackageVersion p(_ver);
-    ver = p;
-    return p.getVersionString();
+    ver.setVersionString(_ver);
+    return ver.getVersionString();
   }
 
   string setVersion(int major, int minor, int patch) {
-    PackageVersion p(major, minor, patch);
-    ver = p;
-    return p.getVersionString();
+    ver.setVersion(major, minor, patch);
+    return ver.getVersionString();
   }
 
   string getVersion() { return ver.getVersionString(); }
 
   string setApiVersion(string _ver) {
-    ApiVersion p(_ver);
-    api_ver = p;
-    return p.getVersionString();
+    ApiVersion api(_ver);
+    ver.api_version = api;
+    return api.getVersionString();
   }
 
   string setApiVersion(int major, int minor) {
-    ApiVersion p(major, minor);
-    api_ver = p;
-    return p.getVersionString();
+    ApiVersion api(major, minor);
+    ver.api_version = api;
+    return api.getVersionString();
   }
 
-  string getApiVersion() { return api_ver.value().getVersionString(); }
+  string getApiVersion() { return ver.api_version.value().getVersionString(); }
 
   string setMinCkVersion(string _ver) {
     ChuckVersion min_ver(_ver);
 
-    language_version_min = min_ver;
+    ver.language_version_min = min_ver;
+    language_version_min_is_set = true;
+
     return min_ver.getVersionString();
   }
 
   string setMinCkVersion(int mega, int major, int minor, int patch) {
     ChuckVersion min_ver(mega, major, minor, patch);
 
-    language_version_min = min_ver;
+    ver.language_version_min = min_ver;
+    language_version_min_is_set = true;
+
     return min_ver.getVersionString();
   }
 
   string getMinCkVersion() {
-    return language_version_min.value().getVersionString();
+    return ver.language_version_min.getVersionString();
   }
 
   string setMaxCkVersion(string _ver) {
     ChuckVersion max_ver(_ver);
 
-    language_version_max = max_ver;
+    ver.language_version_max = max_ver;
     return max_ver.getVersionString();
   }
 
   string setMaxCkVersion(int mega, int major, int minor, int patch) {
     ChuckVersion max_ver(mega, major, minor, patch);
 
-    language_version_max = max_ver;
+    ver.language_version_max = max_ver;
     return max_ver.getVersionString();
   }
 
   string getMaxCkVersion() {
-    return language_version_max.value().getVersionString();
+    return ver.language_version_max.value().getVersionString();
   }
 
   string setOS(string _os) {
-    os = _os;
+    ver.os = _os;
+    os_is_set= true;
+
     return _os;
   }
 
-  string getOS() { return os.value(); }
+  string getOS() { return ver.os; }
 
   string setArch(string _arch) {
-    arch = _arch;
+    ver.arch = stringToArchitecture.at(_arch);
+    arch_is_set = true;
     return _arch;
   }
 
-  string getArch() { return arch.value(); }
+  string getArch() { return architectureToString.at(ver.arch); }
+
+  Dependency addPackageDependency(string package, string version_min = "",
+                                  string version_max = "") {
+    Dependency d;
+    d.name = package;
+
+    if (version_min != "") {
+      // validate that the version string is formatted correctly
+      PackageVersion validate(version_min);
+
+      d.version_min = version_min;
+    }
+
+    if (version_max != "") {
+      // validate that the version string is formatted correctly
+      PackageVersion validate(version_max);
+
+      d.version_max = version_max;
+    }
+
+    ver.dependencies.push_back(d);
+
+    return d;
+  }
 
   void addFile(fs::path file, fs::path dir, FileType file_type) {
     fs::path destination;
@@ -1127,6 +1176,15 @@ public:
 
     // Generate checksum
     zip_checksum = hash_file(zip_filepath);
+
+    // add zip to our package version
+    File f;
+    f.url = url_zip.string();
+    f.local_dir = "./";
+    f.file_type = ZIP_FILE;
+    f.checksum = zip_checksum;
+
+    ver.files.push_back(f);
 
     return true;
   }
@@ -1211,47 +1269,25 @@ public:
     return result;
   }
 
-  t_CKINT generateVersionDefinition(fs::path filename, fs::path pkg_dir) {
-    json j = {{"version", ver.getVersionString()}};
 
-    if (api_ver) {
-      j["api_version"] = api_ver.value();
-    }
-
-    if (language_version_min) {
-      j["language_version_min"] = language_version_min.value();
-    } else {
+  t_CKINT generateVersionDefinition2(fs::path filename, fs::path pkg_dir) {
+    // validation
+    if (!language_version_min_is_set) {
       throw std::invalid_argument(
           "field PackageVersion.language_version_min must be set");
     }
 
-    if (language_version_max) {
-      j["language_version_min"] = language_version_max.value();
-    }
-
-    if (os) {
-      j["os"] = os.value();
-    } else {
+    if (!os_is_set) {
       throw std::invalid_argument("field PackageVersion.os must be set "
                                   "('windows', 'linux', 'mac', or 'any'");
     }
 
-    if (arch) {
-      j["arch"] = arch.value();
-    } else {
+    if (!arch_is_set) {
       throw std::invalid_argument("field PackageVersion.arch must be set "
                                   "('x86', 'x86_64', 'arm64', or 'all'");
     }
 
-    File f;
-    f.url = url_zip.string();
-    f.local_dir = "./";
-    f.file_type = ZIP_FILE;
-    f.checksum = zip_checksum;
-
-    vector<File> fs = {f};
-
-    j["files"] = fs;
+    json j = ver;
 
     fs::path json_dir = pkg_dir / package_name / ver.getVersionString();
     fs::create_directory(json_dir);
@@ -1265,18 +1301,16 @@ public:
     o.close();
 
     return true;
+
+    return true;
   }
 
 private:
-  // instance data
-  t_CKFLOAT m_param;
-
   PackageVersion ver;
-  optional<ApiVersion> api_ver;
-  optional<ChuckVersion> language_version_min;
-  optional<ChuckVersion> language_version_max;
-  optional<string> os;
-  optional<string> arch;
+
+  bool os_is_set;
+  bool arch_is_set;
+  bool language_version_min_is_set;
 
   vector<fs::path> files; // the actual paths of the files to be zipped
   vector<fs::path>
@@ -1354,41 +1388,19 @@ CK_DLL_DTOR(package_version_dtor) {
   OBJ_MEMBER_INT(SELF, package_version_data_offset) = 0;
 }
 
-// example implementation for setter
-CK_DLL_MFUN(package_version_setParam) {
-  // get our c++ class pointer
-  PackageVersionChumpinate *c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT(
-      SELF, package_version_data_offset);
-
-  // get next argument
-  // NOTE argument type must match what is specified above in CK_DLL_QUERY
-  // NOTE this advances the ARGS pointer, so save in variable for re-use
-  t_CKFLOAT arg1 = GET_NEXT_FLOAT(ARGS);
-
-  // call setParam() and set the return value
-  RETURN->v_float = c_obj->setParam(arg1);
-}
-
-// example implementation for getter
-CK_DLL_MFUN(package_version_getParam) {
-  // get our c++ class pointer
-  PackageVersionChumpinate *c_obj = (PackageVersionChumpinate *)OBJ_MEMBER_INT(
-      SELF, package_version_data_offset);
-
-  // call getParam() and set the return value
-  RETURN->v_float = c_obj->getParam();
-}
-
 CK_DLL_MFUN(package_version_setVersion_string) {
   PackageVersionChumpinate *c_obj =
       (PackageVersionChumpinate *)OBJ_MEMBER_INT(SELF, package_data_offset);
 
   string version = GET_NEXT_STRING_SAFE(ARGS);
 
-  string val = c_obj->setVersion(version);
-
-  RETURN->v_string =
+  try {
+    string val = c_obj->setVersion(version);
+    RETURN->v_string =
       (Chuck_String *)API->object->create_string(VM, val.c_str(), false);
+  } catch (const std::exception &e) {
+    API->vm->throw_exception(e.what(), "", SHRED);
+  }
 }
 
 CK_DLL_MFUN(package_version_setVersion_ints) {
@@ -1421,10 +1433,13 @@ CK_DLL_MFUN(package_version_setApi_string) {
 
   string version = GET_NEXT_STRING_SAFE(ARGS);
 
-  string val = c_obj->setApiVersion(version);
-
-  RETURN->v_string =
+  try {
+    string val = c_obj->setApiVersion(version);
+    RETURN->v_string =
       (Chuck_String *)API->object->create_string(VM, val.c_str(), false);
+  } catch (const std::exception &e) {
+    API->vm->throw_exception(e.what(), "", SHRED);
+  }
 }
 
 CK_DLL_MFUN(package_version_setApi_ints) {
@@ -1456,10 +1471,13 @@ CK_DLL_MFUN(package_version_setCkVerMin_string) {
 
   string version = GET_NEXT_STRING_SAFE(ARGS);
 
-  string val = c_obj->setMinCkVersion(version);
-
-  RETURN->v_string =
+  try {
+    string val = c_obj->setMinCkVersion(version);
+    RETURN->v_string =
       (Chuck_String *)API->object->create_string(VM, val.c_str(), false);
+  } catch (const std::exception &e) {
+    API->vm->throw_exception(e.what(), "", SHRED);
+  }
 }
 
 CK_DLL_MFUN(package_version_setCkVerMin_ints) {
@@ -1493,10 +1511,13 @@ CK_DLL_MFUN(package_version_setCkVerMax_string) {
 
   string version = GET_NEXT_STRING_SAFE(ARGS);
 
-  string val = c_obj->setMaxCkVersion(version);
-
-  RETURN->v_string =
+  try {
+    string val = c_obj->setMaxCkVersion(version);
+    RETURN->v_string =
       (Chuck_String *)API->object->create_string(VM, val.c_str(), false);
+  } catch (const std::exception &e) {
+    API->vm->throw_exception(e.what(), "", SHRED);
+  }
 }
 
 CK_DLL_MFUN(package_version_setCkVerMax_ints) {
@@ -1530,10 +1551,13 @@ CK_DLL_MFUN(package_version_setOS) {
 
   string os = GET_NEXT_STRING_SAFE(ARGS);
 
-  string val = c_obj->setOS(os);
-
-  RETURN->v_string =
+  try {
+    string val = c_obj->setOS(os);
+    RETURN->v_string =
       (Chuck_String *)API->object->create_string(VM, val.c_str(), false);
+  } catch (const std::exception &e) {
+    API->vm->throw_exception(e.what(), "", SHRED);
+  }
 }
 
 CK_DLL_MFUN(package_version_getOS) {
@@ -1552,17 +1576,20 @@ CK_DLL_MFUN(package_version_setArch) {
 
   string arch = GET_NEXT_STRING_SAFE(ARGS);
 
-  string val = c_obj->setArch(arch);
-
-  RETURN->v_string =
+  try {
+    string val = c_obj->setArch(arch);
+    RETURN->v_string =
       (Chuck_String *)API->object->create_string(VM, val.c_str(), false);
+  } catch (const std::exception &e) {
+    API->vm->throw_exception(e.what(), "", SHRED);
+  }
 }
 
 CK_DLL_MFUN(package_version_getArch) {
   PackageVersionChumpinate *c_obj =
       (PackageVersionChumpinate *)OBJ_MEMBER_INT(SELF, package_data_offset);
 
-  string val = c_obj->getArch();
+q  string val = c_obj->getArch();
 
   RETURN->v_string =
       (Chuck_String *)API->object->create_string(VM, val.c_str(), false);
@@ -1663,6 +1690,34 @@ CK_DLL_MFUN(package_version_addDepsFile_dir) {
   c_obj->addFile(file, dir, DEPS_FILE);
 }
 
+CK_DLL_MFUN(package_version_addPackageDependency) {
+  PackageVersionChumpinate *c_obj =
+      (PackageVersionChumpinate *)OBJ_MEMBER_INT(SELF, package_data_offset);
+
+  string package = GET_NEXT_STRING_SAFE(ARGS);
+
+  try {
+    c_obj->addPackageDependency(package);
+  } catch (const std::exception &e) {
+    API->vm->throw_exception(e.what(), "", SHRED);
+  }
+}
+
+CK_DLL_MFUN(package_version_addPackageDependencyBounds) {
+  PackageVersionChumpinate *c_obj =
+      (PackageVersionChumpinate *)OBJ_MEMBER_INT(SELF, package_data_offset);
+
+  string package = GET_NEXT_STRING_SAFE(ARGS);
+  string min_ver = GET_NEXT_STRING_SAFE(ARGS);
+  string max_ver = GET_NEXT_STRING_SAFE(ARGS);
+
+  try {
+    c_obj->addPackageDependency(package, min_ver, max_ver);
+  } catch (const std::exception &e) {
+    API->vm->throw_exception(e.what(), "", SHRED);
+  }
+}
+
 CK_DLL_MFUN(package_version_createZip) {
   PackageVersionChumpinate *c_obj =
       (PackageVersionChumpinate *)OBJ_MEMBER_INT(SELF, package_data_offset);
@@ -1681,7 +1736,7 @@ CK_DLL_MFUN(package_version_generateVersionDefinition) {
   string pkg_dir = GET_NEXT_STRING_SAFE(ARGS);
 
   try {
-    c_obj->generateVersionDefinition(filename, pkg_dir);
+    c_obj->generateVersionDefinition2(filename, pkg_dir);
   } catch (const std::exception &e) {
     API->vm->throw_exception(e.what(), "", SHRED);
   }
