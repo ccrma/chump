@@ -12,6 +12,10 @@ namespace fs = std::filesystem;
 
 fs::path packagePath(Package p, fs::path install_dir);
 
+std::string chumpPrepend();
+std::string packageStr(std::string pkg);
+std::string packageStr(std::string pkg, std::string ver);
+
 void openDocCmd(fs::path indexPath);
 void openExamplesCmd(fs::path indexPath);
 

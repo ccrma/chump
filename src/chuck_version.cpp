@@ -1,5 +1,6 @@
 
 #include "chuck_version.h"
+#include "util.h"
 
 #include <cstdio>
 #include <iostream>
@@ -30,7 +31,8 @@ ChuckVersion ChuckVersion::makeSystemVersion() {
 
   if (std::system(cmd.c_str()) != EXIT_SUCCESS) {
     throw std::runtime_error(
-        "[chump]: chuck is not installed! please install chuck before using "
+        chumpPrepend() +
+        "chuck is not installed! please install chuck before using "
         "chump. installation instructions can be found at "
         "https://chuck.stanford.edu/");
   }
@@ -42,7 +44,7 @@ ChuckVersion ChuckVersion::makeSystemVersion() {
   FILE *pipe = popen("chuck --query:version 2>&1", "r");
 #endif
   if (!pipe) {
-    throw std::runtime_error("[chump]: popen() failed!");
+    throw std::runtime_error(chumpPrepend() + "popen() failed!");
   }
 
   std::string version;
@@ -163,7 +165,8 @@ ApiVersion ApiVersion::makeSystemVersion() {
 
   if (std::system(cmd.c_str()) != EXIT_SUCCESS) {
     throw std::runtime_error(
-        "[chump]: chuck is not installed! please install chuck before using "
+        chumpPrepend() +
+        "chuck is not installed! please install chuck before using "
         "chump. installation instructions can be found at "
         "https://chuck.stanford.edu/");
   }

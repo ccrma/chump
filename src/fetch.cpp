@@ -26,7 +26,7 @@ struct curl_progress {
 int progressCallback(void *clientp, double dltotal, double dlnow,
                      double ultotal, double ulnow) {
   if (!clientp) {
-    std::cerr << "[chump]: progress callback recieved empty clientp"
+    std::cerr << chumpPrepend() << "progress callback recieved empty clientp"
               << std::endl;
     return -1;
   }
@@ -91,7 +91,7 @@ bool Fetch::fetch(std::string url, fs::path dir, Package package,
                   PackageVersion ver, fs::path temp_dir, FileType file_type,
                   string checksum) {
   if (!isURL(url)) {
-    std::cerr << "[chump]: not a URL!" << std::endl;
+    std::cerr << chumpPrepend() << "not a URL!" << std::endl;
     return false;
   }
 
@@ -120,7 +120,8 @@ bool Fetch::fetch(std::string url, fs::path dir, Package package,
 #endif
 
   if (!fp) {
-    std::cerr << "[chump]: error opening file for writing" << std::endl;
+    std::cerr << chumpPrepend() << "error opening file for writing"
+              << std::endl;
     return false;
   }
 
@@ -153,7 +154,7 @@ bool Fetch::fetch(std::string url, fs::path dir, Package package,
 
     // Perform the request
     string line = TC::orange("down-chucking package", TRUE) + " ";
-    line += TC::bold(package.name) + " (" + ver.getVersionString() + ")" +
+    line += packageStr(package.name, ver.getVersionString()) +
             TC::orange(" ├─ ", TRUE) + filename.string() + "\n";
     std::cerr << line;
 
@@ -164,19 +165,20 @@ bool Fetch::fetch(std::string url, fs::path dir, Package package,
     fclose(fp);
 
     if (res != CURLE_OK) {
-      std::cerr << "[chump]: failed to download: " << curl_easy_strerror(res)
+      std::cerr << chumpPrepend()
+                << "failed to download: " << curl_easy_strerror(res)
                 << std::endl;
       return false;
     }
 
   } else {
-    std::cerr << "[chump]: failed to initialize libcurl" << std::endl;
+    std::cerr << chumpPrepend() << "failed to initialize libcurl" << std::endl;
     return false;
   }
 
   std::cerr << std::endl;
   if (hash_file(tempFilePath) != checksum) {
-    std::cerr << "[chump]: the downloaded file (" << url
+    std::cerr << chumpPrepend() << "the downloaded file (" << url
               << ") does not match expected hash - aborting" << std::endl;
 
     return false;
@@ -207,7 +209,7 @@ bool Fetch::isURL(std::string path) {
 
 bool Fetch::fetch_manifest(std::string url, fs::path dir) {
   if (!isURL(url)) {
-    std::cerr << "[chump]: not a URL!" << std::endl;
+    std::cerr << chumpPrepend() << "not a URL!" << std::endl;
     return false;
   }
 
@@ -225,8 +227,8 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
 #endif
 
   if (!fp) {
-    std::cerr << "[chump]: error opening file for writing manifest.json"
-              << std::endl;
+    std::cerr << chumpPrepend()
+              << "error opening file for writing manifest.json" << std::endl;
     return false;
   }
 
@@ -261,13 +263,13 @@ bool Fetch::fetch_manifest(std::string url, fs::path dir) {
     fclose(fp);
 
     if (res != CURLE_OK) {
-      std::cerr << "[chump]: failed to download manifest.json: "
+      std::cerr << chumpPrepend() << "failed to download manifest.json: "
                 << curl_easy_strerror(res) << std::endl;
       return false;
     }
 
   } else {
-    std::cerr << "[chump]: failed to initialize libcurl" << std::endl;
+    std::cerr << chumpPrepend() << "failed to initialize libcurl" << std::endl;
     return false;
   }
 
@@ -289,7 +291,7 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb,
 
 optional<int> Fetch::fetch_newest_manifest_version(string url) {
   if (!isURL(url)) {
-    std::cerr << "[chump]: not a URL!" << std::endl;
+    std::cerr << chumpPrepend() << "not a URL!" << std::endl;
     return {};
   }
 
@@ -321,8 +323,8 @@ optional<int> Fetch::fetch_newest_manifest_version(string url) {
 
   /* check for errors */
   if (res != CURLE_OK) {
-    fprintf(stderr, "[chump]: failed to fetch latest manifest version: %s\n",
-            curl_easy_strerror(res));
+    fprintf(stderr, "%sfailed to fetch latest manifest version: %s\n",
+            chumpPrepend().c_str(), curl_easy_strerror(res));
     return {};
   }
 
@@ -338,8 +340,9 @@ optional<int> Fetch::fetch_newest_manifest_version(string url) {
     int ver_no = std::stoi(chunk);
     return ver_no;
   } catch (std::invalid_argument const &ex) {
-    std::cerr << "[chump]: failed to fetch latest manifest version: "
-              << ex.what() << std::endl;
+    std::cerr << chumpPrepend()
+              << "failed to fetch latest manifest version: " << ex.what()
+              << std::endl;
     return {};
   }
 
