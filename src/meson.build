@@ -5,6 +5,7 @@ chump_lib_sources = [
         'package_list.cpp',
         'package.cpp',
         'util.cpp',
+	'exec.cpp'
 ]
 
 # Fetch the dependency

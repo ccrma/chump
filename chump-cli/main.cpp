@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <vector>
 
 #ifdef _WIN32
@@ -19,6 +20,8 @@
 
 namespace fs = std::filesystem;
 using std::cerr;
+using std::cout;
+using std::endl;
 using std::string;
 using std::vector;
 
