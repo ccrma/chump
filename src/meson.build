@@ -12,8 +12,24 @@ chump_lib_sources = [
 nlohmann_json_dep = subproject('nlohmann_json').get_variable('nlohmann_json_dep')
 openssl_dep = subproject('openssl', default_options: ['prefer_static=true'], required: true).get_variable('openssl_dep')
 zlib_dep = subproject('zlib', default_options: ['prefer_static=true'], required: true).get_variable('zlib_dep')
-libcurl_dep = subproject('curl', default_options: ['prefer_static=true'], required: true).get_variable('curl_dep')
-minizip_dep = subproject('minizip-ng', default_options: ['prefer_static=true'], required: true).get_variable('minizip_ng_dep')
+
+libcurl_dep = subproject('curl',
+    default_options: [
+        'prefer_static=true',
+        'http2=disabled',
+        'idn=disabled'
+    ],
+    required: true
+).get_variable('curl_dep')
+
+minizip_dep = subproject('minizip-ng',
+    default_options: [
+        'prefer_static=true',
+        'zstd=disabled',
+        'lzma=disabled'
+    ],
+    required: true
+).get_variable('minizip_ng_dep')
 
 cheaders_proj = subproject('cheaders')
 cheaders_dep = cheaders_proj.get_variable('cheaders_dep')
