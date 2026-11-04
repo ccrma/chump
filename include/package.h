@@ -24,6 +24,7 @@ namespace fs = std::filesystem;
 
 struct PackageVersion;
 struct File;
+struct Dependency;
 
 //-----------------------------------------------------------------------------
 // Compatible architecture for a chump PackageVersion. This should
@@ -32,7 +33,7 @@ struct File;
 // macs built as a universal binary.
 // -----------------------------------------------------------------------------
 enum Architecture {
-  ARCH_ALL,
+  ARCH_ALL_CHMP,
   X86,
   X86_64,
   ARM64,        // including apple silicon
@@ -93,18 +94,14 @@ void to_json(json &j, const Package &p);
 void from_json(const json &j, Package &p);
 
 static const map<string, Architecture> stringToArchitecture = {
-    {"all", ARCH_ALL},
-    {"x86", X86},
-    {"x86_64", X86_64},
-    {"arm64", ARM64},
+    {"all", ARCH_ALL_CHMP},       {"x86", X86},
+    {"x86_64", X86_64},           {"arm64", ARM64},
     {"universal", MAC_UNIVERSAL},
 };
 
 static const map<Architecture, string> architectureToString = {
-    {ARCH_ALL, "all"},
-    {X86, "x86"},
-    {X86_64, "x86_64"},
-    {ARM64, "arm64"},
+    {ARCH_ALL_CHMP, "all"},       {X86, "x86"},
+    {X86_64, "x86_64"},           {ARM64, "arm64"},
     {MAC_UNIVERSAL, "universal"},
 };
 
@@ -141,6 +138,7 @@ struct PackageVersion {
   string os;
   Architecture arch;
   vector<File> files;
+  vector<Dependency> dependencies;
 
   // Equality operator overload
   bool operator==(const PackageVersion &other) const;
@@ -153,6 +151,7 @@ struct PackageVersion {
   // Output stream operator overload
   friend std::ostream &operator<<(std::ostream &os, const PackageVersion &pkg);
 
+  void setVersion(int major, int minor, int patch);
   void setVersionString(string version);
   string getVersionString() const;
 };
@@ -204,12 +203,28 @@ struct InstalledVersion {
   Architecture arch;
   vector<fs::path> files;
 
+  vector<Dependency> dependencies;
+
   string getVersionString() const;
 };
 
 // Function declarations for JSON serialization/deserialization
 void to_json(json &j, const InstalledVersion &p);
 void from_json(const json &j, InstalledVersion &p);
+
+//-----------------------------------------------------------------------------
+// Dependency describes a package's dependency.
+// -----------------------------------------------------------------------------
+struct Dependency {
+  string name;
+  // these will just be for the version string
+  optional<PackageVersion> version_min;
+  optional<PackageVersion> version_max;
+};
+
+// Function declarations for JSON serialization/deserialization
+void to_json(json &j, const Dependency &p);
+void from_json(const json &j, Dependency &p);
 
 // What kind of file is this? Package file, dep, example, etc...
 enum FileType {

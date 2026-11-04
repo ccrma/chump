@@ -3,6 +3,7 @@
 #ifndef __MANAGER_H__
 #define __MANAGER_H__
 
+#include <repo.h>
 #include <string>
 #include <vector>
 
@@ -34,7 +35,11 @@ public:
   optional<PackageVersion> latestPackageVersion(string name);
 
   bool install(string packageName);
+  bool installWithDeps(const vector<string> packageNames, bool update = false);
   bool install_local(fs::path pkgDefn, fs::path pkgVer, fs::path pkgZip);
+  bool install_local_with_deps(fs::path pkgDefn, fs::path pkgVer,
+                               fs::path pkgZip);
+  bool uninstall_with_deps(string packageName, bool force);
   bool uninstall(string packageName, bool force);
   bool update(string packageName);
   bool update_manifest();                 // Download a new package manifest
@@ -64,6 +69,13 @@ public:
   optional<Package> open_package_file(fs::path path);
   optional<InstalledVersion> open_installed_version_file(fs::path path);
   optional<PackageVersion> open_package_version_file(fs::path path);
+
+private: // dependency resolution variables
+  Repo *initializeSystemRepo();
+  Repo *initializeManifestRepo();
+  Pool *pool;
+  Repo *systemRepo;
+  Repo *manifestRepo;
 };
 
 #endif
