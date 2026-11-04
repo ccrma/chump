@@ -10,10 +10,7 @@ std::string manifest_url =
     "https://ccrma.stanford.edu/~nshaheed/chump/manifest.json";
 
 TEST_CASE("Integration Tests - install/update/uninstall") {
-  // reference:
-  // https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
-  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
-  fs::create_directories(installPath);
+  fs::path installPath = makeTempDir();
 
   std::string dataPath = "../data/manifest.json";
 
@@ -52,10 +49,7 @@ TEST_CASE("Integration Tests - install/update/uninstall") {
 }
 
 TEST_CASE("Integration Tests - install/update/uninstall with dirs") {
-  // reference:
-  // https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
-  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
-  fs::create_directories(installPath);
+  fs::path installPath = makeTempDir();
 
   std::string dataPath = "../data/manifest.json";
 
@@ -104,11 +98,7 @@ TEST_CASE("Integration Tests - install/update/uninstall with dirs") {
 }
 
 TEST_CASE("Integration Tests - install specific version") {
-
-  // reference:
-  // https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
-  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
-  fs::create_directories(installPath);
+  fs::path installPath = makeTempDir();
 
   std::string dataPath = "../data/manifest.json";
 
@@ -129,11 +119,7 @@ TEST_CASE("Integration Tests - package doesn't exist") {
   // TODO: this is a bit of a jank way to test this - is there a way to capture
   // the failure state at the end of this?
   // Follow up: should I throw an exception for a package not existing?
-
-  // reference:
-  // https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
-  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
-  fs::create_directories(installPath);
+  fs::path installPath = makeTempDir();
 
   std::string dataPath = "../data/manifest.json";
 
@@ -152,11 +138,7 @@ TEST_CASE("Integration Tests - package doesn't exist") {
 TEST_CASE("Integration Tests - file doesn't exist") {
   // If a url points to a file that doesn't exist, the package installation
   // should fail
-
-  // reference:
-  // https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
-  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
-  fs::create_directories(installPath);
+  fs::path installPath = makeTempDir();
 
   std::cout << "install path: " << installPath << std::endl;
 
@@ -176,11 +158,7 @@ TEST_CASE("Integration Tests - file doesn't exist") {
 }
 
 TEST_CASE("Integration Tests - bad version input") {
-
-  // reference:
-  // https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
-  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
-  fs::create_directories(installPath);
+  fs::path installPath = makeTempDir();
 
   std::string dataPath = "../data/manifest.json";
 
@@ -199,11 +177,7 @@ TEST_CASE("Integration Tests - bad version input") {
 TEST_CASE("Integration Tests - install twice") {
   // If a url points to a file that doesn't exist, the package installation
   // should fail
-
-  // reference:
-  // https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
-  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
-  fs::create_directories(installPath);
+  fs::path installPath = makeTempDir();
 
   std::string dataPath = "../data/manifest.json";
 
@@ -227,8 +201,7 @@ TEST_CASE("Integration Tests - install twice") {
 }
 
 TEST_CASE("Integration Tests - update manifest") {
-  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
-  fs::create_directories(installPath);
+  fs::path installPath = makeTempDir();
 
   std::string dataPath = "../data/manifest.json";
 
@@ -247,8 +220,7 @@ TEST_CASE("Integration Test - wrong checksum") {
   Package p;
   PackageVersion v;
 
-  fs::path tmpPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
-  fs::create_directories(tmpPath);
+  fs::path tmpPath = makeTempDir();
 
   // This will fail due to an incorrect checksum being provided
   bool result = f.fetch("https://ccrma.stanford.edu/~nshaheed/chugins/"
@@ -258,10 +230,7 @@ TEST_CASE("Integration Test - wrong checksum") {
 }
 
 TEST_CASE("Integration Test - zip files") {
-  // reference:
-  // https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
-  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
-  fs::create_directories(installPath);
+  fs::path installPath = makeTempDir();
 
   std::string dataPath = "../data/manifest.json";
 
@@ -299,10 +268,7 @@ TEST_CASE("Integration Test - zip files") {
 }
 
 TEST_CASE("Integration Test - uninstall with missing file") {
-  // reference:
-  // https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
-  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
-  fs::create_directories(installPath);
+  fs::path installPath = makeTempDir();
 
   std::string dataPath = "../data/manifest.json";
 
@@ -331,10 +297,7 @@ TEST_CASE("Integration Test - uninstall with missing file") {
 }
 
 TEST_CASE("Integration Test - update with missing file") {
-  // reference:
-  // https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
-  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
-  fs::create_directories(installPath);
+  fs::path installPath = makeTempDir();
 
   std::string dataPath = "../data/manifest.json";
 
@@ -371,10 +334,7 @@ TEST_CASE("Integration Test - update with missing file") {
 }
 
 TEST_CASE("Integration Test - force uninstall") {
-  // reference:
-  // https://stackoverflow.com/questions/52912981/create-a-unique-temporary-directory
-  fs::path installPath{fs::temp_directory_path() /= std::tmpnam(nullptr)};
-  fs::create_directories(installPath);
+  fs::path installPath = makeTempDir();
 
   std::string dataPath = "../data/manifest.json";
 
