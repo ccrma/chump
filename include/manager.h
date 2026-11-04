@@ -26,8 +26,9 @@ public:
           Architecture arch, std::string manifest_url, bool render_tui);
 
 public:
-  // return a list of all packages (installed and available)
+  // return a list of all packages (in manifest or installed)
   std::vector<Package> listPackages();
+  std::vector<InstalledVersion> listInstalledVersions();
 
   optional<Package> getPackage(string name);
   optional<PackageVersion> latestPackageVersion(string name);

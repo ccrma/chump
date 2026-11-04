@@ -481,6 +481,35 @@ std::vector<Package> Manager::listPackages() {
   return pkg_list;
 }
 
+//-----------------------------------------------------------------------------
+// name: listInstalledVersions()
+// desc: Return a list of all currently installed package versions. These do not
+//       have to be on the manifest (i.e. can be installed from a local source)
+//-----------------------------------------------------------------------------
+std::vector<InstalledVersion> Manager::listInstalledVersions() {
+  std::vector<InstalledVersion> version_list;
+
+  for (auto const &dir_entry : fs::directory_iterator{chump_dir}) {
+    // To be installed, a package has to have a direction in the chump_dir
+    // and that directory has to contain a version.json
+    if (!fs::is_directory(dir_entry))
+      continue;
+    if (!fs::exists(dir_entry.path() / "version.json"))
+      continue;
+
+    optional<InstalledVersion> installed_version =
+        getInstalledVersion(dir_entry);
+
+    // If not installed, skip
+    if (!installed_version)
+      continue;
+
+    version_list.push_back(installed_version.value());
+  }
+
+  return version_list;
+}
+
 bool Manager::is_installed(Package pkg) {
   fs::path install_dir = packagePath(pkg, chump_dir);
 
