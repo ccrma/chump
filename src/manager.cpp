@@ -933,6 +933,8 @@ bool Manager::uninstall_with_deps(string packageName, bool force) {
     if (force) {
       return uninstall(packageName, force);
     }
+
+    return false;
   }
 
   // topologically order transactions

@@ -68,6 +68,22 @@ TEST_CASE("Dependency Tests - install with dependencies") {
   validateInstall(installPath, "C");
 }
 
+TEST_CASE("Dependency Tests - tries to uninstall not-installed package") {
+  fs::path installPath = makeTempDir();
+
+  std::string dataPath = "../data/manifest.json";
+
+  ChuckVersion ckVersion = ChuckVersion("1.5.5.9");
+  ApiVersion langVersion = ApiVersion("9.1");
+
+  Manager *m = new Manager(dataPath, installPath, ckVersion, langVersion,
+                           "linux", X86_64, manifest_url_deps, false);
+
+  // install package
+
+  REQUIRE_FALSE(m->installWithDeps({"NOEXIST"}));
+}
+
 TEST_CASE("Dependency Tests - redundant deps") {
   fs::path installPath = makeTempDir();
 

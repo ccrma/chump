@@ -44,6 +44,7 @@ ver.addDepsFile("./test.txt");
 
 // Add a dependency
 ver.addPackageDependency("Rec", "1.0.0", "2.0.0");
+// ver.addPackageDependency("Rec"); // you don't have to specify version bounds
 
 // wrap up all our files into a zip file, and tcell Chumpinate what URL
 // this zip file will be located at.
