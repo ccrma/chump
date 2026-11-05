@@ -24,6 +24,20 @@ setup-mac-x86_64:
 setup-mac-arm64:
 	meson setup --buildtype=release --cross-file cross/arm64-macos.txt builddir-arm64
 
+# on mac, this is intended to avoid link errors with installed Homebrew libraries
+# usage: `make brew-unlink` BEFORE setup; may require `make clean-all`
+brew-unlink:
+	brew unlink brotli
+	brew unlink zstd
+	brew unlink libidn2
+
+# on mac, this is intended to avoid link errors with installed Homebrew libraries
+# usage: `make brew-link` AFTER building
+brew-link:
+	brew link brotli
+	brew link zstd
+	brew link libidn2
+
 build-mac-x86_64: setup-mac-x86_64
 	meson compile -C builddir-x86_64
 
@@ -51,6 +65,13 @@ mac osx: mac-universal
 
 .PHONY: mac-arm64
 mac-arm64: build-mac-arm64
+
+# release build (assuming homebrew); the `-make` ensures the command
+# runs even if the build fails
+mac-release:
+	make brew-unlink
+	make mac
+	-make brew-link
 
 linux-debug: build-debug
 	meson compile -C builddir-debug
