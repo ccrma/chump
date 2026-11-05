@@ -422,7 +422,7 @@ bool Manager::uninstall(string packageName, bool force) {
       fs::remove(full_path);
 
       std::string line = string("   └─[") + TC::green("REMOVED", TRUE) + "] " +
-	TC::blue(full_path.string());
+                         TC::blue(full_path.string());
       std::cerr << chumpPrepend() << line << std::endl;
     } else {
       std::cerr << chumpPrepend() << string("   └─[") << TC::red("ERROR", TRUE)

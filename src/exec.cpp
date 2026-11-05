@@ -220,7 +220,7 @@ void printInstalledPackages(Manager *mgr) {
       int curr_ver_len = version.length();
 
       // parenthes needed to avoid error on winddows
-    // https://stackoverflow.com/questions/5004858/why-is-stdmin-failing-when-windows-h-is-included
+      // https://stackoverflow.com/questions/5004858/why-is-stdmin-failing-when-windows-h-is-included
       max_ver_len = (std::max)(max_ver_len, curr_ver_len);
     }
   }
