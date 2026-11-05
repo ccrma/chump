@@ -29,7 +29,7 @@ using std::vector;
 
 // indent string
 static const string INDENT = "    ";
-const string VERSION = "v0.0.3";
+const string VERSION = "v0.0.4";
 
 // function prototypes
 void printUsage();
