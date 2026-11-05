@@ -5,6 +5,12 @@ ChuMP VERSIONS log
 =====
 Infinite chump
 
+(fixed) minor security issue when downloading files.
+	* when installing a package, chump would create a temporary directory to download
+	  a file to, upon succesful download it would then be copied to the `.packages` dir.
+	  previously, this was using tmpnam(3) which has been deprecated because of security
+      concerns. now chump uses the recommended "fs::create_directories"
+(improved) made chump cli output formatting more consistent
 (improved) added OS architecture and ChucK version to info messages
 	   when a package isn't available on the specific system configuration
 
