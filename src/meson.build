@@ -17,7 +17,18 @@ libcurl_dep = subproject('curl',
     default_options: [
         'prefer_static=true',
         'http2=disabled',
-        'idn=disabled'
+        'idn=disabled',
+        # Don't let curl pick up optional system/homebrew libraries that
+        # would end up dynamically linked into the executable.
+        'zstd=disabled',
+        'brotli=disabled',
+        'ssh=disabled',
+        'gss-api=disabled',
+        'gsasl=disabled',
+        'psl=disabled',
+        'ldap=disabled',
+        'ldaps=disabled',
+        'rtmp=disabled',
     ],
     required: true
 ).get_variable('curl_dep')
@@ -26,34 +37,17 @@ minizip_dep = subproject('minizip-ng',
     default_options: [
         'prefer_static=true',
         'zstd=disabled',
-        'lzma=disabled'
+        'lzma=disabled',
+        'bzip2=disabled',
+        'iconv=disabled',
     ],
     required: true
 ).get_variable('minizip_ng_dep')
 
+libsolv_subproj = subproject('libsolv')
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Set up cmake for libsolv dependency
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-cmake = import('cmake')
-
-cmake_opts = cmake.subproject_options()
-cmake_opts.add_cmake_defines({
-    'ENABLE_PERL': 'OFF',
-    'ENABLE_PYTHON': 'OFF',
-    'ENABLE_RUBY': 'OFF',
-    'ENABLE_TCL': 'OFF',
-    'DISABLE_SHARED': 'ON', # needed to statically link?
-    'ENABLE_ZSTD': 'OFF',
-    'ENABLE_LZMA': 'OFF',
-    'ENABLE_BZIP2': 'OFF',
-    'ENABLE_ZLIB_COMPRESSION': 'OFF',
-})
-
-libsolv_subproj = cmake.subproject('libsolv', options: cmake_opts)
-
-libsolv_dep = libsolv_subproj.dependency('libsolv')
-libsolvext_dep = libsolv_subproj.dependency('libsolvext')
+libsolv_dep = libsolv_subproj.get_variable('libsolv_dep')
+libsolvext_dep = libsolv_subproj.get_variable('libsolvext_dep')
 
 cheaders_proj = subproject('cheaders')
 cheaders_dep = cheaders_proj.get_variable('cheaders_dep')

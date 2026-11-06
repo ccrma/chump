@@ -2,3 +2,4 @@
 url = https://github.com/openSUSE/libsolv.git
 revision = 0.7.41
 depth = 1
+patch_directory = libsolv
