@@ -32,7 +32,7 @@ using std::vector;
 
 // indent string
 static const string INDENT = "    ";
-const string VERSION = "v0.0.3";
+const string VERSION = "v0.0.4";
 
 // function prototypes
 void printUsage();
@@ -265,8 +265,8 @@ int main(int argc, const char **argv) {
     optional<Package> pkg = manager->getPackage(info_package_name);
     // check
     if (!pkg) {
-      std::cerr << chumpPrepend() << "unable to find package " << info_package_name
-                << std::endl;
+      std::cerr << chumpPrepend() << "unable to find package "
+                << info_package_name << std::endl;
       return 1;
     }
     printPackage(manager, pkg.value());

@@ -1,9 +1,9 @@
 ------------------
 ChuMP VERSIONS log
 ------------------
-0.0.4
+1.0.0
 =====
-Infinite chump
+No country for old chumps
 
 (added) chump now supports dependencies!
     * chump packages can now depend on other packages and chucmp will automatically select
@@ -16,8 +16,16 @@ Infinite chump
 (improved) Chumpinate PackageVersion methods will now throw exceptions in chuck-land for methods that could already throw
 	   exceptions, but were not percolated up into chuck
 
-(improved) made chump cli output formatting more consistent
+0.0.4
+=====
+Infinite chump
 
+(fixed) minor security issue when downloading files.
+    * when installing a package, chump would create a temporary directory to download
+      a file to, upon succesful download it would then be copied to the `.packages` dir.
+      previously, this was using tmpnam(3) which has been deprecated because of security
+      concerns. now chump uses the recommended "fs::create_directories"
+(improved) made chump cli output formatting more consistent
 (improved) added OS architecture and ChucK version to info messages
 	   when a package isn't available on the specific system configuration
 
@@ -51,4 +59,3 @@ A chump is born!
 
 
 === Potential Future Version Names ===
-- No country for old chumps

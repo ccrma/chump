@@ -208,7 +208,9 @@ void printInstalledPackages(Manager *mgr) {
     fs::path install_path = mgr->install_path(p);
     int curr_path_len = install_path.string().length();
 
-    max_path_len = std::max(max_path_len, curr_path_len);
+    // parenthes needed to avoid error on winddows
+    // https://stackoverflow.com/questions/5004858/why-is-stdmin-failing-when-windows-h-is-included
+    max_path_len = (std::max)(max_path_len, curr_path_len);
 
     optional<InstalledVersion> installed_version =
         mgr->open_installed_version_file(install_path / "version.json");
@@ -217,7 +219,9 @@ void printInstalledPackages(Manager *mgr) {
       string version = installed_version.value().getVersionString();
       int curr_ver_len = version.length();
 
-      max_ver_len = std::max(max_ver_len, curr_ver_len);
+      // parenthes needed to avoid error on winddows
+      // https://stackoverflow.com/questions/5004858/why-is-stdmin-failing-when-windows-h-is-included
+      max_ver_len = (std::max)(max_ver_len, curr_ver_len);
     }
   }
 

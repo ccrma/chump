@@ -1,7 +1,7 @@
 # basing this on of https://mesonbuild.com/IndepthTutorial
 
 project('chump', ['c', 'cpp'],
-  version : '0.0.3',
+  version : '0.0.4',
   default_options : ['cpp_std=c++17', 'default_library=static'],
   license : '?')
 
