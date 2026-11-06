@@ -51,7 +51,7 @@ optional<PackageVersion> Manager::latestPackageVersion(string name) {
 // desc: Install, but with dependencies!
 //       Uses libsolv to resolve package dependencies via a sat solver
 //-----------------------------------------------------------------------------
-bool Manager::installWithDeps(const vector<string> packageNames, bool update) {
+bool Manager::install_with_deps(const vector<string> packageNames, bool update) {
   // make install list
   Queue job;
   queue_init(&job);

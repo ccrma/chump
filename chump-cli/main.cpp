@@ -290,7 +290,7 @@ int main(int argc, const char **argv) {
 
     // install packages by name
     try {
-      manager->installWithDeps(install_package_names);
+      manager->install_with_deps(install_package_names);
     } catch (const std::exception &e) {
       cerr << e.what() << endl;
     }
@@ -345,7 +345,7 @@ int main(int argc, const char **argv) {
       return 1;
     }
     // update package
-    manager->installWithDeps({update_package_name}, true);
+    manager->install_with_deps({update_package_name}, true);
   } else if (subcommand == "doc") {
     // open up doc file - an index.html to be opened in the browser
     if (n_targets != 1) {

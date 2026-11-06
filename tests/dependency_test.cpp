@@ -59,8 +59,8 @@ TEST_CASE("Dependency Tests - install with dependencies") {
 
   // install package
 
-  // m->installWithDeps("B");
-  REQUIRE(m->installWithDeps({"C"}));
+  // m->install_with_deps("B");
+  REQUIRE(m->install_with_deps({"C"}));
 
   // B depends on A so A should have also been installed
   validateInstall(installPath, "A");
@@ -81,7 +81,7 @@ TEST_CASE("Dependency Tests - tries to uninstall not-installed package") {
 
   // install package
 
-  REQUIRE_FALSE(m->installWithDeps({"NOEXIST"}));
+  REQUIRE_FALSE(m->install_with_deps({"NOEXIST"}));
 }
 
 TEST_CASE("Dependency Tests - redundant deps") {
@@ -97,7 +97,7 @@ TEST_CASE("Dependency Tests - redundant deps") {
 
   // install package
 
-  REQUIRE(m->installWithDeps({"D"}));
+  REQUIRE(m->install_with_deps({"D"}));
 
   // B depends on A so A should have also been installed
   validateInstall(installPath, "A");
@@ -123,8 +123,8 @@ TEST_CASE("Dependency Tests - install with dependencies (old chuck version)") {
 
   // install package
 
-  // m->installWithDeps("B");
-  REQUIRE(m->installWithDeps({"C"}));
+  // m->install_with_deps("B");
+  REQUIRE(m->install_with_deps({"C"}));
 
   // C depends on A & B should they should have also been installed
   validateInstall(installPath, "A", "1.0.0");
@@ -144,7 +144,7 @@ TEST_CASE("Dependency Tests - incompatible API version") {
                            "linux", X86_64, manifest_url_deps, false);
 
   // attempt install package, but it has incompatible API version
-  REQUIRE_FALSE(m->installWithDeps({"A=3.0.0"}));
+  REQUIRE_FALSE(m->install_with_deps({"A=3.0.0"}));
 }
 
 // TEST need to downgrade a package
@@ -165,13 +165,13 @@ TEST_CASE("Dependency Tests - downgrade package") {
 
   // install package
 
-  REQUIRE(m->installWithDeps({"E=2.0.0"}));
+  REQUIRE(m->install_with_deps({"E=2.0.0"}));
   validateInstall(installPath, "E", "2.0.0");
 
   m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux",
                   X86_64, manifest_url_deps, false);
 
-  REQUIRE(m->installWithDeps({"F=2.0.0"}));
+  REQUIRE(m->install_with_deps({"F=2.0.0"}));
 
   validateInstall(installPath, "F", "2.0.0");
   validateInstall(installPath, "E", "1.0.0");
@@ -195,7 +195,7 @@ TEST_CASE("Dependency Tests - upgrade package") {
 
   // install package
 
-  REQUIRE(m->installWithDeps({"E=0.1.0"}));
+  REQUIRE(m->install_with_deps({"E=0.1.0"}));
 
   validateInstall(installPath, "E", "0.1.0");
 
@@ -205,7 +205,7 @@ TEST_CASE("Dependency Tests - upgrade package") {
   m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux",
                   X86_64, manifest_url_deps, false);
 
-  REQUIRE(m->installWithDeps({"F=2.0.0"}));
+  REQUIRE(m->install_with_deps({"F=2.0.0"}));
 
   validateInstall(installPath, "F", "2.0.0");
   validateInstall(installPath, "E", "1.0.0");
@@ -229,7 +229,7 @@ TEST_CASE("Dependency Tests - conflicting dependencies") {
   INFO("Set up Manager");
 
   // install package
-  REQUIRE(m->installWithDeps({"G"}));
+  REQUIRE(m->install_with_deps({"G"}));
 
   validateInstall(installPath, "G");
   validateInstall(installPath, "E", "1.0.0");
@@ -241,7 +241,7 @@ TEST_CASE("Dependency Tests - conflicting dependencies") {
 
   INFO("New Manager Created");
 
-  REQUIRE_FALSE(m->installWithDeps({"H"}));
+  REQUIRE_FALSE(m->install_with_deps({"H"}));
 }
 
 TEST_CASE("Dependency Tests - uninstall dependant pacakge") {
@@ -261,7 +261,7 @@ TEST_CASE("Dependency Tests - uninstall dependant pacakge") {
 
   // install package
   INFO("Installing package C");
-  REQUIRE(m->installWithDeps({"C"}));
+  REQUIRE(m->install_with_deps({"C"}));
 
   validateInstall(installPath, "A");
   validateInstall(installPath, "B");
@@ -304,7 +304,7 @@ TEST_CASE("Dependency Tests - uninstall a pacakge") {
 
   // install package
   INFO("Installing package A");
-  REQUIRE(m->installWithDeps({"A"}));
+  REQUIRE(m->install_with_deps({"A"}));
 
   validateInstall(installPath, "A");
 
@@ -336,7 +336,7 @@ TEST_CASE("Dependency Tests - will install auto update?") {
 
     // install package
     INFO("Installing package E (1.0.0)");
-    REQUIRE(m->installWithDeps({"E=1.0.0"}));
+    REQUIRE(m->install_with_deps({"E=1.0.0"}));
 
     validateInstall(installPath, "E", "1.0.0");
 
@@ -344,7 +344,7 @@ TEST_CASE("Dependency Tests - will install auto update?") {
                     X86_64, manifest_url_deps, false);
 
     INFO("Should update E to 2.0.0");
-    REQUIRE(m->installWithDeps({"E"}, true));
+    REQUIRE(m->install_with_deps({"E"}, true));
 
     validateInstall(installPath, "E", "2.0.0");
   }
@@ -356,7 +356,7 @@ TEST_CASE("Dependency Tests - will install auto update?") {
 
     // install package
     INFO("Installing package F (1.0.0)");
-    REQUIRE(m->installWithDeps({"F=1.0.0"}));
+    REQUIRE(m->install_with_deps({"F=1.0.0"}));
 
     validateInstall(installPath, "F", "1.0.0");
     validateInstall(installPath, "E", "2.0.0");
@@ -366,7 +366,7 @@ TEST_CASE("Dependency Tests - will install auto update?") {
 
     INFO("Upgrade F to 2.0.0");
     // This should not succeed because B and C depend on A
-    REQUIRE(m->installWithDeps({"F"}, true));
+    REQUIRE(m->install_with_deps({"F"}, true));
 
     validateInstall(installPath, "F", "2.0.0");
     validateInstall(installPath, "E", "1.0.0");
