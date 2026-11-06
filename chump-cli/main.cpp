@@ -12,6 +12,7 @@
 #include <sstream>
 #include <string>
 #include <thread>
+#include <unordered_set>
 #include <vector>
 
 #ifdef _WIN32
@@ -25,7 +26,9 @@ using std::endl;
 using std::string;
 using std::vector;
 
-#define BASE_URL "https://chuck.stanford.edu/release/chump/manifest/"
+// TODO: move back to release manifest once testing is done
+// #define BASE_URL "https://chuck.stanford.edu/release/chump/manifest/"
+#define BASE_URL "https://chuck.stanford.edu/~nshaheed/chump/manifest-dev/"
 
 // indent string
 static const string INDENT = "    ";
@@ -285,13 +288,11 @@ int main(int argc, const char **argv) {
       return 1;
     }
 
-    // install a package by name
-    for (string install_package_name : install_package_names) {
-      try {
-        manager->install(install_package_name);
-      } catch (const std::exception &e) {
-        cerr << e.what() << endl;
-      }
+    // install packages by name
+    try {
+      manager->installWithDeps(install_package_names);
+    } catch (const std::exception &e) {
+      cerr << e.what() << endl;
     }
   } else if (subcommand == "install-local") {
     vector<string> targets = parser.command().targets();
@@ -305,7 +306,7 @@ int main(int argc, const char **argv) {
     }
 
     // install a package by name
-    manager->install_local(targets[0], targets[1], targets[2]);
+    manager->install_local_with_deps(targets[0], targets[1], targets[2]);
   } else if (subcommand == "uninstall") {
     // check
     if (install_package_names.size() == 0) {
@@ -318,7 +319,12 @@ int main(int argc, const char **argv) {
     // uninstall a package by name
     for (string uninstall_package_name : uninstall_package_names) {
       try {
-        manager->uninstall(uninstall_package_name, uninstall_force);
+        if (manager->uninstall_with_deps(uninstall_package_name,
+                                         uninstall_force)) {
+          cout << chumpPrepend() << "uninstall successful" << endl;
+        } else {
+          cout << chumpPrepend() << "uninstall failed" << endl;
+        }
       } catch (const std::exception &e) {
         cerr << e.what() << endl;
       }
@@ -339,7 +345,7 @@ int main(int argc, const char **argv) {
       return 1;
     }
     // update package
-    manager->update(update_package_name);
+    manager->installWithDeps({update_package_name}, true);
   } else if (subcommand == "doc") {
     // open up doc file - an index.html to be opened in the browser
     if (n_targets != 1) {

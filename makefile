@@ -46,6 +46,7 @@ build-mac-arm64: setup-mac-arm64
 
 build-mac-debug: setup-debug
 	meson compile -C builddir-debug
+	cp builddir-debug/chump-cli/chump chump
 
 install:
 	meson install -C builddir-release
@@ -65,6 +66,9 @@ mac osx: mac-universal
 
 .PHONY: mac-arm64
 mac-arm64: build-mac-arm64
+	cp builddir-arm64/chump-cli/chump chump
+	cp builddir-arm64/chumpinate/Chumpinate.chug .
+	cp builddir-arm64/chumpinate/Chumpinate.chug ./chumpinate
 
 # release build (assuming homebrew); the `-make` ensures the command
 # runs even if the build fails
@@ -91,6 +95,9 @@ test:
 test-mac:
 	meson test -C builddir-arm64 -v chump:
 
+test-mac-integration: build-mac-arm64
+	meson test -C builddir-arm64 -v chump:integration_test
+
 # use clang format for c++ code
 format:
 	clang-format --style=llvm -i tests/*.cpp
@@ -101,6 +108,7 @@ format:
 	clang-format --style=llvm -i scripts/*.h
 	# clang-format --style=llvm -i scripts/*.cpp
 	clang-format --style=llvm -i scripts/generate_manifest.cpp
+	clang-format --style=llvm -i libsolv-test/main.cpp
 
 chumpinate_pkg_linux: linux chumpinate_ckdoc
 	cd chumpinate; chuck -s build-pkg-linux.ck
