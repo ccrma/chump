@@ -47,6 +47,7 @@ cmake_opts.add_cmake_defines({
     'ENABLE_ZSTD': 'OFF',
     'ENABLE_LZMA': 'OFF',
     'ENABLE_BZIP2': 'OFF',
+    'ENABLE_ZLIB_COMPRESSION': 'OFF',
 })
 
 libsolv_subproj = cmake.subproject('libsolv', options: cmake_opts)
