@@ -7,7 +7,9 @@
 #   no distro-specific repo formats.
 project('libsolv', 'c',
   version: '0.7.41',
-  default_options: ['c_std=gnu99', 'warning_level=1', 'default_library=static'],
+  # No c_std: like upstream CMake, use the compiler default (libsolv relies on
+  # C11 typedef redefinition, which warns under gnu99).
+  default_options: ['warning_level=1', 'default_library=static'],
   meson_version: '>=0.56.0',
 )
 

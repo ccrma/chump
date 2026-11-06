@@ -29,6 +29,9 @@ libcurl_dep = subproject('curl',
         'ldap=disabled',
         'ldaps=disabled',
         'rtmp=disabled',
+        # Don't build or run curl's own test suites with `meson test`.
+        'tests=disabled',
+        'unittests=disabled',
     ],
     required: true
 ).get_variable('curl_dep')
