@@ -193,7 +193,7 @@ Manager::install_with_deps(const vector<string> packageNames, bool update) {
   transaction_order(trans, 0);
 
   // pass 1: get user permissions on all uninstalls and up/down-grades
-  std::cout << "[DEBUG] pass1\n";
+  DEBUG("pass1");
   for (int i = 0; i < trans->steps.count; ++i) {
     Id p = trans->steps.elements[i];
     Solvable *s = pool_id2solvable(pool, p);
@@ -210,11 +210,9 @@ Manager::install_with_deps(const vector<string> packageNames, bool update) {
 
     string s_name = pool_id2str(pool, s->name);
     string s_evr = pool_id2str(pool, s->evr);
-    std::cout << "[DEBUG] (pass1) install/update actions : " << s_name << "="
-              << s_evr
-              << " step type: " << solver_transaction_type_to_string(step_type)
-              << std::endl;
-    ;
+    DEBUG("(pass1) install/update actions : " << s_name << "="
+          << s_evr
+          << " step type: " << solver_transaction_type_to_string(step_type));
 
     bool is_requested = requestedPackages.count(s->name) > 0;
 
@@ -268,7 +266,7 @@ Manager::install_with_deps(const vector<string> packageNames, bool update) {
   // filepaths to the tmp dir where packages are downloaded
   map<string, fs::path> tmp_dirs;
 
-  std::cout << "[DEBUG] pass2\n";
+  DEBUG("pass2");
   // pass 2: download everything to a tmp dir
   for (int i = 0; i < trans->steps.count; ++i) {
     Id p = trans->steps.elements[i];
@@ -293,11 +291,9 @@ Manager::install_with_deps(const vector<string> packageNames, bool update) {
 
     bool is_requested = requestedPackages.count(s->name) > 0;
 
-    std::cout << "[DEBUG] (pass2) install/update actions : " << s_name << "="
-              << s_evr
-              << " step type: " << solver_transaction_type_to_string(step_type)
-              << std::endl;
-    ;
+    DEBUG("(pass2) install/update actions : " << s_name << "="
+          << s_evr
+          << " step type: " << solver_transaction_type_to_string(step_type));
 
     if (step_type == SOLVER_TRANSACTION_INSTALL) {
       optional<fs::path> tmp_dir = fetch_to_tmp(package_name, !is_requested);
@@ -336,7 +332,7 @@ Manager::install_with_deps(const vector<string> packageNames, bool update) {
     }
   }
 
-  std::cout << "[DEBUG] pass3\n";
+  DEBUG("pass3");
   // pass 3: finish up installation and uninstallation
   for (int i = 0; i < trans->steps.count; ++i) {
     Id p = trans->steps.elements[i];
@@ -356,11 +352,9 @@ Manager::install_with_deps(const vector<string> packageNames, bool update) {
     string s_evr = pool_id2str(pool, s->evr);
     string package_name = s_name + "=" + s_evr;
 
-    std::cout << "[DEBUG] (pass3) install/update actions : " << s_name << "="
-              << s_evr
-              << " step type: " << solver_transaction_type_to_string(step_type)
-              << std::endl;
-    ;
+    DEBUG("(pass3) install/update actions : " << s_name << "="
+          << s_evr
+          << " step type: " << solver_transaction_type_to_string(step_type));
 
     if (step_type == SOLVER_TRANSACTION_INSTALL) {
       // assuming this is always here for now (it should be!)
@@ -393,7 +387,7 @@ Manager::install_with_deps(const vector<string> packageNames, bool update) {
 
       string package_name = getNewVersion(trans, p);
 
-      std::cout << "[DEBUG] installing from tmp dir: " << tmp_dir << std::endl;
+      DEBUG("installing from tmp dir: " << tmp_dir);
 
       if (!install(package_name, tmp_dir)) {
         std::cerr << chumpPrepend() << "installation cancelled\n";
@@ -405,7 +399,7 @@ Manager::install_with_deps(const vector<string> packageNames, bool update) {
         co_return res;
       }
 
-      std::cout << "[DEBUG] finished up/down-grade\n";
+      DEBUG("finished up/down-grade");
     } else if (step_type == SOLVER_TRANSACTION_ERASE) {
       if (!uninstall(s_name, false)) {
         std::cerr << chumpPrepend() << "installation cancelled\n";
@@ -419,7 +413,7 @@ Manager::install_with_deps(const vector<string> packageNames, bool update) {
     }
   }
 
-  std::cout << "[DEBUG] clean up temp dirs\n";
+  DEBUG("clean up temp dirs");
   // clean up all tmp dirs
   for (auto tmp_dir : tmp_dirs) {
     fs::remove_all(tmp_dir.second);
@@ -983,15 +977,15 @@ bool Manager::uninstall_with_deps(string packageName, bool force) {
         continue;
       }
 
-      std::cout << "[DEBUG] marking " << pool_id2str(pool, pkg_name_id)
-                << " as userinstalled\n";
+      DEBUG("marking " << pool_id2str(pool, pkg_name_id)
+            << " as userinstalled");
       // add to solver queue
       queue_push2(&job, SOLVER_USERINSTALLED | SOLVER_SOLVABLE_NAME,
                   pkg_name_id);
     } else {
       Id pkg_name_id = pool_str2id(pool, ver.name.c_str(), 1);
-      std::cout << "[DEBUG] not marked " << pool_id2str(pool, pkg_name_id)
-                << " as userinstalled\n";
+      DEBUG("not marked " << pool_id2str(pool, pkg_name_id)
+            << " as userinstalled");
     }
   }
 
@@ -1195,8 +1189,8 @@ bool Manager::uninstall_with_deps(string packageName, bool force) {
           << chumpPrepend() << "trying to install " << s_name
           << " during uninstall process. this should not happen, skipping\n";
     } else if (step_type == SOLVER_TRANSACTION_IGNORE) {
-      std::cout << "[DEBUG] Ignoring: " << pool_id2str(pool, s->name) << "="
-                << pool_id2str(pool, s->evr) << "\n";
+      DEBUG("Ignoring: " << pool_id2str(pool, s->name) << "="
+            << pool_id2str(pool, s->evr));
     } else if (step_type == SOLVER_TRANSACTION_UPGRADED ||
                step_type == SOLVER_TRANSACTION_DOWNGRADED) {
       std::cerr

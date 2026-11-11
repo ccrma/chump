@@ -137,6 +137,10 @@ int main(int argc, const char **argv) {
     // peace out
     return 0;
   }
+  // hidden debug flag (intentionally not listed in --help)
+  if (parser.getChumpOption("--debug")) {
+    setDebugEnabled(true);
+  }
   if (parser.getChumpOption("--version", "-v")) {
     // print version no.
     cerr << "chump " + TC::orange(VERSION, TRUE) << endl;

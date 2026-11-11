@@ -29,6 +29,13 @@
 
 using std::map;
 
+// whether debug output is enabled (see DEBUG macro in util.h)
+static bool g_debug_enabled = false;
+
+void setDebugEnabled(bool enabled) { g_debug_enabled = enabled; }
+
+bool isDebugEnabled() { return g_debug_enabled; }
+
 std::string chumpPrepend() { return TC::orange("[chump]", TRUE) + " "; }
 
 std::string packageStr(std::string pkg, std::string ver) {
