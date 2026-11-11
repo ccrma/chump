@@ -447,7 +447,6 @@ Manager::install_with_deps(const vector<string> packageNames, bool update) {
 // when the package they actually wanted installed is not.
 optional<fs::path> Manager::fetch_to_tmp(string packageName, bool isDep) {
   // parse packages here
-  std::cout << "package naem: " << packageName << std::endl;
   auto [name, version_string] = parsePackageName(packageName);
 
   // lookup package name (default to latest version)
@@ -461,12 +460,8 @@ optional<fs::path> Manager::fetch_to_tmp(string packageName, bool isDep) {
 
   Package package = pkg.value();
 
-  // std::cout << "trying to find " << name << " " << version_string.value() <<
-  // std::endl;
   optional<PackageVersion> ver;
-  std::cout << "version string?\n";
   if (version_string) {
-    std::cout << "yes version string\n";
     try {
       PackageVersion pkgver(version_string.value());
       ver = package.version(pkgver, os, language_version, api_version);
@@ -475,11 +470,8 @@ optional<fs::path> Manager::fetch_to_tmp(string packageName, bool isDep) {
       return {};
     }
   } else {
-    std::cout << "no version string\n";
     ver = package.latest_version(os, arch, language_version, api_version);
   }
-
-  std::cout << "finished searching for " << name << "\n";
 
   if (!ver) {
     std::cerr << chumpPrepend() << "unable to find version of package "
@@ -534,8 +526,6 @@ optional<fs::path> Manager::fetch_to_tmp(string packageName, bool isDep) {
     }
   }
 
-  std::cout << "writing to file (" << name << ")\n";
-
   // If it is not a dependency, then this package was requested by the
   // user to be installed
   installed_ver.user_installed = !isDep;
@@ -551,7 +541,6 @@ optional<fs::path> Manager::fetch_to_tmp(string packageName, bool isDep) {
 }
 
 bool Manager::install(string packageName, fs::path tmp_dir) {
-  std::cout << "in install\n";
   auto [name, version_string] = parsePackageName(packageName);
 
   // if there is already a packages/PACKAGE directory, error out and tell the
@@ -572,14 +561,7 @@ bool Manager::install(string packageName, fs::path tmp_dir) {
   // create install dir if needed
   fs::create_directory(install_dir);
 
-  std::cout << "about to print\n";
-
-  // string pkgStr = version_string ? packageStr(name, version_string.value()) :
-  // packageStr(name); std::cout << chumpPrepend() << TC::blue("installing
-  // package", TRUE) << ": " << pkgStr << "poop" << std::endl;
-
   // Copy temp files over to the install directory
-  std::cout << "attempt copy\n";
   try {
     fs::copy(tmp_dir, install_dir,
              fs::copy_options::recursive |
@@ -590,15 +572,11 @@ bool Manager::install(string packageName, fs::path tmp_dir) {
     // Removing temp dir
     fs::remove_all(tmp_dir);
 
-    std::cout << "caught an error\n";
-
     return false;
   }
 
   // Removing temp dir
   fs::remove_all(tmp_dir);
-
-  std::cout << "removed everything\n";
 
   // We succeeded
   return true;
@@ -1140,10 +1118,9 @@ bool Manager::uninstall_with_deps(string packageName, bool force) {
     string s_evr = pool_id2str(pool, s->evr);
     string package_name = s_name + "=" + s_evr;
 
-    std::cout << "look at actions " << s_name << "=" << s_evr
-              << " step type: " << solver_transaction_type_to_string(step_type)
-              << std::endl;
-    ;
+    DEBUG( "look at actions " << s_name << "=" << s_evr
+	   << " step type: " << solver_transaction_type_to_string(step_type)
+	   << std::endl);
 
     if (step_type == SOLVER_TRANSACTION_ERASE) {
       // check to see if pacakge is user installed
@@ -1336,8 +1313,6 @@ std::vector<Package> Manager::listPackages() {
     if (!found_pkg) {
       pkg_list.push_back(installed_version.value().package());
     }
-
-    // std::cout << dir_entry << std::endl;
   }
 
   return pkg_list;
@@ -1680,8 +1655,6 @@ Repo *Manager::initializeSystemRepo() {
 
   std::vector<InstalledVersion> installed_versions = listInstalledVersions();
 
-  // std::cout << "initiazle system repo\n";
-
   // Add chuck's language information as a constraint in the repo.
   Id ck_lang_id = repo_add_solvable(repo);
   Solvable *s_lang = pool_id2solvable(pool, ck_lang_id);
@@ -1804,8 +1777,6 @@ Repo *Manager::initializeManifestRepo() {
 
   std::vector<Package> packages = listPackages();
 
-  // std::cout << "initialize manifest repo\n";
-
   for (Package package : packages) {
     for (PackageVersion ver : package.versions) {
       Id pkgId = repo_add_solvable(repo);
@@ -1855,7 +1826,6 @@ Repo *Manager::initializeManifestRepo() {
 
       // add dependencies (weeee)
       for (Dependency dep : ver.dependencies) {
-        // std::cout << "Dependency: " << dep.name << "\n";
         Id name_id = pool_str2id(pool, dep.name.c_str(), 1);
 
         // optionally, add min/max version bounds of the dependency
