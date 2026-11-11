@@ -2,7 +2,7 @@
 
 project('chump', ['c', 'cpp'],
   version : '0.0.4',
-  default_options : ['cpp_std=c++17', 'default_library=static'],
+  default_options : ['cpp_std=c++20', 'default_library=static'],
   license : '?')
 
 add_global_arguments(language : ['c', 'cpp'])
@@ -11,6 +11,11 @@ if host_machine.system() == 'darwin'
   # Set minimum macOS version only for macOS
   add_project_arguments('-mmacosx-version-min=12', language : 'c')
   add_project_arguments('-mmacosx-version-min=12', language : 'cpp')
+
+# https://github.com/openSUSE/libsolv/issues/372
+  # requires is a keyword in c++20, this flag prepends dep_
+  # to conflicting keywords in libsolv
+  add_project_arguments('-DLIBSOLV_SOLVABLE_PREPEND_DEP', language: 'cpp')
 endif
 
 

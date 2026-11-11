@@ -205,6 +205,13 @@ struct InstalledVersion {
 
   vector<Dependency> dependencies;
 
+  // Was this installed by the user (i.e. with chump
+  // install/install-local/update)?
+  //
+  // If so, we need to get user permission when updating or removing
+  // that package as a dependency.
+  bool user_installed = true;
+
   string getVersionString() const;
 };
 

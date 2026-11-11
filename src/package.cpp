@@ -567,6 +567,7 @@ void to_json(json &j, const InstalledVersion &p) {
       {"os", p.os},
       {"arch", architectureToString.at(p.arch)},
       {"files", p.files},
+      {"user_installed", p.user_installed},
   };
 
   j["dependencies"] = p.dependencies;
@@ -633,6 +634,15 @@ void from_json(const json &j, InstalledVersion &p) {
 
   if (j.contains("doc_url") && !j["doc_url"].is_null()) {
     p.doc_url = j["doc_url"];
+  }
+
+  if (j.contains("user_installed") && !j["user_installed"].is_null()) {
+    p.user_installed = j["user_installed"];
+  } else {
+    // assuming that if user_installed is not specificed, then it was
+    // user installed. This is because before dependencies were added,
+    // everything was user-installed
+    p.user_installed = true;
   }
 }
 

@@ -21,6 +21,7 @@
 
 namespace fs = std::filesystem;
 using std::cerr;
+using std::cin;
 using std::cout;
 using std::endl;
 using std::string;
@@ -288,12 +289,65 @@ int main(int argc, const char **argv) {
       return 1;
     }
 
-    // install packages by name
-    try {
-      manager->install_with_deps(install_package_names);
-    } catch (const std::exception &e) {
-      cerr << e.what() << endl;
+    // when installing, in some situations user input is needed to
+    // continue (i.e. when trying to upgrade a user-installed pacakge)
+    auto installer = manager->install_with_deps(install_package_names);
+    install_with_deps_result *res;
+
+    while (installer) {
+      try {
+        res = installer();
+      } catch (const std::exception &e) {
+        cerr << e.what() << endl;
+        return 1;
+      }
+
+      // if res isn't finished we need to seek user input
+      if (!res->finished) {
+        string action;
+
+        switch (res->action_type) {
+        case NONE:
+          action = "none";
+          break;
+        case INSTALL:
+          action = "install package";
+          break;
+        case UNINSTALL:
+          action = "uninstall package";
+          break;
+        case UPGRADE:
+          action = "change installed package version";
+          break;
+        }
+
+        cout << chumpPrepend() << "in order to install a requested package,\n";
+        if (res->action_type == UPGRADE) {
+          cout << chumpPrepend() << action << " "
+               << packageStr(res->name, res->old_version) << " to "
+               << packageStr(res->name, res->new_version) << " (y/n)? ";
+        } else {
+          cout << chumpPrepend() << action << " " << packageStr(res->name)
+               << " (y/n)? ";
+        }
+
+        string input;
+        cin >> input;
+
+        while (input != "y" && input != "n") {
+          cout << chumpPrepend() << "please enter y/n\n";
+
+          cin >> input;
+        }
+
+        if (input == "y") {
+          res->cont = true;
+        } else {
+          res->cont = false;
+        }
+      }
     }
+
   } else if (subcommand == "install-local") {
     vector<string> targets = parser.command().targets();
 
@@ -316,14 +370,17 @@ int main(int argc, const char **argv) {
       return 1;
     }
 
+    // TODO: have to support mulitple unisntalls ugh. do this later
+
     // uninstall a package by name
     for (string uninstall_package_name : uninstall_package_names) {
       try {
         if (manager->uninstall_with_deps(uninstall_package_name,
                                          uninstall_force)) {
-          cout << chumpPrepend() << "uninstall successful" << endl;
+          cout << chumpPrepend() << TC::blue("uninstall successful", TRUE)
+               << endl;
         } else {
-          cout << chumpPrepend() << "uninstall failed" << endl;
+          cout << chumpPrepend() << TC::red("uninstall failed", TRUE) << endl;
         }
       } catch (const std::exception &e) {
         cerr << e.what() << endl;
