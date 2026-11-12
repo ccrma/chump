@@ -6,6 +6,7 @@
 #include <repo.h>
 #include <solver.h>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "chuck_version.h"
@@ -36,6 +37,12 @@ struct install_result {
   // If all installs are able to download, continue to installing them in
   // install_dir
   bool cont;
+};
+
+struct local_install_args {
+  fs::path pkgDefn;
+  fs::path pkgVer;
+  fs::path pkgZip;
 };
 
 // install_with_deps_result is any action that needs to handled by the user.
@@ -81,9 +88,11 @@ public:
   bool install(string packageName, fs::path tmp_dir);
   Generator<install_with_deps_result *>
   install_with_deps(const vector<string> packageNames, bool update = false);
+  Generator<install_with_deps_result *>
+  install_with_deps_helper(Queue job, std::unordered_set<Id> requestedPackages);
   bool install_local(fs::path pkgDefn, fs::path pkgVer, fs::path pkgZip);
-  bool install_local_with_deps(fs::path pkgDefn, fs::path pkgVer,
-                               fs::path pkgZip);
+  Generator<install_with_deps_result *>
+  install_local_with_deps(fs::path pkgDefn, fs::path pkgVer, fs::path pkgZip);
   bool uninstall_with_deps(string packageName, bool force);
   bool uninstall(string packageName, bool force);
   bool update_manifest();                 // Download a new package manifest

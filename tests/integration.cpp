@@ -26,17 +26,15 @@ void runInstallerIntegration(Generator<install_with_deps_result *> installer,
                              bool succeed = true) {
   std::cout << "Running installer\n";
   auto res = installer();
-
   while (!res->finished) {
-    std::cout << "Installer step\n";
     res->cont = true;
     res = installer();
   }
-
   REQUIRE(succeed == res->success);
 }
 
 TEST_CASE("Integration Tests - install/update/uninstall") {
+  // setDebugEnabled(true);
   fs::path installPath = makeTempDir();
   INFO("install path: " << installPath);
 
