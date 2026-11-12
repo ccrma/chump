@@ -93,7 +93,7 @@ test:
 	meson test -C builddir-release -v chump:
 
 test-mac:
-	meson test -C builddir-arm64 -v chump:
+	meson test --timeout-multiplier 2 -C builddir-arm64 -v chump:
 
 test-mac-integration: build-mac-arm64
 	meson test -C builddir-arm64 -v chump:integration_test

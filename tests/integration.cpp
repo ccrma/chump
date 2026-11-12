@@ -24,7 +24,6 @@ bool install(Manager *m, string pkg) {
 
 void runInstallerIntegration(Generator<install_with_deps_result *> installer,
                              bool succeed = true) {
-  std::cout << "Running installer\n";
   auto res = installer();
   while (!res->finished) {
     res->cont = true;

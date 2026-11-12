@@ -13,6 +13,7 @@ using json = nlohmann::json;
 
 std::string manifest_url_deps =
     "https://ccrma.stanford.edu/~nshaheed/chump/manifest.json";
+std::string dataPath = "../data/manifest.json";
 
 InstalledVersion openVer(fs::path path) {
   std::ifstream f(path);
@@ -49,11 +50,9 @@ void validateUninstall(fs::path installPath, string package) {
 
 void runInstaller(Generator<install_with_deps_result *> installer,
                   bool succeed = true) {
-  std::cout << "Running installer\n";
   auto res = installer();
 
   while (!res->finished) {
-    std::cout << "Installer step\n";
     res->cont = true;
     res = installer();
   }
@@ -95,8 +94,6 @@ void printRes(install_with_deps_result *res) {
 TEST_CASE("Dependency Tests - install with dependencies") {
   fs::path installPath = makeTempDir();
 
-  std::string dataPath = "../data/manifest.json";
-
   ChuckVersion ckVersion = ChuckVersion("1.5.5.9");
   ApiVersion langVersion = ApiVersion("9.1");
 
@@ -117,8 +114,6 @@ TEST_CASE("Dependency Tests - install with dependencies") {
 TEST_CASE("Dependency Tests - tries to uninstall not-installed package") {
   fs::path installPath = makeTempDir();
 
-  std::string dataPath = "../data/manifest.json";
-
   ChuckVersion ckVersion = ChuckVersion("1.5.5.9");
   ApiVersion langVersion = ApiVersion("9.1");
 
@@ -132,8 +127,6 @@ TEST_CASE("Dependency Tests - tries to uninstall not-installed package") {
 
 TEST_CASE("Dependency Tests - redundant deps") {
   fs::path installPath = makeTempDir();
-
-  std::string dataPath = "../data/manifest.json";
 
   ChuckVersion ckVersion = ChuckVersion("1.5.5.9");
   ApiVersion langVersion = ApiVersion("9.1");
@@ -159,8 +152,6 @@ TEST_CASE("Dependency Tests - redundant deps") {
 TEST_CASE("Dependency Tests - install with dependencies (old chuck version)") {
   fs::path installPath = makeTempDir();
 
-  std::string dataPath = "../data/manifest.json";
-
   ChuckVersion ckVersion = ChuckVersion("1.5.2.1");
   ApiVersion langVersion = ApiVersion("9.1");
 
@@ -181,8 +172,6 @@ TEST_CASE("Dependency Tests - install with dependencies (old chuck version)") {
 TEST_CASE("Dependency Tests - incompatible API version") {
   fs::path installPath = makeTempDir();
 
-  std::string dataPath = "../data/manifest.json";
-
   ChuckVersion ckVersion = ChuckVersion("1.5.2.6");
   ApiVersion langVersion = ApiVersion("9.1");
 
@@ -198,8 +187,6 @@ TEST_CASE("Dependency Tests - downgrade package") {
   INFO("Test case start");
   fs::path installPath = makeTempDir();
   std::cout << "IN teh test\n";
-
-  std::string dataPath = "../data/manifest.json";
 
   ChuckVersion ckVersion = ChuckVersion("1.5.2.1");
   ApiVersion langVersion = ApiVersion("9.1");
@@ -227,8 +214,6 @@ TEST_CASE("Dependency Tests - downgrade package") {
 TEST_CASE("Dependency Tests - upgrade package") {
   INFO("Test case start");
   fs::path installPath = makeTempDir();
-
-  std::string dataPath = "../data/manifest.json";
 
   ChuckVersion ckVersion = ChuckVersion("1.5.2.1");
   ApiVersion langVersion = ApiVersion("9.1");
@@ -262,8 +247,6 @@ TEST_CASE("Dependency Tests - conflicting dependencies") {
   fs::path installPath = makeTempDir();
   INFO("Temp Dir: " << installPath);
   std::cout << "IN teh test\n";
-
-  std::string dataPath = "../data/manifest.json";
 
   ChuckVersion ckVersion = ChuckVersion("1.5.2.1");
   ApiVersion langVersion = ApiVersion("9.1");
@@ -312,8 +295,6 @@ TEST_CASE("Dependency Tests - uninstall dependant pacakge") {
   fs::path installPath = makeTempDir();
   INFO("Temp Dir: " << installPath);
 
-  std::string dataPath = "../data/manifest.json";
-
   ChuckVersion ckVersion = ChuckVersion("1.5.2.1");
   ApiVersion langVersion = ApiVersion("9.1");
 
@@ -358,8 +339,6 @@ TEST_CASE("Dependency Tests - uninstall a package") {
   fs::path installPath = makeTempDir();
   INFO("Temp Dir: " << installPath);
 
-  std::string dataPath = "../data/manifest.json";
-
   ChuckVersion ckVersion = ChuckVersion("1.5.2.1");
   ApiVersion langVersion = ApiVersion("9.1");
 
@@ -388,8 +367,6 @@ TEST_CASE(
   INFO("Test case start");
   fs::path installPath = makeTempDir();
   INFO("Temp Dir: " << installPath);
-
-  std::string dataPath = "../data/manifest.json";
 
   ChuckVersion ckVersion = ChuckVersion("1.5.2.1");
   ApiVersion langVersion = ApiVersion("9.1");
@@ -424,8 +401,6 @@ TEST_CASE("Dependency Tests - uninstall package with user-installed "
   INFO("Test case start");
   fs::path installPath = makeTempDir();
   INFO("Temp Dir: " << installPath);
-
-  std::string dataPath = "../data/manifest.json";
 
   ChuckVersion ckVersion = ChuckVersion("1.5.2.1");
   ApiVersion langVersion = ApiVersion("9.1");
@@ -467,8 +442,6 @@ TEST_CASE(
   fs::path installPath = makeTempDir();
   INFO("Temp Dir: " << installPath);
 
-  std::string dataPath = "../data/manifest.json";
-
   ChuckVersion ckVersion = ChuckVersion("1.5.2.1");
   ApiVersion langVersion = ApiVersion("9.1");
 
@@ -502,8 +475,6 @@ TEST_CASE("Dependency Tests - will install auto update?") {
   INFO("Test case start");
   fs::path installPath = makeTempDir();
   INFO("Temp Dir: " << installPath);
-
-  std::string dataPath = "../data/manifest.json";
 
   ChuckVersion ckVersion = ChuckVersion("1.5.2.1");
   ApiVersion langVersion = ApiVersion("9.1");
@@ -550,4 +521,164 @@ TEST_CASE("Dependency Tests - will install auto update?") {
     validateInstall(installPath, "F", "2.0.0");
     validateInstall(installPath, "E", "1.0.0");
   }
+}
+
+//-----------------------------------------------------------------------------
+// install_local_with_deps tests
+// files are in data/local/:
+//   package.json              - package definition for "LocalPkg"
+//   version_no_deps.json      - version file with no dependencies
+//   version_deps.json         - depends on B (which depends on A)
+//   version_pinned_dep.json   - depends on E, pinned to exactly 1.0.0
+//   version_missing_dep.json  - depends on NOEXIST (not in the manifest)
+//   LocalPkg.zip              - package contents (hello.ck)
+//-----------------------------------------------------------------------------
+const fs::path localDataPath = "../data/local";
+const fs::path localPkgDefn = localDataPath / "package.json";
+const fs::path localPkgZip = localDataPath / "LocalPkg.zip";
+
+Manager *makeLocalTestManager(fs::path installPath) {
+  return new Manager("../data/manifest.json", installPath,
+                     ChuckVersion("1.5.2.1"), ApiVersion("9.1"), "linux",
+                     X86_64, manifest_url_deps, false);
+}
+
+void validateLocalInstall(fs::path installPath) {
+  validateInstall(installPath, "LocalPkg", "1.0.0");
+  REQUIRE(fs::exists(installPath / "LocalPkg" / "hello.ck"));
+
+  // install-local packages are always user-installed
+  auto ver = openVer(installPath / "LocalPkg" / "version.json");
+  REQUIRE(ver.user_installed);
+}
+
+TEST_CASE("Dependency Tests - install local package (no dependencies)") {
+  // setDebugEnabled(true);
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  std::cout << "locla test\n";
+
+  Manager *m = makeLocalTestManager(installPath);
+
+  runInstaller(m->install_local_with_deps(
+      localPkgDefn, localDataPath / "version_no_deps.json", localPkgZip));
+
+  validateLocalInstall(installPath);
+}
+
+TEST_CASE("Dependency Tests - install local package with dependencies") {
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  Manager *m = makeLocalTestManager(installPath);
+
+  // LocalPkg depends on B, which depends on A
+  runInstaller(m->install_local_with_deps(
+      localPkgDefn, localDataPath / "version_deps.json", localPkgZip));
+
+  validateLocalInstall(installPath);
+  validateInstall(installPath, "A");
+  validateInstall(installPath, "B");
+
+  // dependencies were pulled in automatically, not requested by the user
+  REQUIRE_FALSE(openVer(installPath / "A" / "version.json").user_installed);
+  REQUIRE_FALSE(openVer(installPath / "B" / "version.json").user_installed);
+
+  // unrelated packages should not be installed
+  validateUninstall(installPath, "C");
+}
+
+TEST_CASE("Dependency Tests - install local package with pinned dependency") {
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  Manager *m = makeLocalTestManager(installPath);
+
+  // E has 0.1.0, 1.0.0, and 2.0.0 available; LocalPkg pins it to 1.0.0
+  runInstaller(m->install_local_with_deps(
+      localPkgDefn, localDataPath / "version_pinned_dep.json", localPkgZip));
+
+  validateLocalInstall(installPath);
+  validateInstall(installPath, "E", "1.0.0");
+}
+
+TEST_CASE("Dependency Tests - install local package with dependencies "
+          "already installed") {
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  Manager *m = makeLocalTestManager(installPath);
+
+  INFO("Installing B (and A) from the manifest");
+  runInstaller(m->install_with_deps({"B"}));
+  validateInstall(installPath, "A");
+  validateInstall(installPath, "B");
+
+  // need new manager to get updated repos
+  m = makeLocalTestManager(installPath);
+
+  INFO("Installing LocalPkg, whose dependencies are already satisfied");
+  runInstaller(m->install_local_with_deps(
+      localPkgDefn, localDataPath / "version_deps.json", localPkgZip));
+
+  validateLocalInstall(installPath);
+  validateInstall(installPath, "A");
+  validateInstall(installPath, "B");
+}
+
+TEST_CASE("Dependency Tests - install local package with missing dependency") {
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  Manager *m = makeLocalTestManager(installPath);
+
+  // NOEXIST is not in the manifest, so dependency resolution fails and
+  // the local package should not be installed
+  runInstaller(m->install_local_with_deps(localPkgDefn,
+                                          localDataPath /
+                                              "version_missing_dep.json",
+                                          localPkgZip),
+               false);
+
+  validateUninstall(installPath, "LocalPkg");
+}
+
+TEST_CASE("Dependency Tests - install local package with invalid arguments") {
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  Manager *m = makeLocalTestManager(installPath);
+  fs::path pkgVer = localDataPath / "version_no_deps.json";
+
+  SECTION("package definition does not exist") {
+    runInstaller(m->install_local_with_deps(localDataPath / "noexist.json",
+                                            pkgVer, localPkgZip),
+                 false);
+  }
+
+  SECTION("package version does not exist") {
+    runInstaller(m->install_local_with_deps(
+                     localPkgDefn, localDataPath / "noexist.json", localPkgZip),
+                 false);
+  }
+
+  SECTION("package zip does not exist") {
+    runInstaller(m->install_local_with_deps(localPkgDefn, pkgVer,
+                                            localDataPath / "noexist.zip"),
+                 false);
+  }
+
+  SECTION("package zip is not a zip file") {
+    runInstaller(m->install_local_with_deps(localPkgDefn, pkgVer, pkgVer),
+                 false);
+  }
+
+  SECTION("package definition is malformed") {
+    // a version file is valid json, but not a valid package definition
+    runInstaller(m->install_local_with_deps(pkgVer, pkgVer, localPkgZip),
+                 false);
+  }
+
+  validateUninstall(installPath, "LocalPkg");
 }

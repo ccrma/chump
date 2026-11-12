@@ -179,6 +179,21 @@ Manager::install_with_deps_helper(Queue job,
   // https://github.com/openSUSE/libsolv/blob/c9ee7a3b946e8870f056dddc22032e4d43a40636/src/transaction.h#L45
   Transaction *trans = solver_create_transaction(solver);
 
+  DEBUG("Transacting, reqpkg size: " << requestedPackages.size());
+  if (trans->steps.count == 0 && requestedPackages.size() == 0) {
+    // nothing needs to be installed/updated/removed. This should only
+    // happen with a local install, which does not request any
+    // packages remotely.
+    DEBUG("no transaction steps needed");
+    transaction_free(trans);
+    solver_free(solver);
+
+    install_with_deps_result *res =
+        new install_with_deps_result("", true, true);
+    res->action_type = NONE;
+    co_return res;
+  }
+
   if (trans->steps.count == 0) {
     std::cerr << chumpPrepend()
               << "one or more of the requested packages are already installed."
@@ -193,7 +208,6 @@ Manager::install_with_deps_helper(Queue job,
 
     transaction_free(trans);
     solver_free(solver);
-    queue_free(&job);
 
     install_with_deps_result *res =
         new install_with_deps_result("", true, false);
@@ -678,7 +692,7 @@ Manager::install_local_with_deps(fs::path pkgDefn, fs::path pkgVer,
   // Provide an empty set of requested packages for install_with_deps_helper
   std::unordered_set<Id> requestedPackages;
 
-  // need to pass this up while it's still going
+  // need to pass this up while it's still going.
   auto installer = install_with_deps_helper(job, requestedPackages);
   install_with_deps_result *res;
 
@@ -695,7 +709,15 @@ Manager::install_local_with_deps(fs::path pkgDefn, fs::path pkgVer,
   DEBUG("Freeing up job");
   queue_free(&job);
 
-  // if all of the dependencies sucessfully
+  // don't install the local package if its dependencies failed to install
+  // (or the user cancelled)
+  if (!res->success) {
+    std::cerr << chumpPrepend() << "unable to install dependencies of "
+              << package.value().name << ", exiting..." << std::endl;
+    co_return res;
+  }
+  DEBUG("About to install local pkg");
+  // all dependencies were installed sucessfully
   bool result = install_local(pkgDefn, pkgVer, pkgZip);
 
   res->finished = true;
@@ -710,6 +732,7 @@ Manager::install_local_with_deps(fs::path pkgDefn, fs::path pkgVer,
 // install_local_with_deps)
 bool Manager::install_local(fs::path pkgDefn, fs::path pkgVer,
                             fs::path pkgZip) {
+  DEBUG("Local Install: in install_local");
   if (!fs::is_regular_file(pkgDefn)) {
     std::cerr << chumpPrepend() << "package definition " << pkgDefn
               << "is not a file, exiting..." << std::endl;
@@ -737,12 +760,18 @@ bool Manager::install_local(fs::path pkgDefn, fs::path pkgVer,
 
   // attempt to open the package files
   auto version = open_package_version_file(pkgVer);
-  if (!version)
+  if (!version) {
+    DEBUG("Local Install: failed to open the package version file");
     return false;
+  }
 
   optional<Package> package = open_package_file(pkgDefn);
-  if (!package)
+  if (!package) {
+    DEBUG("Local Install: failed to open up the package definition file");
     return false;
+  }
+
+  DEBUG("Local Install: check package dir");
 
   // if there is already a packages/PACKAGE directory, error out and tell
   // the user to call update

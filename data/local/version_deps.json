@@ -1,0 +1,16 @@
+{
+    "version": "1.0.0",
+    "language_version_min": {
+        "mega": 1,
+        "major": 5,
+        "minor": 2,
+        "patch": 0
+    },
+    "os": "linux",
+    "files": [],
+    "dependencies": [
+        {
+            "name": "B"
+        }
+    ]
+}

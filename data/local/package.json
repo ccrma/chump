@@ -1,0 +1,9 @@
+{
+    "name": "LocalPkg",
+    "authors": ["Nick Shaheed"],
+    "homepage": "",
+    "repository": "",
+    "license": "gpl3",
+    "description": "local package fixture for install_local_with_deps tests",
+    "keywords": []
+}
