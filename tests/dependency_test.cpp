@@ -315,7 +315,7 @@ TEST_CASE("Dependency Tests - uninstall dependant pacakge") {
 
   INFO("Attempt to uninstall package A");
   // This should not succeed because B and C depend on A
-  REQUIRE_FALSE(m->uninstall_with_deps("A", false));
+  REQUIRE_FALSE(m->uninstall_with_deps({"A"}, false));
 
   validateInstall(installPath, "A");
 
@@ -324,11 +324,11 @@ TEST_CASE("Dependency Tests - uninstall dependant pacakge") {
 
   INFO("Force uninstall package A");
   // This should not succeed because B and C depend on A
-  REQUIRE_FALSE(m->uninstall_with_deps("A", false));
+  REQUIRE_FALSE(m->uninstall_with_deps({"A"}, false));
   validateInstall(installPath, "A");
 
   // now force it to uninstall
-  REQUIRE(m->uninstall_with_deps("A", true));
+  REQUIRE(m->uninstall_with_deps({"A"}, true));
   validateUninstall(installPath, "A");
 }
 
@@ -357,7 +357,7 @@ TEST_CASE("Dependency Tests - uninstall a package") {
 
   INFO("Attempt to uninstall package A");
   // This should succeed because there are no dependencies for it
-  REQUIRE(m->uninstall_with_deps("A", false));
+  REQUIRE(m->uninstall_with_deps({"A"}, false));
 
   validateUninstall(installPath, "A");
 }
@@ -389,7 +389,7 @@ TEST_CASE(
 
   INFO("Attempt to uninstall package A");
   // This should not succeed because B and C depend on A
-  REQUIRE_FALSE(m->uninstall_with_deps("A", false));
+  REQUIRE_FALSE(m->uninstall_with_deps({"A"}, false));
 
   validateInstall(installPath, "A");
   validateInstall(installPath, "B");
@@ -424,14 +424,14 @@ TEST_CASE("Dependency Tests - uninstall package with user-installed "
   INFO("Attempt to uninstall package A");
   // This should not succeed because B and C depend on A
   // REQUIRE_FALSE(m->uninstall_with_deps("A", true));
-  m->uninstall_with_deps("A", true);
+  m->uninstall_with_deps({"A"}, true);
 
   validateUninstall(installPath, "A");
   validateUninstall(installPath, "B");
   validateInstall(installPath, "C");
 
   INFO("Attempt to uninstall package C (without --force)");
-  REQUIRE(m->uninstall_with_deps("C", false));
+  REQUIRE(m->uninstall_with_deps({"C"}, false));
 
   validateUninstall(installPath, "C");
 }
@@ -463,12 +463,47 @@ TEST_CASE(
                   X86_64, manifest_url_deps, false);
 
   INFO("Attempt to uninstall package C");
-  REQUIRE(m->uninstall_with_deps("C", true));
+  REQUIRE(m->uninstall_with_deps({"C"}, true));
 
   // A & B should remain installed because D depends on them
   validateInstall(installPath, "A");
   validateInstall(installPath, "B");
   validateUninstall(installPath, "C");
+}
+
+TEST_CASE("Dependency Tests - uninstall multiple pkgs") {
+  INFO("Test case start");
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  ChuckVersion ckVersion = ChuckVersion("1.5.2.1");
+  ApiVersion langVersion = ApiVersion("9.1");
+
+  INFO("Set up Manager");
+  Manager *m = new Manager(dataPath, installPath, ckVersion, langVersion,
+                           "linux", X86_64, manifest_url_deps, false);
+
+  // install package
+  INFO("Installing packages C & D");
+  runInstaller(m->install_with_deps({"C", "D"}));
+
+  validateInstall(installPath, "A");
+  validateInstall(installPath, "B");
+  validateInstall(installPath, "C");
+  validateInstall(installPath, "D");
+
+  // need new manager to go updated repos
+  m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux",
+                  X86_64, manifest_url_deps, false);
+
+  INFO("Attempt to uninstall packages C & D");
+  REQUIRE(m->uninstall_with_deps({"C", "D"}, true));
+
+  // Everything should be uninstalled
+  validateUninstall(installPath, "A");
+  validateUninstall(installPath, "B");
+  validateUninstall(installPath, "C");
+  validateUninstall(installPath, "D");
 }
 
 TEST_CASE("Dependency Tests - will install auto update?") {
@@ -635,10 +670,9 @@ TEST_CASE("Dependency Tests - install local package with missing dependency") {
 
   // NOEXIST is not in the manifest, so dependency resolution fails and
   // the local package should not be installed
-  runInstaller(m->install_local_with_deps(localPkgDefn,
-                                          localDataPath /
-                                              "version_missing_dep.json",
-                                          localPkgZip),
+  runInstaller(m->install_local_with_deps(
+                   localPkgDefn, localDataPath / "version_missing_dep.json",
+                   localPkgZip),
                false);
 
   validateUninstall(installPath, "LocalPkg");

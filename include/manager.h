@@ -93,7 +93,7 @@ public:
   bool install_local(fs::path pkgDefn, fs::path pkgVer, fs::path pkgZip);
   Generator<install_with_deps_result *>
   install_local_with_deps(fs::path pkgDefn, fs::path pkgVer, fs::path pkgZip);
-  bool uninstall_with_deps(string packageName, bool force);
+  bool uninstall_with_deps(const vector<string> packageNames, bool force);
   bool uninstall(string packageName, bool force);
   bool update_manifest();                 // Download a new package manifest
   bool open_doc(string packageName);      // open doc page

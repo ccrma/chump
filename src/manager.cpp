@@ -824,17 +824,26 @@ bool Manager::install_local(fs::path pkgDefn, fs::path pkgVer,
 //       installed as a dependency and what wasn't.
 //-----------------------------------------------------------------------------
 //
-bool Manager::uninstall_with_deps(string packageName, bool force) {
+bool Manager::uninstall_with_deps(const vector<string> packageNames,
+                                  bool force) {
   Queue job;
   queue_init(&job);
 
-  auto [name, version_string] = parsePackageName(packageName);
+  std::unordered_set<Id> requestedPackages;
 
-  // define job
-  Id name_id = pool_str2id(pool, name.c_str(), 1);
+  for (auto packageName : packageNames) {
+    // parse packages here
+    auto [name, version_string] = parsePackageName(packageName);
 
-  queue_push2(&job, SOLVER_ERASE | SOLVER_SOLVABLE_NAME | SOLVER_CLEANDEPS,
-              name_id);
+    // printDependencies(pool, name.c_str());
+
+    // define job
+    Id name_id = pool_str2id(pool, name.c_str(), 1);
+
+    requestedPackages.insert(name_id);
+    queue_push2(&job, SOLVER_ERASE | SOLVER_SOLVABLE_NAME | SOLVER_CLEANDEPS,
+                name_id);
+  }
 
   // std::cout << "--- libsolv Pool State Dump ---\n";
   // // Solvables are stored in a contiguous array from index 1 to
@@ -881,8 +890,8 @@ bool Manager::uninstall_with_deps(string packageName, bool force) {
     if (ver.user_installed) {
       Id pkg_name_id = pool_str2id(pool, ver.name.c_str(), 1);
 
-      // skip pkg specifically being uninstalled
-      if (pkg_name_id == name_id) {
+      // skip pkgs specifically being uninstalled
+      if (requestedPackages.contains(pkg_name_id)) {
         continue;
       }
 
@@ -918,8 +927,9 @@ bool Manager::uninstall_with_deps(string packageName, bool force) {
       std::cerr << TC::red("WARNING") << ": ";
     }
 
-    std::cerr << "dependency resolution failed while attempting to uninstall "
-              << packageName << " with ";
+    std::cerr << chumpPrepend()
+              << "dependency resolution failed while attempting uninstall "
+              << "with ";
 
     if (problem_count > 1)
       std::cerr << problem_count << " problems:\n";
@@ -934,10 +944,10 @@ bool Manager::uninstall_with_deps(string packageName, bool force) {
     }
 
     if (force) {
-      std::cerr << chumpPrepend() << "attempting to uninstall "
-                << packageStr(packageName)
-                << " (but no dependencies) anyways...\n";
-      uninstall(packageName, force);
+      std::cerr << chumpPrepend()
+                << "uninstalling, but with errors, ignoring dependencies\n";
+      for (string packageName : packageNames)
+        uninstall(packageName, force);
       return false;
     }
 
@@ -954,8 +964,8 @@ bool Manager::uninstall_with_deps(string packageName, bool force) {
   // directory either doesn't exist or there's no version.json)
   if (trans->steps.count == 0) {
     if (!force) {
-      std::cerr << chumpPrepend() << "the package " << TC::bold(packageName)
-                << " was not found, could not uninstall" << std::endl;
+      std::cerr << chumpPrepend() << "the packages "
+                << "were not found, could not uninstall" << std::endl;
     }
 
     transaction_free(trans);
@@ -965,7 +975,12 @@ bool Manager::uninstall_with_deps(string packageName, bool force) {
     // if we are forcing, we're gonna try anyway (because the version.json could
     // have been deleted)
     if (force) {
-      return uninstall(packageName, force);
+      // any install failure will indicate the failure of the install process
+      bool result = true;
+      for (string packageName : packageNames)
+        result = result && uninstall(packageName, force);
+
+      return result;
     }
 
     // this returns a success because there was no uninstall action to fail
@@ -1010,7 +1025,8 @@ bool Manager::uninstall_with_deps(string packageName, bool force) {
         continue;
 
       // error out if trying to uninstall a user-installed package
-      if (!force && s_name != name && installed_ver.value().user_installed) {
+      if (!force && !requestedPackages.contains(s->name) &&
+          installed_ver.value().user_installed) {
         std::cerr << chumpPrepend() << TC::red("error", TRUE)
                   << ": uninstall requires removing user-installed package "
                   << packageStr(s_name, s_evr) << ", cannot continue.\n";
@@ -1019,7 +1035,7 @@ bool Manager::uninstall_with_deps(string packageName, bool force) {
                   << s_name << "' and then try again.\n";
 
         return false;
-      } else if (force && s_name != name &&
+      } else if (force && !requestedPackages.contains(s->name) &&
                  installed_ver.value().user_installed) {
         std::cerr << chumpPrepend() << TC::red("warning", TRUE)
                   << ": skipping removing user-installed package "
@@ -1070,11 +1086,12 @@ bool Manager::uninstall_with_deps(string packageName, bool force) {
           open_installed_version_file(install_dir / "version.json");
 
       // skip packages without install ver unless it's the named pkg
-      if (s_name != packageName && !installed_ver) {
+      if (!requestedPackages.contains(s->name) && !installed_ver) {
         continue;
       }
 
-      if (s_name != packageName && installed_ver.value().user_installed) {
+      if (!requestedPackages.contains(s->name) &&
+          installed_ver.value().user_installed) {
         // when forcing an uninstall, don't uninstall user-installed packages
         if (force) {
           continue;
@@ -1087,8 +1104,7 @@ bool Manager::uninstall_with_deps(string packageName, bool force) {
 
       bool res = uninstall(package_name, force);
       if (!res) {
-        std::cerr << chumpPrepend() << "failed to complete uninstall of "
-                  << packageStr(packageName) << "\n";
+        std::cerr << chumpPrepend() << "failed to complete uninstall \n";
         return false;
       }
     } else if (step_type ==

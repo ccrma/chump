@@ -364,7 +364,8 @@ int main(int argc, const char **argv) {
     }
 
     // install a package by name
-    auto installer = manager->install_local_with_deps(targets[0], targets[1], targets[2]);
+    auto installer =
+        manager->install_local_with_deps(targets[0], targets[1], targets[2]);
     install_with_deps_result *res;
 
     while (installer) {
@@ -432,18 +433,16 @@ int main(int argc, const char **argv) {
     // TODO: have to support mulitple unisntalls ugh. do this later
 
     // uninstall a package by name
-    for (string uninstall_package_name : uninstall_package_names) {
-      try {
-        if (manager->uninstall_with_deps(uninstall_package_name,
-                                         uninstall_force)) {
-          cout << chumpPrepend() << TC::blue("uninstall successful", TRUE)
-               << endl;
-        } else {
-          cout << chumpPrepend() << TC::red("uninstall failed", TRUE) << endl;
-        }
-      } catch (const std::exception &e) {
-        cerr << e.what() << endl;
+    try {
+      if (manager->uninstall_with_deps(uninstall_package_names,
+                                       uninstall_force)) {
+        cout << chumpPrepend() << TC::blue("uninstall successful", TRUE)
+             << endl;
+      } else {
+        cout << chumpPrepend() << TC::red("uninstall failed", TRUE) << endl;
       }
+    } catch (const std::exception &e) {
+      cerr << e.what() << endl;
     }
   } else if (subcommand == "update") {
     if (n_targets != 1) {
