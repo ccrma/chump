@@ -10,6 +10,28 @@
 void printDependencies(Pool *pool, const char *packageName);
 const char *solver_transaction_type_to_string(int type);
 
+void cleanup(Transaction* t, Solver* s) {
+  if (t != nullptr)
+    transaction_free(t);
+
+  if (s != nullptr)
+    solver_free(s);
+}
+
+void cleanup(Queue q) {
+  queue_free(&q);
+}
+
+void cleanup(Queue q, Transaction* t, Solver* s) {
+  queue_free(&q);
+
+  if (t != nullptr)
+    transaction_free(t);
+
+  if (s != nullptr)
+    solver_free(s);
+}
+
 Manager::Manager(string package_list_path, fs::path package_install_dir,
                  ChuckVersion ck_ver, ApiVersion api_ver, string system_os,
                  Architecture _arch, string _manifest_url, bool render_tui) {
@@ -73,6 +95,8 @@ Manager::install_with_deps(const vector<string> packageNames, bool update) {
       install_with_deps_result *res =
           new install_with_deps_result("", true, false);
       res->action_type = NONE;
+
+      cleanup(job);
       co_return res;
     }
 
@@ -88,6 +112,8 @@ Manager::install_with_deps(const vector<string> packageNames, bool update) {
       install_with_deps_result *res =
           new install_with_deps_result("", true, false);
       res->action_type = NONE;
+
+      cleanup(job);
       co_return res;
     }
 
@@ -129,8 +155,8 @@ Manager::install_with_deps(const vector<string> packageNames, bool update) {
   res = installer();
 
   DEBUG("Freeing up job");
-  queue_free(&job);
 
+  cleanup(job);
   co_return res;
 }
 
@@ -138,8 +164,9 @@ Generator<install_with_deps_result *>
 Manager::install_with_deps_helper(Queue job,
                                   std::unordered_set<Id> requestedPackages) {
   DEBUG("in helper");
+
   install_with_deps_result *failure_result =
-      new install_with_deps_result("", true, false);
+    new install_with_deps_result("", true, false);
   failure_result->action_type = NONE;
 
   // Create and run solver
@@ -171,6 +198,7 @@ Manager::install_with_deps_helper(Queue job,
     install_with_deps_result *res =
         new install_with_deps_result("", true, false);
     res->action_type = NONE;
+    cleanup(nullptr, solver);
     co_return res;
   }
 
@@ -185,12 +213,11 @@ Manager::install_with_deps_helper(Queue job,
     // happen with a local install, which does not request any
     // packages remotely.
     DEBUG("no transaction steps needed");
-    transaction_free(trans);
-    solver_free(solver);
 
     install_with_deps_result *res =
         new install_with_deps_result("", true, true);
     res->action_type = NONE;
+    cleanup(trans, solver);
     co_return res;
   }
 
@@ -212,6 +239,7 @@ Manager::install_with_deps_helper(Queue job,
     install_with_deps_result *res =
         new install_with_deps_result("", true, false);
     res->action_type = NONE;
+    cleanup(trans, solver);
     co_return res;
   }
 
@@ -276,6 +304,7 @@ Manager::install_with_deps_helper(Queue job,
               new install_with_deps_result(pkg, true, false);
           res->action_type = NONE;
 
+	  cleanup(trans, solver);
           co_return res;
         }
       }
@@ -331,6 +360,7 @@ Manager::install_with_deps_helper(Queue job,
             new install_with_deps_result("", true, false);
         res->action_type = NONE;
 
+	cleanup(trans, solver);
         co_return res;
       }
 
@@ -352,6 +382,7 @@ Manager::install_with_deps_helper(Queue job,
             new install_with_deps_result(s_name, true, false);
         res->action_type = NONE;
 
+	cleanup(trans, solver);
         co_return res;
       }
       tmp_dirs[s_name] = tmp_dir.value();
@@ -393,6 +424,7 @@ Manager::install_with_deps_helper(Queue job,
             new install_with_deps_result(s_name, true, false);
         res->action_type = NONE;
 
+	cleanup(trans, solver);
         co_return res;
       }
     } else if (step_type == SOLVER_TRANSACTION_UPGRADED ||
@@ -406,6 +438,7 @@ Manager::install_with_deps_helper(Queue job,
             new install_with_deps_result(s_name, true, false);
         res->action_type = NONE;
 
+	cleanup(trans, solver);
         co_return res;
       }
 
@@ -422,6 +455,7 @@ Manager::install_with_deps_helper(Queue job,
             new install_with_deps_result(s_name, true, false);
         res->action_type = NONE;
 
+	cleanup(trans, solver);
         co_return res;
       }
 
@@ -434,6 +468,7 @@ Manager::install_with_deps_helper(Queue job,
             new install_with_deps_result(s_name, true, false);
         res->action_type = NONE;
 
+	cleanup(trans, solver);
         co_return res;
       }
     }
@@ -447,12 +482,9 @@ Manager::install_with_deps_helper(Queue job,
 
   DEBUG("freeing everything up");
 
-  // clean up (TODO handle on return);
-  transaction_free(trans);
-  solver_free(solver);
-
   // success
   install_with_deps_result *r = new install_with_deps_result("", true, true);
+  cleanup(trans, solver);
   co_return r;
 }
 
@@ -714,6 +746,8 @@ Manager::install_local_with_deps(fs::path pkgDefn, fs::path pkgVer,
   if (!res->success) {
     std::cerr << chumpPrepend() << "unable to install dependencies of "
               << package.value().name << ", exiting..." << std::endl;
+
+    cleanup(job);
     co_return res;
   }
   DEBUG("About to install local pkg");
@@ -724,6 +758,8 @@ Manager::install_local_with_deps(fs::path pkgDefn, fs::path pkgVer,
   res->success = result;
   res->name = "";
   res->action_type = NONE;
+
+  cleanup(job);
 
   co_return res;
 }
@@ -948,9 +984,13 @@ bool Manager::uninstall_with_deps(const vector<string> packageNames,
                 << "uninstalling, but with errors, ignoring dependencies\n";
       for (string packageName : packageNames)
         uninstall(packageName, force);
+
+      cleanup(job, nullptr, solver);
       return false;
     }
 
+    cleanup(job, nullptr, solver);
+    cleanup(job);
     return false;
   }
 
@@ -968,10 +1008,6 @@ bool Manager::uninstall_with_deps(const vector<string> packageNames,
                 << "were not found, could not uninstall" << std::endl;
     }
 
-    transaction_free(trans);
-    solver_free(solver);
-    queue_free(&job);
-
     // if we are forcing, we're gonna try anyway (because the version.json could
     // have been deleted)
     if (force) {
@@ -980,10 +1016,12 @@ bool Manager::uninstall_with_deps(const vector<string> packageNames,
       for (string packageName : packageNames)
         result = result && uninstall(packageName, force);
 
+      cleanup(job, trans, solver);
       return result;
     }
 
     // this returns a success because there was no uninstall action to fail
+    cleanup(job, trans, solver);
     return true;
   }
 
@@ -1034,6 +1072,7 @@ bool Manager::uninstall_with_deps(const vector<string> packageNames,
                   << "To proceed, uninstall package with 'chump uninstall "
                   << s_name << "' and then try again.\n";
 
+	cleanup(job, trans, solver);
         return false;
       } else if (force && !requestedPackages.contains(s->name) &&
                  installed_ver.value().user_installed) {
@@ -1098,6 +1137,7 @@ bool Manager::uninstall_with_deps(const vector<string> packageNames,
         } else {
           std::cerr << chumpPrepend() << TC::red("error", TRUE)
                     << ": attempting to uninstall a user-installed package\n";
+	  cleanup(job, trans, solver);
           return false;
         }
       }
@@ -1105,6 +1145,7 @@ bool Manager::uninstall_with_deps(const vector<string> packageNames,
       bool res = uninstall(package_name, force);
       if (!res) {
         std::cerr << chumpPrepend() << "failed to complete uninstall \n";
+	cleanup(job, trans, solver);
         return false;
       }
     } else if (step_type ==
@@ -1128,11 +1169,9 @@ bool Manager::uninstall_with_deps(const vector<string> packageNames,
 
   // Because we are not uninstalling dependencies we shouldn't need to traverse
   // the solver's steps. It's just for validating.
-  transaction_free(trans);
-  solver_free(solver);
-  queue_free(&job);
 
   // success!
+  cleanup(job, trans, solver);
   return true;
 }
 

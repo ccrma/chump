@@ -588,14 +588,15 @@ void validateLocalInstall(fs::path installPath) {
 }
 
 TEST_CASE("Dependency Tests - install local package (no dependencies)") {
-  // setDebugEnabled(true);
+  setDebugEnabled(true);
   fs::path installPath = makeTempDir();
   INFO("Temp Dir: " << installPath);
 
-  std::cout << "locla test\n";
+  std::cout << "local test\n";
 
   Manager *m = makeLocalTestManager(installPath);
 
+  INFO("Installing");
   runInstaller(m->install_local_with_deps(
       localPkgDefn, localDataPath / "version_no_deps.json", localPkgZip));
 
