@@ -364,7 +364,62 @@ int main(int argc, const char **argv) {
     }
 
     // install a package by name
-    manager->install_local_with_deps(targets[0], targets[1], targets[2]);
+    auto installer = manager->install_local_with_deps(targets[0], targets[1], targets[2]);
+    install_with_deps_result *res;
+
+    while (installer) {
+      try {
+        res = installer();
+      } catch (const std::exception &e) {
+        cerr << e.what() << endl;
+        return 1;
+      }
+
+      // if res isn't finished we need to seek user input
+      if (!res->finished) {
+        string action;
+
+        switch (res->action_type) {
+        case NONE:
+          action = "none";
+          break;
+        case INSTALL:
+          action = "install package";
+          break;
+        case UNINSTALL:
+          action = "uninstall package";
+          break;
+        case UPGRADE:
+          action = "change installed package version";
+          break;
+        }
+
+        cout << chumpPrepend() << "in order to install a requested package,\n";
+        if (res->action_type == UPGRADE) {
+          cout << chumpPrepend() << action << " "
+               << packageStr(res->name, res->old_version) << " to "
+               << packageStr(res->name, res->new_version) << " (y/n)? ";
+        } else {
+          cout << chumpPrepend() << action << " " << packageStr(res->name)
+               << " (y/n)? ";
+        }
+
+        string input;
+        cin >> input;
+
+        while (input != "y" && input != "n") {
+          cout << chumpPrepend() << "please enter y/n\n";
+
+          cin >> input;
+        }
+
+        if (input == "y") {
+          res->cont = true;
+        } else {
+          res->cont = false;
+        }
+      }
+    }
   } else if (subcommand == "uninstall") {
     // check
     if (install_package_names.size() == 0) {
