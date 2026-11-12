@@ -45,8 +45,9 @@ Manager::Manager(string package_list_path, fs::path package_install_dir,
   language_version = ck_ver;
   api_version = api_ver;
 
-  // always try to update manifest
-  update_manifest();
+  // always try to update manifest (aside from in tests)
+  if (manifest_url != "")
+    update_manifest();
 
   // really only used to update manifest without needed to properly
   // parse the existing manifest.

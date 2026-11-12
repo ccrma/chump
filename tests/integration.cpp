@@ -6,8 +6,12 @@
 #include <catch2/catch_test_macros.hpp>
 #include <filesystem>
 
-std::string manifest_url =
-    "https://ccrma.stanford.edu/~nshaheed/chump/manifest.json";
+// std::string manifest_url =
+//     "https://ccrma.stanford.edu/~nshaheed/chump/manifest.json";
+
+// Don't update manifest. This is maybe bad since it's an integration test, but this takes
+// so long
+std::string manifest_url = "";
 
 bool install(Manager *m, string pkg) {
   INFO("install, fetch to tmp dir");

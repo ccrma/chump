@@ -11,8 +11,9 @@
 namespace fs = std::filesystem;
 using json = nlohmann::json;
 
-std::string manifest_url_deps =
-    "https://ccrma.stanford.edu/~nshaheed/chump/manifest.json";
+// std::string manifest_url_deps =
+//     "https://ccrma.stanford.edu/~nshaheed/chump/manifest.json";
+std::string manifest_url_deps = "";
 std::string dataPath = "../data/manifest.json";
 
 InstalledVersion openVer(fs::path path) {
