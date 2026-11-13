@@ -6,11 +6,40 @@
 #include <catch2/catch_test_macros.hpp>
 #include <filesystem>
 
-std::string manifest_url =
-    "https://ccrma.stanford.edu/~nshaheed/chump/manifest.json";
+// std::string manifest_url =
+//     "https://ccrma.stanford.edu/~nshaheed/chump/manifest.json";
+
+// Don't update manifest. This is maybe bad since it's an integration test, but
+// this takes so long
+std::string manifest_url = "";
+
+bool install(Manager *m, string pkg) {
+  INFO("install, fetch to tmp dir");
+  auto tmp = m->fetch_to_tmp(pkg, false);
+
+  if (tmp) {
+    INFO("install from tmp dir: " << tmp.value());
+    return m->install(pkg, tmp.value());
+  } else {
+    INFO("install no tmp dir returned");
+    return false;
+  }
+}
+
+void runInstallerIntegration(Generator<install_with_deps_result *> installer,
+                             bool succeed = true) {
+  auto res = installer();
+  while (!res->finished) {
+    res->cont = true;
+    res = installer();
+  }
+  REQUIRE(succeed == res->success);
+}
 
 TEST_CASE("Integration Tests - install/update/uninstall") {
+  // setDebugEnabled(true);
   fs::path installPath = makeTempDir();
+  INFO("install path: " << installPath);
 
   std::string dataPath = "../data/manifest.json";
 
@@ -21,8 +50,8 @@ TEST_CASE("Integration Tests - install/update/uninstall") {
                            "linux", X86_64, manifest_url, false);
 
   // install package
-
-  m->install("TestPackage");
+  INFO("installing TestPackage");
+  REQUIRE(install(m, "TestPackage"));
 
   REQUIRE(fs::exists(installPath / "TestPackage"));
   REQUIRE(fs::exists(installPath / "TestPackage" / "hello.ck"));
@@ -35,7 +64,9 @@ TEST_CASE("Integration Tests - install/update/uninstall") {
   m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux",
                   X86_64, manifest_url, false);
 
-  m->update("TestPackage");
+  INFO("updating TestPackage");
+  runInstallerIntegration(
+      m->install_with_deps({"TestPackage"}, true)); // set update to true
 
   REQUIRE(fs::exists(installPath / "TestPackage"));
   REQUIRE(fs::exists(installPath / "TestPackage" / "hello.ck"));
@@ -61,7 +92,7 @@ TEST_CASE("Integration Tests - install/update/uninstall with dirs") {
 
   // install package
 
-  m->install("TestPackageDir");
+  install(m, "TestPackageDir");
 
   REQUIRE(fs::exists(installPath / "TestPackageDir"));
   REQUIRE(fs::exists(installPath / "TestPackageDir" / "hello.ck"));
@@ -74,7 +105,8 @@ TEST_CASE("Integration Tests - install/update/uninstall with dirs") {
   m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux",
                   X86_64, manifest_url, false);
 
-  m->update("TestPackageDir");
+  runInstallerIntegration(
+      m->install_with_deps({"TestPackageDir"}, true)); // set update to true
 
   REQUIRE(fs::exists(installPath / "TestPackageDir"));
   REQUIRE(fs::exists(installPath / "TestPackageDir" / "dir"));
@@ -108,7 +140,7 @@ TEST_CASE("Integration Tests - install specific version") {
   Manager *m = new Manager(dataPath, installPath, ckVersion, langVersion,
                            "linux", X86_64, manifest_url, false);
 
-  m->install("TestPackage=1.0.0");
+  install(m, "TestPackage=1.0.0");
 
   REQUIRE(fs::exists(installPath / "TestPackage"));
   REQUIRE(fs::exists(installPath / "TestPackage" / "hello.ck"));
@@ -130,7 +162,7 @@ TEST_CASE("Integration Tests - package doesn't exist") {
                            "linux", X86_64, manifest_url, false);
 
   // install package
-  m->install("DoesNotExist");
+  install(m, "DoesNotExist");
 
   REQUIRE_FALSE(fs::exists(installPath / "DoesNotExist"));
 }
@@ -151,7 +183,7 @@ TEST_CASE("Integration Tests - file doesn't exist") {
                            "linux", X86_64, manifest_url, false);
 
   // install specific version of package (with file that can't be found)
-  m->install("TestPackage=0.9.0");
+  install(m, "TestPackage=0.9.0");
 
   // Because there is a missing file, the package wasn't installed
   REQUIRE_FALSE(fs::exists(installPath / "TestPackage"));
@@ -169,7 +201,7 @@ TEST_CASE("Integration Tests - bad version input") {
                            "linux", X86_64, manifest_url, false);
 
   // This is incorrect
-  m->install("TestPackage=vfjdklsaf1.0.0");
+  install(m, "TestPackage=vfjdklsaf1.0.0");
 
   REQUIRE_FALSE(fs::exists(installPath / "TestPackage"));
 }
@@ -188,7 +220,7 @@ TEST_CASE("Integration Tests - install twice") {
                            "linux", X86_64, manifest_url, false);
 
   // install specific version of package (with file that can't be found)
-  m->install("TestPackage");
+  install(m, "TestPackage");
 
   // Because there is a missing file, the package wasn't installed
   REQUIRE(fs::exists(installPath / "TestPackage"));
@@ -196,7 +228,8 @@ TEST_CASE("Integration Tests - install twice") {
   REQUIRE(fs::exists(installPath / "TestPackage" / "version.json"));
 
   // installing again won't work
-  bool result = m->install("TestPackage");
+  auto tmp = m->fetch_to_tmp("TestPackage", false);
+  bool result = m->install("TestPackage", tmp.value());
   REQUIRE_FALSE(result);
 }
 
@@ -242,7 +275,7 @@ TEST_CASE("Integration Test - zip files") {
 
   // install package
 
-  m->install("TestPackageZip");
+  install(m, "TestPackageZip");
 
   REQUIRE(fs::exists(installPath / "TestPackageZip"));
   REQUIRE(fs::exists(installPath / "TestPackageZip" / "hello.ck"));
@@ -257,7 +290,8 @@ TEST_CASE("Integration Test - zip files") {
   m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux",
                   X86_64, manifest_url, false);
 
-  m->update("TestPackageZip");
+  runInstallerIntegration(
+      m->install_with_deps({"TestPackageZip"}, true)); // set update to true
 
   REQUIRE(fs::exists(installPath / "TestPackageZip"));
   REQUIRE(fs::exists(installPath / "TestPackageZip" / "hello.ck"));
@@ -280,7 +314,7 @@ TEST_CASE("Integration Test - uninstall with missing file") {
 
   // install package
 
-  m->install("TestPackage");
+  install(m, "TestPackage");
 
   REQUIRE(fs::exists(installPath / "TestPackage"));
   REQUIRE(fs::exists(installPath / "TestPackage" / "hello.ck"));
@@ -309,7 +343,7 @@ TEST_CASE("Integration Test - update with missing file") {
 
   // install package
 
-  m->install("TestPackage");
+  install(m, "TestPackage");
 
   REQUIRE(fs::exists(installPath / "TestPackage"));
   REQUIRE(fs::exists(installPath / "TestPackage" / "hello.ck"));
@@ -325,7 +359,8 @@ TEST_CASE("Integration Test - update with missing file") {
   m = new Manager(dataPath, installPath, ckVersion, langVersion, "linux",
                   X86_64, manifest_url, false);
 
-  m->update("TestPackage");
+  runInstallerIntegration(
+      m->install_with_deps({"TestPackage"}, true)); // set update to true
 
   REQUIRE(fs::exists(installPath / "TestPackage"));
   REQUIRE(fs::exists(installPath / "TestPackage" / "hello.ck"));
@@ -345,13 +380,14 @@ TEST_CASE("Integration Test - force uninstall") {
                            "linux", X86_64, manifest_url, false);
 
   // install package
-
-  m->install("TestPackage");
+  INFO("Installating package");
+  install(m, "TestPackage");
 
   REQUIRE(fs::exists(installPath / "TestPackage"));
   REQUIRE(fs::exists(installPath / "TestPackage" / "hello.ck"));
   REQUIRE(fs::exists(installPath / "TestPackage" / "version.json"));
 
+  INFO("Force-uninstalling package");
   // Uninstall Package
   m->uninstall("TestPackage", true);
 

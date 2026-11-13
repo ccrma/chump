@@ -60,3 +60,5 @@ subprojects/packagecache/*
 
 # binaries
 *.zip
+*.chug
+/chump

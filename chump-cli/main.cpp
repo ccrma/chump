@@ -12,6 +12,7 @@
 #include <sstream>
 #include <string>
 #include <thread>
+#include <unordered_set>
 #include <vector>
 
 #ifdef _WIN32
@@ -20,12 +21,15 @@
 
 namespace fs = std::filesystem;
 using std::cerr;
+using std::cin;
 using std::cout;
 using std::endl;
 using std::string;
 using std::vector;
 
-#define BASE_URL "https://chuck.stanford.edu/release/chump/manifest/"
+// TODO: move back to release manifest once testing is done
+// #define BASE_URL "https://chuck.stanford.edu/release/chump/manifest/"
+#define BASE_URL "https://chuck.stanford.edu/~nshaheed/chump/manifest-dev/"
 
 // indent string
 static const string INDENT = "    ";
@@ -132,6 +136,10 @@ int main(int argc, const char **argv) {
     printUsage();
     // peace out
     return 0;
+  }
+  // hidden debug flag (intentionally not listed in --help)
+  if (parser.getChumpOption("--debug")) {
+    setDebugEnabled(true);
   }
   if (parser.getChumpOption("--version", "-v")) {
     // print version no.
@@ -285,14 +293,65 @@ int main(int argc, const char **argv) {
       return 1;
     }
 
-    // install a package by name
-    for (string install_package_name : install_package_names) {
+    // when installing, in some situations user input is needed to
+    // continue (i.e. when trying to upgrade a user-installed pacakge)
+    auto installer = manager->install_with_deps(install_package_names);
+    install_with_deps_result *res;
+
+    while (installer) {
       try {
-        manager->install(install_package_name);
+        res = installer();
       } catch (const std::exception &e) {
         cerr << e.what() << endl;
+        return 1;
+      }
+
+      // if res isn't finished we need to seek user input
+      if (!res->finished) {
+        string action;
+
+        switch (res->action_type) {
+        case NONE:
+          action = "none";
+          break;
+        case INSTALL:
+          action = "install package";
+          break;
+        case UNINSTALL:
+          action = "uninstall package";
+          break;
+        case UPGRADE:
+          action = "change installed package version";
+          break;
+        }
+
+        cout << chumpPrepend() << "in order to install a requested package,\n";
+        if (res->action_type == UPGRADE) {
+          cout << chumpPrepend() << action << " "
+               << packageStr(res->name, res->old_version) << " to "
+               << packageStr(res->name, res->new_version) << " (y/n)? ";
+        } else {
+          cout << chumpPrepend() << action << " " << packageStr(res->name)
+               << " (y/n)? ";
+        }
+
+        string input;
+        cin >> input;
+
+        while (input != "y" && input != "n") {
+          cout << chumpPrepend() << "please enter y/n\n";
+
+          cin >> input;
+        }
+
+        if (input == "y") {
+          res->cont = true;
+        } else {
+          res->cont = false;
+        }
       }
     }
+
   } else if (subcommand == "install-local") {
     vector<string> targets = parser.command().targets();
 
@@ -305,7 +364,63 @@ int main(int argc, const char **argv) {
     }
 
     // install a package by name
-    manager->install_local(targets[0], targets[1], targets[2]);
+    auto installer =
+        manager->install_local_with_deps(targets[0], targets[1], targets[2]);
+    install_with_deps_result *res;
+
+    while (installer) {
+      try {
+        res = installer();
+      } catch (const std::exception &e) {
+        cerr << e.what() << endl;
+        return 1;
+      }
+
+      // if res isn't finished we need to seek user input
+      if (!res->finished) {
+        string action;
+
+        switch (res->action_type) {
+        case NONE:
+          action = "none";
+          break;
+        case INSTALL:
+          action = "install package";
+          break;
+        case UNINSTALL:
+          action = "uninstall package";
+          break;
+        case UPGRADE:
+          action = "change installed package version";
+          break;
+        }
+
+        cout << chumpPrepend() << "in order to install a requested package,\n";
+        if (res->action_type == UPGRADE) {
+          cout << chumpPrepend() << action << " "
+               << packageStr(res->name, res->old_version) << " to "
+               << packageStr(res->name, res->new_version) << " (y/n)? ";
+        } else {
+          cout << chumpPrepend() << action << " " << packageStr(res->name)
+               << " (y/n)? ";
+        }
+
+        string input;
+        cin >> input;
+
+        while (input != "y" && input != "n") {
+          cout << chumpPrepend() << "please enter y/n\n";
+
+          cin >> input;
+        }
+
+        if (input == "y") {
+          res->cont = true;
+        } else {
+          res->cont = false;
+        }
+      }
+    }
   } else if (subcommand == "uninstall") {
     // check
     if (install_package_names.size() == 0) {
@@ -315,13 +430,19 @@ int main(int argc, const char **argv) {
       return 1;
     }
 
+    // TODO: have to support mulitple unisntalls ugh. do this later
+
     // uninstall a package by name
-    for (string uninstall_package_name : uninstall_package_names) {
-      try {
-        manager->uninstall(uninstall_package_name, uninstall_force);
-      } catch (const std::exception &e) {
-        cerr << e.what() << endl;
+    try {
+      if (manager->uninstall_with_deps(uninstall_package_names,
+                                       uninstall_force)) {
+        cout << chumpPrepend() << TC::blue("uninstall successful", TRUE)
+             << endl;
+      } else {
+        cout << chumpPrepend() << TC::red("uninstall failed", TRUE) << endl;
       }
+    } catch (const std::exception &e) {
+      cerr << e.what() << endl;
     }
   } else if (subcommand == "update") {
     if (n_targets != 1) {
@@ -339,7 +460,7 @@ int main(int argc, const char **argv) {
       return 1;
     }
     // update package
-    manager->update(update_package_name);
+    manager->install_with_deps({update_package_name}, true);
   } else if (subcommand == "doc") {
     // open up doc file - an index.html to be opened in the browser
     if (n_targets != 1) {

@@ -1,0 +1,18 @@
+{
+    "version": "1.0.0",
+    "language_version_min": {
+        "mega": 1,
+        "major": 5,
+        "minor": 2,
+        "patch": 0
+    },
+    "os": "linux",
+    "files": [],
+    "dependencies": [
+        {
+            "name": "E",
+            "version_min": "1.0.0",
+            "version_max": "1.0.0"
+        }
+    ]
+}

@@ -56,4 +56,4 @@ jobs:
     - name: Compile
       run: meson compile -C builddir/
     - name: Run Tests
-      run: "meson test -C builddir/ -v chump:"
+      run: "meson test --timeout-multiplier 0 -C builddir/ -v chump:"

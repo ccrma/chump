@@ -1,14 +1,29 @@
 ------------------
 ChuMP VERSIONS log
 ------------------
+1.0.0
+=====
+No country for old chumps
+
+(added) chump now supports dependencies!
+    * chump packages can now depend on other packages and chucmp will automatically select
+      the best version, download all dependencies, and tell you if a package combination is
+      not possible
+(added) Chumpinate (now v0.2.0) can now addDependency(...) to add package dependencies in chump
+     * ver.addPackageDependency("Rec", "1.0.0", "2.0.0"); // add Rec as a dep and restrict versions
+     * ver.addPackageDependency("Rec"); // add Rec as a dependency with no version restrictions
+(added) Chumpinate Package.version() will output version string of Chumpinate package (now v0.2.0)
+(improved) Chumpinate PackageVersion methods will now throw exceptions in chuck-land for methods that could already throw
+	   exceptions, but were not percolated up into chuck
+
 0.0.4
 =====
 Infinite chump
 
 (fixed) minor security issue when downloading files.
-	* when installing a package, chump would create a temporary directory to download
-	  a file to, upon succesful download it would then be copied to the `.packages` dir.
-	  previously, this was using tmpnam(3) which has been deprecated because of security
+    * when installing a package, chump would create a temporary directory to download
+      a file to, upon succesful download it would then be copied to the `.packages` dir.
+      previously, this was using tmpnam(3) which has been deprecated because of security
       concerns. now chump uses the recommended "fs::create_directories"
 (improved) made chump cli output formatting more consistent
 (improved) added OS architecture and ChucK version to info messages
@@ -44,4 +59,3 @@ A chump is born!
 
 
 === Potential Future Version Names ===
-- No country for old chumps

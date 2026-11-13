@@ -29,6 +29,13 @@
 
 using std::map;
 
+// whether debug output is enabled (see DEBUG macro in util.h)
+static bool g_debug_enabled = false;
+
+void setDebugEnabled(bool enabled) { g_debug_enabled = enabled; }
+
+bool isDebugEnabled() { return g_debug_enabled; }
+
 std::string chumpPrepend() { return TC::orange("[chump]", TRUE) + " "; }
 
 std::string packageStr(std::string pkg, std::string ver) {
@@ -36,6 +43,13 @@ std::string packageStr(std::string pkg, std::string ver) {
 }
 
 std::string packageStr(std::string pkg) { return TC::bold(pkg); }
+
+std::string packageStr(std::string pkg, optional<std::string> ver) {
+  if (ver)
+    return packageStr(pkg, ver.value());
+  else
+    return packageStr(pkg);
+}
 
 // Returns the path to the directory where a package will be installed
 // TODO expand to other OS

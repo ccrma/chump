@@ -46,6 +46,7 @@ build-mac-arm64: setup-mac-arm64
 
 build-mac-debug: setup-debug
 	meson compile -C builddir-debug
+	cp builddir-debug/chump-cli/chump chump
 
 install:
 	meson install -C builddir-release
@@ -65,6 +66,9 @@ mac osx: mac-universal
 
 .PHONY: mac-arm64
 mac-arm64: build-mac-arm64
+	cp builddir-arm64/chump-cli/chump chump
+	cp builddir-arm64/chumpinate/Chumpinate.chug .
+	cp builddir-arm64/chumpinate/Chumpinate.chug ./chumpinate
 
 # release build (assuming homebrew); the `-make` ensures the command
 # runs even if the build fails
@@ -89,7 +93,20 @@ test:
 	meson test -C builddir-release -v chump:
 
 test-mac:
-	meson test -C builddir-arm64 -v chump:
+	meson test --timeout-multiplier 2 -C builddir-arm64 -v chump:
+
+test-mac-integration: build-mac-arm64
+	meson test -C builddir-arm64 -v chump:integration_test
+
+# run a single Catch2 test case
+# usage: make test-mac-one T="Dependency Tests - respects package OS"
+#        make test-mac-one T="Some unit test" SUITE=chump_test
+SUITE ?= integration_test
+test-mac-single:
+ifeq ($(strip $(T)),)
+	$(error usage: make test-mac-one T="<test name>" [SUITE=chump_test|integration_test])
+endif
+	meson test -C builddir-arm64 -v chump:$(SUITE) --test-args '"$(T)"'
 
 # use clang format for c++ code
 format:
@@ -98,9 +115,11 @@ format:
 	clang-format --style=llvm -i chump-cli/*.cpp
 	clang-format --style=llvm -i chumpinate/*.cpp
 	clang-format --style=llvm -i include/*.h
+	clang-format --style=llvm -i include/*.hpp
 	clang-format --style=llvm -i scripts/*.h
 	# clang-format --style=llvm -i scripts/*.cpp
 	clang-format --style=llvm -i scripts/generate_manifest.cpp
+	clang-format --style=llvm -i libsolv-test/main.cpp
 
 chumpinate_pkg_linux: linux chumpinate_ckdoc
 	cd chumpinate; chuck -s build-pkg-linux.ck

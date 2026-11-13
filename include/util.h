@@ -4,17 +4,33 @@
 #include "chugin.h" // for chuck type defines
 #include "package.h"
 
+#include <iostream>
+
 using std::optional;
 using std::string;
 using std::tuple;
 
 namespace fs = std::filesystem;
 
+// enable/disable debug output (set by the hidden `--debug` cli flag)
+void setDebugEnabled(bool enabled);
+bool isDebugEnabled();
+
+// print a debug message (only when debug output is enabled)
+// usage: DEBUG("value of x: " << x);
+#define DEBUG(msg)                                                             \
+  do {                                                                         \
+    if (isDebugEnabled()) {                                                    \
+      std::cout << "[DEBUG] " << msg << std::endl;                             \
+    }                                                                          \
+  } while (0)
+
 fs::path packagePath(Package p, fs::path install_dir);
 
 std::string chumpPrepend();
 std::string packageStr(std::string pkg);
 std::string packageStr(std::string pkg, std::string ver);
+std::string packageStr(std::string pkg, optional<std::string> ver);
 
 void openDocCmd(fs::path indexPath);
 void openExamplesCmd(fs::path indexPath);

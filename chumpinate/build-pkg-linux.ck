@@ -1,7 +1,7 @@
 @import "Chumpinate"
 
 // Our package version
-"0.1.0" => string version;
+Package.version() => string version;
 
 <<< "Generating Chumpinate package version " >>>;
 

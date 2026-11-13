@@ -2,8 +2,39 @@
 #include "manager.h"
 #include "util.h"
 
+#include <map>
+#include <pool.h>
 #include <regex>
 #include <sstream>
+
+void printDependencies(Pool *pool, const char *packageName);
+const char *solver_transaction_type_to_string(int type);
+
+void cleanup(Transaction *t, Solver *s) {
+  if (t != nullptr)
+    transaction_free(t);
+
+  if (s != nullptr)
+    solver_free(s);
+}
+
+void cleanup(Queue q) { queue_free(&q); }
+
+void cleanup(Queue q, Transaction *t, Solver *s) {
+  queue_free(&q);
+
+  if (t != nullptr)
+    transaction_free(t);
+
+  if (s != nullptr)
+    solver_free(s);
+}
+
+void cleanupTmps(const map<string, fs::path> tmp_dirs) {
+  for (auto tmp_dir : tmp_dirs) {
+    fs::remove_all(tmp_dir.second);
+  }
+}
 
 Manager::Manager(string package_list_path, fs::path package_install_dir,
                  ChuckVersion ck_ver, ApiVersion api_ver, string system_os,
@@ -18,12 +49,19 @@ Manager::Manager(string package_list_path, fs::path package_install_dir,
   language_version = ck_ver;
   api_version = api_ver;
 
-  // always try to update manifest
-  update_manifest();
+  // always try to update manifest (aside from in tests)
+  if (manifest_url != "")
+    update_manifest();
 
   // really only used to update manifest without needed to properly
   // parse the existing manifest.
   package_list = new PackageList(package_list_path);
+
+  pool = pool_create();
+  systemRepo = initializeSystemRepo();
+  manifestRepo = initializeManifestRepo();
+
+  // testSolve();
 }
 
 optional<Package> Manager::getPackage(string packageName) {
@@ -35,9 +73,459 @@ optional<PackageVersion> Manager::latestPackageVersion(string name) {
       name, os, arch, language_version, api_version);
 }
 
-bool Manager::install(string packageName) {
+//-----------------------------------------------------------------------------
+// name: install_with_deps()
+// desc: Install, but with dependencies!
+//       Uses libsolv to resolve package dependencies via a sat solver
+//-----------------------------------------------------------------------------
+Generator<install_with_deps_result *>
+Manager::install_with_deps(const vector<string> packageNames, bool update) {
+  // make install list
+  Queue job;
+  queue_init(&job);
+
+  std::unordered_set<Id> requestedPackages;
+
+  DEBUG("Installing the following packages:");
+  for (auto packageName : packageNames) {
+    // parse packages here
+    auto [name, version_string] = parsePackageName(packageName);
+
+    DEBUG("\t- " << packageStr(name, version_string));
+
+    // lookup package name (default to latest version)
+    auto pkg = package_list->find_package(name);
+
+    if (!pkg) {
+      std::cerr << chumpPrepend() << "package " << packageName << " not found."
+                << std::endl;
+
+      install_with_deps_result *res =
+          new install_with_deps_result("", true, false);
+      res->action_type = NONE;
+
+      cleanup(job);
+      co_return res;
+    }
+
+    // when `chump install`ing, don't allow the called packages to be updated
+    if (is_installed(pkg.value()) && !update) {
+      std::cerr << chumpPrepend() << "the package " << name
+                << " is already installed." << std::endl;
+      std::cerr << chumpPrepend() << "use `chump update " << name
+                << "' to update the existing package" << std::endl;
+      std::cerr << chumpPrepend() << "or use `chump uninstall " << name
+                << "` to remove the package" << std::endl;
+
+      install_with_deps_result *res =
+          new install_with_deps_result("", true, false);
+      res->action_type = NONE;
+
+      cleanup(job);
+      co_return res;
+    }
+
+    // printDependencies(pool, name.c_str());
+
+    // define job
+    Id name_id = pool_str2id(pool, name.c_str(), 1);
+
+    requestedPackages.insert(name_id);
+
+    auto strategy = update ? SOLVER_UPDATE : SOLVER_INSTALL;
+
+    // If a package version is specified, have both the name
+    // and version as solver constraints, otherwise, just
+    // constrain on the name.
+    if (version_string) {
+      Id evr_id = pool_str2id(pool, version_string.value().c_str(), 1);
+
+      // create a relational ID (i.e. "Rec = 1.1.0")
+      Id rel_id = pool_rel2id(pool, name_id, evr_id, REL_EQ, 1);
+      queue_push2(&job, strategy | SOLVER_SOLVABLE_PROVIDES, rel_id);
+    } else {
+      queue_push2(&job, strategy | SOLVER_SOLVABLE_NAME, name_id);
+    }
+  }
+
+  // need to pass this up while it's still going
+  auto installer = install_with_deps_helper(job, requestedPackages);
+  install_with_deps_result *res;
+
+  while (installer) {
+    res = installer();
+
+    if (!res->finished) {
+      co_yield res;
+    }
+  }
+
+  res = installer();
+
+  DEBUG("Freeing up job");
+
+  cleanup(job);
+  co_return res;
+}
+
+Generator<install_with_deps_result *>
+Manager::install_with_deps_helper(Queue job,
+                                  std::unordered_set<Id> requestedPackages) {
+  DEBUG("in helper");
+
+  install_with_deps_result *failure_result =
+      new install_with_deps_result("", true, false);
+  failure_result->action_type = NONE;
+
+  // Create and run solver
+  Solver *solver = solver_create(pool);
+
+  // Allow the solver to downgrade/uninstall installed packages if a
+  // dependency requires it
+  solver_set_flag(solver, SOLVER_FLAG_ALLOW_DOWNGRADE, 1);
+  solver_set_flag(solver, SOLVER_FLAG_ALLOW_UNINSTALL, 1);
+
+  // Solve it!
+  solver_solve(solver, &job);
+
+  // std::cout << "--- libsolv Pool State Dump ---\n";
+  // // Solvables are stored in a contiguous array from index 1 to
+  // // pool->nsolvables
+  // for (int i = 1; i < pool->nsolvables; i++) {
+  //   Solvable *s = pool->solvables + i;
+
+  //   // Only print actual packages, skip empty slots
+  //   if (s->repo) {
+  //     std::cout << "Repo: " << s->repo->name
+  // 		<< " | Pkg: '" << pool_id2str(pool, s->name) << "'"
+  // 		<< " ver '" << pool_id2str(pool, s->evr) << "'"
+  // 		<< " (Name ID: " << s->name << ")\n";
+  //   }
+  // }
+  // std::cout << "-------------------------------\n";
+
+  DEBUG("solved");
+
+  // check for solver success
+  int problem_count = solver_problem_count(solver);
+  if (problem_count > 0) {
+    std::cerr << chumpPrepend() << "dependency resolution failed with "
+              << problem_count << " problems:\n";
+
+    Id problem = 0;
+    // Pass 0 to get the first problem, then pass the previous ID to get the
+    // next
+    while ((problem = solver_next_problem(solver, problem)) != 0) {
+      std::cerr << " - " << solver_problem2str(solver, problem) << "\n";
+    }
+
+    install_with_deps_result *res =
+        new install_with_deps_result("", true, false);
+    res->action_type = NONE;
+    cleanup(nullptr, solver);
+    co_return res;
+  }
+
+  // parse the transaction and install/erase/upgrade
+  // there are a lot of options:
+  // https://github.com/openSUSE/libsolv/blob/c9ee7a3b946e8870f056dddc22032e4d43a40636/src/transaction.h#L45
+  Transaction *trans = solver_create_transaction(solver);
+
+  DEBUG("Transacting, reqpkg size: " << requestedPackages.size());
+  if (trans->steps.count == 0 && requestedPackages.size() == 0) {
+    // nothing needs to be installed/updated/removed. This should only
+    // happen with a local install, which does not request any
+    // packages remotely.
+    DEBUG("no transaction steps needed");
+
+    install_with_deps_result *res =
+        new install_with_deps_result("", true, true);
+    res->action_type = NONE;
+    cleanup(trans, solver);
+    co_return res;
+  }
+
+  if (trans->steps.count == 0) {
+    std::cerr << chumpPrepend()
+              << "one or more of the requested packages are already installed."
+              << std::endl;
+    std::cerr << chumpPrepend()
+              << "use `chump update <package>' to update the existing "
+                 "package"
+              << std::endl;
+    std::cerr << chumpPrepend()
+              << "or use `chump uninstall <package>` to remove the package"
+              << std::endl;
+
+    install_with_deps_result *res =
+        new install_with_deps_result("", true, false);
+    res->action_type = NONE;
+    cleanup(trans, solver);
+    co_return res;
+  }
+
+  // topologically order transactions
+  transaction_order(trans, 0);
+
+  // pass 1: get user permissions on all uninstalls and up/down-grades
+  DEBUG("Entering pass1");
+  for (int i = 0; i < trans->steps.count; ++i) {
+    Id p = trans->steps.elements[i];
+    Solvable *s = pool_id2solvable(pool, p);
+
+    // Determine what action the solver is actually taking on this package
+    // Id step_type = transaction_type(trans, p, SOLVER_TRANSACTION_SHOW_ALL);
+    Id step_type = transaction_type(trans, p, 0);
+
+    // ignore ck & api version (we can't install these!)
+    if (strcmp(pool_id2str(pool, s->name), "chuck-system-version") == 0)
+      continue;
+    if (strcmp(pool_id2str(pool, s->name), "chuck-system-api") == 0)
+      continue;
+
+    string s_name = pool_id2str(pool, s->name);
+    string s_evr = pool_id2str(pool, s->evr);
+    DEBUG("(pass1) install/update actions : "
+          << s_name << "=" << s_evr
+          << " step type: " << solver_transaction_type_to_string(step_type));
+
+    bool is_requested = requestedPackages.count(s->name) > 0;
+
+    if (step_type == SOLVER_TRANSACTION_ERASE ||
+        step_type == SOLVER_TRANSACTION_UPGRADED ||
+        step_type == SOLVER_TRANSACTION_DOWNGRADED) {
+      // on erase, if it is a user-installed package, need ot seek permission
+      string pkg = string(pool_id2str(pool, s->name));
+      string pkg_evr = pool_id2str(pool, s->evr);
+
+      // this a user-installed package, if we can't operate on it, kill
+      // the installation process
+      if (is_user_installed(pkg) && !is_requested) {
+        install_with_deps_result *res = new install_with_deps_result(pkg);
+
+        if (step_type == SOLVER_TRANSACTION_ERASE)
+          res->action_type = UNINSTALL;
+        else if (step_type == SOLVER_TRANSACTION_UPGRADED ||
+                 step_type == SOLVER_TRANSACTION_DOWNGRADED) {
+          res->action_type = UPGRADE;
+
+          // need to set old and new version for display
+          res->old_version = pkg_evr;
+
+          auto [name, new_ver] = parsePackageName(getNewVersion(trans, p));
+          res->new_version = new_ver.value();
+        }
+
+        co_yield res;
+
+        if (!res->cont) {
+          std::cerr << chumpPrepend() << "installation cancelled\n";
+
+          install_with_deps_result *res =
+              new install_with_deps_result(pkg, true, false);
+          res->action_type = NONE;
+
+          cleanup(trans, solver);
+          co_return res;
+        }
+      }
+    } else if (step_type == SOLVER_TRANSACTION_IGNORE ||
+               step_type == SOLVER_TRANSACTION_INSTALL) {
+      // do nothing in this stage
+    } else {
+      // in the first pass, log everything that is unexpected
+      std::cout << chumpPrepend() << "unaccounted for step type: "
+                << solver_transaction_type_to_string(step_type) << "\n";
+    }
+  }
+
+  // filepaths to the tmp dir where packages are downloaded
+  map<string, fs::path> tmp_dirs;
+
+  DEBUG("Entering pass2");
+  // pass 2: download everything to a tmp dir
+  for (int i = 0; i < trans->steps.count; ++i) {
+    Id p = trans->steps.elements[i];
+    Solvable *s = pool_id2solvable(pool, p);
+
+    // Determine what action the solver is actually taking on this package
+    // Id step_type = transaction_type(trans, p, SOLVER_TRANSACTION_SHOW_ALL);
+    Id step_type = transaction_type(trans, p, 0);
+
+    // ignore ck & api version (we can't install these!)
+    if (strcmp(pool_id2str(pool, s->name), "chuck-system-version") == 0)
+      continue;
+    if (strcmp(pool_id2str(pool, s->name), "chuck-system-api") == 0)
+      continue;
+
+    // install/updgrade/downgrade: call fetch_to_tmp and store in tmp_dirs
+    // for uninstall, don't do anything
+
+    string s_name = pool_id2str(pool, s->name);
+    string s_evr = pool_id2str(pool, s->evr);
+    string package_name = s_name + "=" + s_evr;
+
+    bool is_requested = requestedPackages.count(s->name) > 0;
+
+    DEBUG("(pass2) install/update actions : "
+          << s_name << "=" << s_evr
+          << " step type: " << solver_transaction_type_to_string(step_type));
+
+    if (step_type == SOLVER_TRANSACTION_INSTALL) {
+      optional<fs::path> tmp_dir = fetch_to_tmp(package_name, !is_requested);
+
+      if (!tmp_dir) {
+        std::cerr << chumpPrepend() << "installation cancelled\n";
+
+        install_with_deps_result *res =
+            new install_with_deps_result("", true, false);
+        res->action_type = NONE;
+
+        cleanup(trans, solver);
+        cleanupTmps(tmp_dirs);
+        co_return res;
+      }
+
+      tmp_dirs[s_name] = tmp_dir.value();
+    } else if (step_type == SOLVER_TRANSACTION_UPGRADED ||
+               step_type == SOLVER_TRANSACTION_DOWNGRADED) {
+
+      string package_name = getNewVersion(trans, p);
+
+      // is this user installed?
+      bool is_dep = !is_user_installed(s_name);
+
+      optional<fs::path> tmp_dir = fetch_to_tmp(package_name, is_dep);
+
+      if (!tmp_dir) {
+        std::cerr << chumpPrepend() << "installation cancelled\n";
+
+        install_with_deps_result *res =
+            new install_with_deps_result(s_name, true, false);
+        res->action_type = NONE;
+
+        cleanup(trans, solver);
+        cleanupTmps(tmp_dirs);
+        co_return res;
+      }
+      tmp_dirs[s_name] = tmp_dir.value();
+    }
+  }
+
+  DEBUG("Entering pass3");
+  // pass 3: finish up installation and uninstallation
+  for (int i = 0; i < trans->steps.count; ++i) {
+    Id p = trans->steps.elements[i];
+    Solvable *s = pool_id2solvable(pool, p);
+
+    // Determine what action the solver is actually taking on this package
+    // Id step_type = transaction_type(trans, p, SOLVER_TRANSACTION_SHOW_ALL);
+    Id step_type = transaction_type(trans, p, 0);
+
+    // ignore ck & api version (we can't install these!)
+    if (strcmp(pool_id2str(pool, s->name), "chuck-system-version") == 0)
+      continue;
+    if (strcmp(pool_id2str(pool, s->name), "chuck-system-api") == 0)
+      continue;
+
+    string s_name = pool_id2str(pool, s->name);
+    string s_evr = pool_id2str(pool, s->evr);
+    string package_name = s_name + "=" + s_evr;
+
+    DEBUG("(pass3) install/update actions : "
+          << s_name << "=" << s_evr
+          << " step type: " << solver_transaction_type_to_string(step_type));
+
+    if (step_type == SOLVER_TRANSACTION_INSTALL) {
+      // assuming this is always here for now (it should be!)
+      fs::path tmp_dir = tmp_dirs.at(s_name);
+
+      if (!install(package_name, tmp_dir)) {
+        std::cerr << chumpPrepend() << "installation cancelled\n";
+
+        install_with_deps_result *res =
+            new install_with_deps_result(s_name, true, false);
+        res->action_type = NONE;
+
+        cleanup(trans, solver);
+        cleanupTmps(tmp_dirs);
+        co_return res;
+      }
+    } else if (step_type == SOLVER_TRANSACTION_UPGRADED ||
+               step_type == SOLVER_TRANSACTION_DOWNGRADED) {
+      // need to uninstall first,
+      // then install from tmp dir
+      if (!uninstall(s_name, false)) {
+        std::cerr << chumpPrepend() << "installation cancelled\n";
+
+        install_with_deps_result *res =
+            new install_with_deps_result(s_name, true, false);
+        res->action_type = NONE;
+
+        cleanup(trans, solver);
+        cleanupTmps(tmp_dirs);
+        co_return res;
+      }
+
+      fs::path tmp_dir = tmp_dirs.at(s_name);
+
+      string package_name = getNewVersion(trans, p);
+
+      DEBUG("installing from tmp dir: " << tmp_dir);
+
+      if (!install(package_name, tmp_dir)) {
+        std::cerr << chumpPrepend() << "installation cancelled\n";
+
+        install_with_deps_result *res =
+            new install_with_deps_result(s_name, true, false);
+        res->action_type = NONE;
+
+        cleanup(trans, solver);
+        cleanupTmps(tmp_dirs);
+        co_return res;
+      }
+
+      DEBUG("finished up/down-grade");
+    } else if (step_type == SOLVER_TRANSACTION_ERASE) {
+      if (!uninstall(s_name, false)) {
+        std::cerr << chumpPrepend() << "installation cancelled\n";
+
+        install_with_deps_result *res =
+            new install_with_deps_result(s_name, true, false);
+        res->action_type = NONE;
+
+        cleanup(trans, solver);
+        cleanupTmps(tmp_dirs);
+        co_return res;
+      }
+    }
+  }
+
+  DEBUG("freeing everything up");
+
+  // success
+  install_with_deps_result *r = new install_with_deps_result("", true, true);
+  cleanup(trans, solver);
+  cleanupTmps(tmp_dirs);
+  co_return r;
+}
+
+// The installation process is broken down into two steps: fetching and
+// installing
+//
+// 1. Fetching. Downloads the package version from the specified URL and unzips
+//    them to a tmp dir. This tmp dir is then returned so that later it can be
+// 2. Installed. Copy over the installed files into the installation directory,
+//
+// This is broken up into two steps to allow for safer installations
+// with packages that have dependencies. Now, if one of the
+// dependencies fails to be fetched, nothing is installed. Otherwise,
+// users could end up with installed dependencies that just show up,
+// when the package they actually wanted installed is not.
+optional<fs::path> Manager::fetch_to_tmp(string packageName, bool isDep) {
   // parse packages here
   auto [name, version_string] = parsePackageName(packageName);
+  DEBUG("fetching package " << packageStr(name, version_string));
 
   // lookup package name (default to latest version)
   auto pkg = package_list->find_package(name);
@@ -45,7 +533,7 @@ bool Manager::install(string packageName) {
   if (!pkg) {
     std::cerr << chumpPrepend() << "package " << packageName << " not found."
               << std::endl;
-    return false;
+    return {};
   }
 
   Package package = pkg.value();
@@ -57,7 +545,7 @@ bool Manager::install(string packageName) {
       ver = package.version(pkgver, os, language_version, api_version);
     } catch (std::invalid_argument &e) {
       std::cerr << chumpPrepend() << "" << e.what() << '\n';
-      return false;
+      return {};
     }
   } else {
     ver = package.latest_version(os, arch, language_version, api_version);
@@ -67,27 +555,13 @@ bool Manager::install(string packageName) {
     std::cerr << chumpPrepend() << "unable to find version of package "
               << package.name << " that works on your system" << std::endl;
 
-    return false;
+    return {};
   }
 
   PackageVersion version = ver.value();
 
-  // if there is already a packages/PACKAGE directory, error out and tell the
-  // user to call update
-  fs::path install_dir = packagePath(package, chump_dir);
-
-  if (fs::exists(install_dir / "version.json")) {
-    std::cerr << chumpPrepend() << "the package '" << package.name
-              << "' already exists." << std::endl;
-    std::cerr << chumpPrepend() << "use `chump update " << package.name
-              << "' to update the existing package" << std::endl;
-    std::cerr << chumpPrepend() << "or use `chump uninstall " << package.name
-              << "` to remove the package" << std::endl;
-    return false;
-  }
-
   // Create a temporary directory to download our files to
-  fs::path temp_dir = makeTempDir();
+  fs::path tmp_dir = makeTempDir();
 
   // fetch
   for (auto file : version.files) {
@@ -96,12 +570,12 @@ bool Manager::install(string packageName) {
     string checksum = file.checksum;
     FileType file_type = file.file_type;
 
-    bool result =
-        fetch->fetch(url, dir, package, version, temp_dir, file_type, checksum);
-    if (!result) {
+    bool fetch_result =
+        fetch->fetch(url, dir, package, version, tmp_dir, file_type, checksum);
+    if (!fetch_result) {
       std::cerr << chumpPrepend() << "failed to fetch " << url << ", exiting."
                 << std::endl;
-      return false;
+      return {};
     }
   }
 
@@ -113,21 +587,52 @@ bool Manager::install(string packageName) {
       continue;
 
     fs::path filename = fs::path(file.url).filename();
-    fs::path dir = temp_dir / file.local_dir;
+    fs::path dir = tmp_dir / file.local_dir;
 
     // Extract the file
     if (!unzipFile((dir / filename).string(), dir.string()))
-      return false;
+      return {};
 
     fs::remove(dir / filename);
   }
 
   // Add all files to the InstalledVersion file list
   InstalledVersion installed_ver = InstalledVersion(package, version);
-  for (auto const &dir_entry : fs::recursive_directory_iterator(temp_dir)) {
+  for (auto const &dir_entry : fs::recursive_directory_iterator(tmp_dir)) {
     if (fs::is_regular_file(dir_entry)) {
-      installed_ver.files.push_back(fs::relative(dir_entry, temp_dir));
+      installed_ver.files.push_back(fs::relative(dir_entry, tmp_dir));
     }
+  }
+
+  // If it is not a dependency, then this package was requested by the
+  // user to be installed
+  installed_ver.user_installed = !isDep;
+
+  // Write version.json to file.
+  json version_json = installed_ver;
+
+  std::ofstream o(tmp_dir / "version.json");
+  o << std::setw(4) << version_json << std::endl;
+  o.close();
+
+  return tmp_dir;
+}
+
+bool Manager::install(string packageName, fs::path tmp_dir) {
+  auto [name, version_string] = parsePackageName(packageName);
+
+  // if there is already a packages/PACKAGE directory, error out and tell the
+  // user to call update
+  fs::path install_dir = chump_dir / name;
+
+  if (fs::exists(install_dir / "version.json")) {
+    std::cerr << chumpPrepend() << "the package '" << packageName
+              << "' already exists." << std::endl;
+    std::cerr << chumpPrepend() << "use `chump update " << packageName
+              << "' to update the existing package" << std::endl;
+    std::cerr << chumpPrepend() << "or use `chump uninstall " << packageName
+              << "` to remove the package" << std::endl;
+    return false;
   }
 
   // create install dir if needed
@@ -135,30 +640,156 @@ bool Manager::install(string packageName) {
 
   // Copy temp files over to the install directory
   try {
-    fs::copy(temp_dir, install_dir,
+    fs::copy(tmp_dir, install_dir,
              fs::copy_options::recursive |
                  fs::copy_options::overwrite_existing);
   } catch (std::filesystem::filesystem_error &e) {
     std::cerr << chumpPrepend() << "" << e.what() << '\n';
+
+    // Removing temp dir
+    fs::remove_all(tmp_dir);
+
     return false;
   }
 
   // Removing temp dir
-  fs::remove_all(temp_dir);
-
-  // Write version.json to file.
-  json version_json = installed_ver;
-
-  std::ofstream o(install_dir / "version.json");
-  o << std::setw(4) << version_json << std::endl;
-  o.close();
+  fs::remove_all(tmp_dir);
 
   // We succeeded
   return true;
 }
 
+// Install a local package (with dependencies)
+Generator<install_with_deps_result *>
+Manager::install_local_with_deps(fs::path pkgDefn, fs::path pkgVer,
+                                 fs::path pkgZip) {
+  /*
+    Because the local package to be installed is neither the system
+    nor the manifest repo (that's the entire point!), you cannot ran a
+    solver on it. Instead, we will run a solver that's constrained on
+    all of its dependencies. Those dependencies will be resolved and
+    installed similarly to installWithDeps. And if the installation of
+    all of the dependencies succeeds, then install_local(...) will be
+    called with our package. ezpz
+  */
+
+  DEBUG("install local package: " << pkgDefn);
+
+  install_with_deps_result *failure_result =
+      new install_with_deps_result("", true, false);
+  failure_result->action_type = NONE;
+
+  if (!fs::is_regular_file(pkgDefn)) {
+    std::cerr << chumpPrepend() << "package definition " << pkgDefn
+              << "is not a file, exiting..." << std::endl;
+    co_return failure_result;
+  }
+
+  if (!fs::is_regular_file(pkgVer)) {
+    std::cerr << chumpPrepend() << "package version " << pkgVer
+              << "is not a file, exiting..." << std::endl;
+    co_return failure_result;
+  }
+
+  if (!fs::is_regular_file(pkgZip)) {
+    std::cerr << chumpPrepend() << "package zip " << pkgZip
+              << "is not a file, exiting..." << std::endl;
+    co_return failure_result;
+  }
+
+  // only supporting zip for now
+  if (pkgZip.extension() != ".zip") {
+    std::cerr << chumpPrepend() << "package path " << pkgZip
+              << "is not a zip file, exiting..." << std::endl;
+    co_return failure_result;
+  }
+
+  // attempt to open the package files
+  auto version = open_package_version_file(pkgVer);
+  if (!version)
+    co_return failure_result;
+
+  optional<Package> package = open_package_file(pkgDefn);
+  if (!package)
+    co_return failure_result;
+
+  // Set up dependency resolution
+  Queue job;
+  queue_init(&job);
+
+  // add dep constraints to solver
+  for (auto dep : version.value().dependencies) {
+    Id name_id = pool_str2id(pool, dep.name.c_str(), 1);
+
+    // optionally, add min/max version bounds of the dependency
+    if (dep.version_min) {
+      Id evr_id = pool_str2id(
+          pool, dep.version_min.value().getVersionString().c_str(), 1);
+
+      // create an relational ID (i.e. "Rec >= 1.1.0")
+      Id rel_id = pool_rel2id(pool, name_id, evr_id, REL_GT | REL_EQ, 1);
+      queue_push2(&job, SOLVER_INSTALL | SOLVER_SOLVABLE_PROVIDES, rel_id);
+    }
+
+    if (dep.version_max) {
+      Id evr_id = pool_str2id(
+          pool, dep.version_max.value().getVersionString().c_str(), 1);
+
+      // create an relational ID (i.e. "Rec <= 1.1.0")
+      Id rel_id = pool_rel2id(pool, name_id, evr_id, REL_LT | REL_EQ, 1);
+      queue_push2(&job, SOLVER_INSTALL | SOLVER_SOLVABLE_PROVIDES, rel_id);
+    }
+
+    if (!dep.version_min && !dep.version_max) {
+      queue_push2(&job, SOLVER_INSTALL | SOLVER_SOLVABLE_NAME, name_id);
+    }
+  }
+
+  // Provide an empty set of requested packages for install_with_deps_helper
+  std::unordered_set<Id> requestedPackages;
+
+  // need to pass this up while it's still going.
+  auto installer = install_with_deps_helper(job, requestedPackages);
+  install_with_deps_result *res;
+
+  while (installer) {
+    res = installer();
+
+    if (!res->finished) {
+      co_yield res;
+    }
+  }
+
+  res = installer();
+
+  // don't install the local package if its dependencies failed to install
+  // (or the user cancelled)
+  if (!res->success) {
+    std::cerr << chumpPrepend() << "unable to install dependencies of "
+              << package.value().name << ", exiting..." << std::endl;
+
+    cleanup(job);
+    co_return res;
+  }
+  DEBUG("About to install local pkg");
+  // all dependencies were installed sucessfully
+  bool result = install_local(pkgDefn, pkgVer, pkgZip);
+
+  res->finished = true;
+  res->success = result;
+  res->name = "";
+  res->action_type = NONE;
+
+  cleanup(job);
+
+  co_return res;
+}
+
+// installing locally with the package dir (to be called from
+// install_local_with_deps)
 bool Manager::install_local(fs::path pkgDefn, fs::path pkgVer,
                             fs::path pkgZip) {
+  DEBUG("Local Install: in install_local");
   if (!fs::is_regular_file(pkgDefn)) {
     std::cerr << chumpPrepend() << "package definition " << pkgDefn
               << "is not a file, exiting..." << std::endl;
@@ -186,15 +817,21 @@ bool Manager::install_local(fs::path pkgDefn, fs::path pkgVer,
 
   // attempt to open the package files
   auto version = open_package_version_file(pkgVer);
-  if (!version)
+  if (!version) {
+    DEBUG("Local Install: failed to open the package version file");
     return false;
+  }
 
   optional<Package> package = open_package_file(pkgDefn);
-  if (!package)
+  if (!package) {
+    DEBUG("Local Install: failed to open up the package definition file");
     return false;
+  }
 
-  // if there is already a packages/PACKAGE directory, error out and tell the
-  // user to call update
+  DEBUG("Local Install: check package dir");
+
+  // if there is already a packages/PACKAGE directory, error out and tell
+  // the user to call update
   fs::path install_dir = packagePath(package.value(), chump_dir);
 
   if (fs::exists(install_dir / "version.json")) {
@@ -221,6 +858,9 @@ bool Manager::install_local(fs::path pkgDefn, fs::path pkgVer,
     }
   }
 
+  // install-local is always user-installed
+  installed_ver.user_installed = true;
+
   // Write version.json to file.
   json version_json = installed_ver;
 
@@ -232,173 +872,390 @@ bool Manager::install_local(fs::path pkgDefn, fs::path pkgVer,
   return true;
 }
 
-bool Manager::update(string packageName) {
-  // lookup package name (default to latest version)
-  auto pkg = package_list->find_package(packageName);
+//-----------------------------------------------------------------------------
+// name: uninstall_with_deps()
+// desc: Uninstall the package with dependency managment. If another
+//       package depends on the package you're trying to uninstall, it
+//       will tell you to uninstall those first. At the moment this can't
+//       uninstall dependencies as we don't currently track what was
+//       installed as a dependency and what wasn't.
+//-----------------------------------------------------------------------------
+//
+bool Manager::uninstall_with_deps(const vector<string> packageNames,
+                                  bool force) {
+  Queue job;
+  queue_init(&job);
 
-  if (!pkg) {
-    std::cerr << chumpPrepend() << "package " << packageName << " not found."
-              << std::endl;
-    return false;
+  std::unordered_set<Id> requestedPackages;
+
+  DEBUG("Uninstalling the following packages:");
+  for (auto packageName : packageNames) {
+    // parse packages here
+    auto [name, version_string] = parsePackageName(packageName);
+
+    DEBUG("\t- " << packageStr(name, version_string));
+
+    // printDependencies(pool, name.c_str());
+
+    // define job
+    Id name_id = pool_str2id(pool, name.c_str(), 1);
+
+    requestedPackages.insert(name_id);
+    queue_push2(&job, SOLVER_ERASE | SOLVER_SOLVABLE_NAME | SOLVER_CLEANDEPS,
+                name_id);
   }
 
-  Package package = pkg.value();
+  // std::cout << "--- libsolv Pool State Dump ---\n";
+  // // Solvables are stored in a contiguous array from index 1 to
+  // // pool->nsolvables
+  // for (int i = 1; i < pool->nsolvables; i++) {
+  //   Solvable *s = pool->solvables + i;
 
-  // if there is already a .chump/PACKAGE directory, error out and tell the user
-  // to call update
-  fs::path install_dir = packagePath(package, chump_dir);
+  //   // Only print actual packages, skip empty slots
+  //   if (s->repo) {
+  //     std::cout << "Repo: " << s->repo->name
+  // 		<< " | Pkg: '" << pool_id2str(pool, s->name) << "'"
+  // 		<< " ver '" << pool_id2str(pool, s->evr) << "'"
+  // 		<< " (Name ID: " << s->name << ")\n";
+  //   }
+  // }
+  // std::cout << "-------------------------------\n";
 
-  if (!fs::exists(install_dir)) {
-    std::cerr << chumpPrepend() << "the install directory '" << install_dir
-              << "' does not exist." << std::endl;
-    std::cerr << chumpPrepend() << "use `chump install " << package.name
-              << "' to install the existing package" << std::endl;
-    return false;
-  }
+  // This locking flag didn't seem to do what I wanted. It made all
+  // installed packages uninstallable, regardless of whether anything
+  // dependended on them or not. The SOLVER_USERINSTALLED flag below
+  // seems to do the job.
+  //
+  // // Mark all system packages as locked, so that the solver cannot
+  // // continue if the uninstalling package is a dependency of anything
+  // for (int i = 1; i < pool->nsolvables; i++) {
+  //   Solvable *s = pool->solvables + i;
 
-  optional<InstalledVersion> installed_version =
-      open_installed_version_file(install_dir / "version.json");
+  //   if (s->repo && strcmp(s->repo->name, "@System") == 0 &&
+  //       s->name != name_id) {
+  //     queue_push2(&job, SOLVER_LOCK | SOLVER_SOLVABLE_NAME, s->name);
+  //   }
+  // }
 
-  if (!installed_version) {
-    std::cerr << chumpPrepend() << "the version definition '"
-              << install_dir / "version.json" << "' does not exist."
-              << std::endl;
-    std::cerr << chumpPrepend() << "try removing the directory " << install_dir
-              << std::endl;
-    std::cerr << chumpPrepend() << "and then calling 'chump install '"
-              << packageName << "'\n";
-    return false;
-  }
-
-  PackageVersion curr_version = installed_version.value().version();
-
-  optional<PackageVersion> ver =
-      package.latest_version(os, arch, language_version, api_version);
-
-  if (!ver) {
-    std::cerr << chumpPrepend() << "unable to find version of package "
-              << package.name << " that works on your system" << std::endl;
-
-    return false;
-  }
-
-  PackageVersion latest_version = ver.value();
-
-  if (curr_version == latest_version) {
-    std::cerr << chumpPrepend() << "" << package.name
-              << " is already up-to-date." << std::endl;
-    return true;
-  }
-
-  if (curr_version > latest_version) {
-    std::cerr << chumpPrepend() << "" << package.name
-              << " is installed already with a newer version." << std::endl;
-    return true;
-  }
-
-  // Create a temporary directory to download our files to
-  fs::path temp_dir = makeTempDir();
-
-  // fetch
-  for (auto file : latest_version.files) {
-    fs::path dir = file.local_dir;
-    string url = file.url;
-    string checksum = file.checksum;
-    FileType file_type = file.file_type;
-
-    bool result = fetch->fetch(url, dir, package, latest_version, temp_dir,
-                               file_type, checksum);
-    if (!result) {
-      std::cerr << chumpPrepend() << "failed to fetch " << url << ", exiting."
-                << std::endl;
-      return false;
+  // Empty all non-system repos so the solver cannot use them as fallbacks
+  for (int i = 0; i < pool->nrepos; i++) {
+    Repo *repo = pool->repos[i];
+    if (repo && strcmp(repo->name, "@System") != 0) {
+      repo_empty(repo, 0);
     }
   }
 
-  // If any of our fetched files are zip files, unzip them and then
-  // delete the original zip file so it won't be copied over to the
-  // packages dir.
-  for (auto file : latest_version.files) {
-    if (file.file_type != ZIP_FILE)
+  // Mark all user-installed packages as such
+  for (InstalledVersion ver : listInstalledVersions()) {
+    if (ver.user_installed) {
+      Id pkg_name_id = pool_str2id(pool, ver.name.c_str(), 1);
+
+      // skip pkgs specifically being uninstalled
+      if (requestedPackages.contains(pkg_name_id)) {
+        continue;
+      }
+
+      DEBUG("marking " << pool_id2str(pool, pkg_name_id)
+                       << " as userinstalled");
+      // add to solver queue
+      queue_push2(&job, SOLVER_USERINSTALLED | SOLVER_SOLVABLE_NAME,
+                  pkg_name_id);
+    } else {
+      Id pkg_name_id = pool_str2id(pool, ver.name.c_str(), 1);
+      DEBUG("not marked " << pool_id2str(pool, pkg_name_id)
+                          << " as userinstalled");
+    }
+  }
+
+  // Rebuild the lookup index without the manifest packages
+  pool_createwhatprovides(pool);
+
+  // Create and run solver
+  Solver *solver = solver_create(pool);
+
+  // We are uninstalling, so we need to let the solver uninstall things!
+  solver_set_flag(solver, SOLVER_FLAG_ALLOW_UNINSTALL, 1);
+
+  // Solve it!
+  solver_solve(solver, &job);
+
+  // check for solver success
+  int problem_count = solver_problem_count(solver);
+  if (problem_count > 0) {
+    std::cerr << chumpPrepend();
+    if (force) {
+      std::cerr << TC::red("WARNING") << ": ";
+    }
+
+    std::cerr << chumpPrepend()
+              << "dependency resolution failed while attempting uninstall "
+              << "with ";
+
+    if (problem_count > 1)
+      std::cerr << problem_count << " problems:\n";
+    else
+      std::cerr << "1 problem:\n";
+
+    Id problem = 0;
+    // Pass 0 to get the first problem, then pass the previous ID to get the
+    // next
+    while ((problem = solver_next_problem(solver, problem)) != 0) {
+      std::cerr << " - " << solver_problem2str(solver, problem) << "\n";
+    }
+
+    if (force) {
+      std::cerr << chumpPrepend()
+                << "uninstalling, but with errors, ignoring dependencies\n";
+      for (string packageName : packageNames)
+        uninstall(packageName, force);
+
+      cleanup(job, nullptr, solver);
+      return false;
+    }
+
+    cleanup(job, nullptr, solver);
+    cleanup(job);
+    return false;
+  }
+
+  // parse the transaction and install/erase/upgrade
+  // there are a lot of options:
+  // https://github.com/openSUSE/libsolv/blob/c9ee7a3b946e8870f056dddc22032e4d43a40636/src/transaction.h#L45
+  Transaction *trans = solver_create_transaction(solver);
+
+  // No steps means that there's nothing to be done, which means that
+  // the package wasn't uninstalled (this should mean the package
+  // directory either doesn't exist or there's no version.json)
+  if (trans->steps.count == 0) {
+    if (!force) {
+      std::cerr << chumpPrepend() << "the packages "
+                << "were not found, could not uninstall" << std::endl;
+    }
+
+    // if we are forcing, we're gonna try anyway (because the version.json could
+    // have been deleted)
+    if (force) {
+      // any install failure will indicate the failure of the install process
+      bool result = true;
+      for (string packageName : packageNames)
+        result = result && uninstall(packageName, force);
+
+      cleanup(job, trans, solver);
+      return result;
+    }
+
+    cleanup(job, trans, solver);
+    return false;
+  }
+
+  // topologically order transactions
+  transaction_order(trans, 0);
+
+  // validate that all actions are valid
+  for (int i = 0; i < trans->steps.count; i++) {
+    Id p = trans->steps.elements[i];
+    Solvable *s = pool_id2solvable(pool, p);
+
+    Id step_type = transaction_type(trans, p, 0);
+
+    // ignore ck & api version (we can't install these!)
+    if (strcmp(pool_id2str(pool, s->name), "chuck-system-version") == 0)
+      continue;
+    if (strcmp(pool_id2str(pool, s->name), "chuck-system-api") == 0)
       continue;
 
-    fs::path filename = fs::path(file.url).filename();
-    fs::path dir = temp_dir / file.local_dir;
+    string s_name = pool_id2str(pool, s->name);
+    string s_evr = pool_id2str(pool, s->evr);
 
-    // Extract the file
-    if (!unzipFile((dir / filename).string(), dir.string()))
-      return false;
+    if (step_type == SOLVER_TRANSACTION_ERASE) {
+      fs::path packageNamePath = fs::path(s_name);
+      fs::path install_dir = chump_dir / packageNamePath;
 
-    fs::remove(dir / filename);
-  }
+      // if a requestedPackage is not found, throw an error
+      // if a dependency is not found, warn and skip
+      if (!fs::exists(install_dir)) {
+        if (requestedPackages.contains(s->name)) {
+          std::cerr << chumpPrepend() << TC::red("error", TRUE)
+                    << ": attempting to uninstall requested package ("
+                    << packageStr(s_name) << "), but the install directory '"
+                    << install_dir << "' does not exist. skipping..."
+                    << std::endl;
+          cleanup(job, trans, solver);
+          return false;
+        } else {
+          std::cerr << chumpPrepend() << "attempting to uninstall dependency ("
+                    << packageStr(s_name) << "), but the install directory '"
+                    << install_dir << "' does not exist. skipping..."
+                    << std::endl;
+          continue;
+        }
+      }
 
-  InstalledVersion installed_ver(package, latest_version);
-  for (auto const &dir_entry : fs::recursive_directory_iterator(temp_dir)) {
-    if (fs::is_regular_file(dir_entry)) {
-      installed_ver.files.push_back(fs::relative(dir_entry, temp_dir));
+      if (!fs::exists(install_dir)) {
+        std::cerr
+            << chumpPrepend()
+            << "attempting to uninstall package, but the install directory '"
+            << install_dir << "' does not exist. skipping..." << std::endl;
+        cleanup(job, trans, solver);
+        return false;
+      }
+
+      optional<InstalledVersion> installed_ver =
+          open_installed_version_file(install_dir / "version.json");
+
+      // trying to uninstall package without a version.json
+      if (!installed_ver && !force) {
+        std::cerr << chumpPrepend() << TC::red("error", TRUE)
+                  << ": attempting to remove a package which chump does not "
+                     "recognize. exiting\n";
+        std::cerr << chumpPrepend()
+                  << "(to force removal, use 'chump uninstall -f <package>'\n";
+        cleanup(job, trans, solver);
+        return false;
+      }
+
+      if (!installed_ver && force) {
+        continue;
+      }
+
+      // error out if trying to uninstall a user-installed package
+      if (!force && !requestedPackages.contains(s->name) &&
+          installed_ver.value().user_installed) {
+        std::cerr << chumpPrepend() << TC::red("error", TRUE)
+                  << ": uninstall requires removing user-installed package "
+                  << packageStr(s_name, s_evr) << ", cannot continue.\n";
+        std::cerr << chumpPrepend()
+                  << "To proceed, uninstall package with 'chump uninstall "
+                  << s_name << "' and then try again.\n";
+
+        cleanup(job, trans, solver);
+        return false;
+      } else if (force && !requestedPackages.contains(s->name) &&
+                 installed_ver.value().user_installed) {
+        std::cerr << chumpPrepend() << TC::red("warning", TRUE)
+                  << ": skipping removing user-installed package "
+                  << packageStr(s_name, s_evr) << ". ";
+        std::cerr << "This may break installed packages.\n";
+
+        continue;
+      }
     }
   }
 
-  // uninstall our current version
-  // this is done as late as possible so that if fetching/extracting the updated
-  // package fails, we won't have removed the current installation prematurely.
-  for (auto file : installed_version.value().files) {
-    fs::path curr_dir = (install_dir / file.parent_path()).lexically_normal();
-    fs::path curr_file = (install_dir / file).lexically_normal();
+  // perform uninstalls
+  for (int i = 0; i < trans->steps.count; ++i) {
+    Id p = trans->steps.elements[i];
+    Solvable *s = pool_id2solvable(pool, p);
 
-    if (fs::exists(curr_file)) {
-      fs::remove(curr_file);
+    // Determine what action the solver is actually taking on this package
+    Id step_type = transaction_type(trans, p, 0);
+
+    // ignore ck & api version (we can't install these!)
+    if (strcmp(pool_id2str(pool, s->name), "chuck-system-version") == 0)
+      continue;
+    if (strcmp(pool_id2str(pool, s->name), "chuck-system-api") == 0)
+      continue;
+
+    string s_name = pool_id2str(pool, s->name);
+    string s_evr = pool_id2str(pool, s->evr);
+    string package_name = s_name + "=" + s_evr;
+
+    DEBUG("look at actions " << s_name << "=" << s_evr << " step type: "
+                             << solver_transaction_type_to_string(step_type)
+                             << std::endl);
+
+    if (step_type == SOLVER_TRANSACTION_ERASE) {
+      // check to see if pacakge is user installed
+      fs::path packageNamePath = fs::path(s_name);
+      fs::path install_dir = chump_dir / packageNamePath;
+
+      if (!fs::exists(install_dir)) {
+        std::cerr
+            << chumpPrepend()
+            << "attempting to uninstall package, but the install directory '"
+            << install_dir << "' does not exist. skipping..." << std::endl;
+        continue;
+      }
+
+      optional<InstalledVersion> installed_ver =
+          open_installed_version_file(install_dir / "version.json");
+
+      // skip packages without install ver unless it's the named pkg
+      if (!requestedPackages.contains(s->name) && !installed_ver) {
+        continue;
+      }
+
+      if (!requestedPackages.contains(s->name) &&
+          installed_ver.value().user_installed) {
+        // when forcing an uninstall, don't uninstall user-installed packages
+        if (force) {
+          continue;
+        } else {
+          std::cerr << chumpPrepend() << TC::red("error", TRUE)
+                    << ": attempting to uninstall a user-installed package\n";
+          cleanup(job, trans, solver);
+          return false;
+        }
+      }
+
+      bool res = uninstall(package_name, force);
+      if (!res) {
+        std::cerr << chumpPrepend() << "failed to complete uninstall \n";
+        cleanup(job, trans, solver);
+        return false;
+      }
+    } else if (step_type ==
+               SOLVER_TRANSACTION_INSTALL) { // this one shouldn't happen
+      std::cerr
+          << chumpPrepend() << "trying to install " << s_name
+          << " during uninstall process. this should not happen, skipping\n";
+    } else if (step_type == SOLVER_TRANSACTION_IGNORE) {
+      DEBUG("Ignoring: " << pool_id2str(pool, s->name) << "="
+                         << pool_id2str(pool, s->evr));
+    } else if (step_type == SOLVER_TRANSACTION_UPGRADED ||
+               step_type == SOLVER_TRANSACTION_DOWNGRADED) {
+      std::cerr
+          << chumpPrepend() << "trying to upgrade/downgrade " << s_name
+          << " during uninstall process. this should not happen, skipping\n";
     } else {
-      std::cerr << chumpPrepend() << "attempted to remove " << curr_file
-                << ", but the file was not found, continuing..." << std::endl;
-    }
-
-    if (fs::is_empty(curr_dir)) {
-      fs::remove(curr_dir);
+      std::cout << chumpPrepend() << "unaccounted for step type: " << step_type
+                << "\n";
     }
   }
 
-  // create install dir if needed
-  fs::create_directory(install_dir);
+  // Because we are not uninstalling dependencies we shouldn't need to traverse
+  // the solver's steps. It's just for validating.
 
-  // Copy temp files over to the install directory
-  try {
-    fs::copy(temp_dir, install_dir,
-             fs::copy_options::recursive |
-                 fs::copy_options::overwrite_existing);
-  } catch (fs::filesystem_error &e) {
-    std::cerr << chumpPrepend() << "" << e.what() << '\n';
-    return false;
-  }
-
-  // Write version.json to file.
-  json latest_version_json = installed_ver;
-  std::ofstream o(install_dir / "version.json");
-  o << std::setw(4) << latest_version_json << std::endl;
-  o.close();
-
+  // success!
+  cleanup(job, trans, solver);
   return true;
 }
 
 bool Manager::uninstall(string packageName, bool force) {
+  auto [name, package_version] = parsePackageName(packageName);
   // if there isn't already a .chump/PACKAGE directory, error out and tell the
   // user to install
-  fs::path packageNamePath = fs::path(packageName);
+  fs::path packageNamePath = fs::path(name);
   fs::path install_dir = chump_dir / packageNamePath;
 
   if (!fs::exists(install_dir)) {
     std::cerr << chumpPrepend() << "the install directory '" << install_dir
               << "' does not exist." << std::endl;
-    std::cerr << chumpPrepend() << "use `chump install " << packageName
+    std::cerr << chumpPrepend() << "use `chump install " << name
               << "' to install the existing package" << std::endl;
     return false;
   }
 
+  string pkgstr = packageStr(name);
+
+  if (package_version)
+    pkgstr = packageStr(name, package_version.value());
+
   std::cout << chumpPrepend() << TC::blue("uninstalling package", TRUE) << ": "
-            << packageStr(packageName) << "\n";
+            << pkgstr << "\n";
 
   if (force) {
-    std::cerr << chumpPrepend() << "force-uninstall " << packageName
+    std::cerr << chumpPrepend() << "force-uninstall " << name
               << " (completely removing the installation directory)...\n";
     fs::remove_all(install_dir.lexically_normal());
     return true;
@@ -407,8 +1264,14 @@ bool Manager::uninstall(string packageName, bool force) {
   optional<InstalledVersion> installed_ver =
       open_installed_version_file(install_dir / "version.json");
 
-  if (!installed_ver)
+  if (!installed_ver) {
+    std::cerr << chumpPrepend() << (install_dir / "version.json").string()
+              << " not found, uninstall cancelled.\n";
+    std::cerr << "(this directory was not installed by chump, to force "
+                 "removeal call \"chump uninstall -f "
+              << name << "\")\n";
     return false;
+  }
 
   PackageVersion curr_ver = installed_ver.value().version();
 
@@ -492,8 +1355,6 @@ std::vector<Package> Manager::listPackages() {
     if (!found_pkg) {
       pkg_list.push_back(installed_version.value().package());
     }
-
-    // std::cout << dir_entry << std::endl;
   }
 
   return pkg_list;
@@ -537,6 +1398,32 @@ bool Manager::is_installed(Package pkg) {
 // Returns the path where a package would be installed (if it exists)
 fs::path Manager::install_path(Package pkg) {
   return packagePath(pkg, chump_dir);
+}
+
+// returns true if packageName is:
+// 1. installed and
+// 2. is a user-installed package
+// return false otherwise
+bool Manager::is_user_installed(string packageName) {
+  fs::path install_dir = chump_dir / packageName;
+
+  // package is not installed
+  if (!fs::exists(install_dir))
+    return false;
+
+  optional<InstalledVersion> installed_ver =
+      open_installed_version_file(install_dir / "version.json");
+
+  // install_dir is not a defined package
+  if (!installed_ver)
+    return false;
+
+  // is not user-installed
+  if (!installed_ver.value().user_installed)
+    return false;
+
+  // is user-installed!
+  return true;
 }
 
 string Manager::getSystemChuckVersion() {
@@ -796,4 +1683,380 @@ optional<PackageVersion> Manager::open_package_version_file(fs::path path) {
               << "\" to PackageVersion: " << e.what() << std::endl;
     return {};
   }
+}
+
+//-----------------------------------------------------------------------------
+// name: initializeSystemRepo()
+// desc: Create a libsolv repo of all the packages installed on your system
+//       (and their dependencies)
+//-----------------------------------------------------------------------------
+Repo *Manager::initializeSystemRepo() {
+  Repo *repo = repo_create(pool, "@System");
+  pool_set_installed(pool,
+                     repo); // mark @System as the repo of installed packages
+
+  std::vector<InstalledVersion> installed_versions = listInstalledVersions();
+
+  // Add chuck's language information as a constraint in the repo.
+  Id ck_lang_id = repo_add_solvable(repo);
+  Solvable *s_lang = pool_id2solvable(pool, ck_lang_id);
+
+  s_lang->name = pool_str2id(pool, "chuck-system-version", 1);
+  s_lang->evr =
+      pool_str2id(pool, language_version.getVersionString().c_str(), 1);
+
+  // Provide the virtual capability (e.g. "chuck-version = 1.5.5.9"
+  Id cap_ck_name = pool_str2id(pool, "chuck-version", 1);
+  Id cap_ck_ver =
+      pool_str2id(pool, language_version.getVersionString().c_str(), 1);
+  Id prov_rel_ck = pool_rel2id(pool, cap_ck_name, cap_ck_ver, REL_EQ, 1);
+
+  solvable_add_deparray(s_lang, SOLVABLE_PROVIDES, prov_rel_ck, 0);
+
+  // Add chuck api information as a constraint
+  Id ck_api_id = repo_add_solvable(repo);
+  Solvable *s_api = pool_id2solvable(pool, ck_api_id);
+
+  s_api->name = pool_str2id(pool, "chuck-system-api", 1);
+  s_api->evr = pool_str2id(pool, api_version.getVersionString().c_str(), 1);
+
+  // Provide the virtual capability (e.g. "chuck-version = 1.5.5.9"
+  Id cap_api_name = pool_str2id(pool, "chuck-api", 1);
+  Id cap_api_ver = pool_str2id(pool, api_version.getVersionString().c_str(), 1);
+  Id prov_rel_api = pool_rel2id(pool, cap_api_name, cap_api_ver, REL_EQ, 1);
+
+  solvable_add_deparray(s_api, SOLVABLE_PROVIDES, prov_rel_api, 0);
+
+  // add system architecture as a constraint
+  Id arch_id = repo_add_solvable(repo);
+  Solvable *s_arch = pool_id2solvable(pool, arch_id);
+
+  s_arch->name = pool_str2id(pool, "chuck-system-arch", 1);
+  s_arch->evr = pool_str2id(pool, "1", 1); // unsure if evr is even needed here
+
+  Id cap_arch_id = pool_str2id(pool, architectureToString.at(arch).c_str(), 1);
+  Id cap_arch_all_id =
+      pool_str2id(pool, architectureToString.at(ARCH_ALL_CHMP).c_str(), 1);
+
+  solvable_add_deparray(s_arch, SOLVABLE_PROVIDES, cap_arch_id, 0);
+  solvable_add_deparray(s_arch, SOLVABLE_PROVIDES, cap_arch_all_id, 0);
+
+  if (os == "mac" &&
+      (arch == X86_64 || arch == ARM64)) { // macos can have universal binaries
+    Id cap_arch_univ_id =
+        pool_str2id(pool, architectureToString.at(MAC_UNIVERSAL).c_str(), 1);
+    solvable_add_deparray(s_arch, SOLVABLE_PROVIDES, cap_arch_univ_id, 0);
+  }
+
+  // add os as a constraint
+  Id os_id = repo_add_solvable(repo);
+  Solvable *s_os = pool_id2solvable(pool, os_id);
+
+  s_os->name = pool_str2id(pool, "chuck-system-os", 1);
+  s_os->evr = pool_str2id(pool, "1", 1); // unsure if evr is even needed here
+
+  Id cap_os_id = pool_str2id(pool, os.c_str(), 1);
+  Id cap_os_any_id = pool_str2id(pool, "any", 1);
+
+  solvable_add_deparray(s_os, SOLVABLE_PROVIDES, cap_os_id, 0);
+  solvable_add_deparray(s_os, SOLVABLE_PROVIDES, cap_os_any_id, 0);
+
+  // add all installed packages to system repo
+  for (auto ver : installed_versions) {
+    Id pkgId = repo_add_solvable(repo);
+    Solvable *solv = pool_id2solvable(pool, pkgId);
+
+    solv->name = pool_str2id(pool, ver.name.c_str(), 1);
+    solv->evr = pool_str2id(pool, ver.version().getVersionString().c_str(), 1);
+
+    // this causes a pkg to conflict with itself, which means that
+    // different versions of a package being installed at the same
+    // time will conflict
+    solvable_add_deparray(solv, SOLVABLE_CONFLICTS, solv->name, 0);
+
+    string arch = architectureToString.at(ver.arch);
+    solv->arch = pool_str2id(pool, arch.c_str(), 1);
+
+    Id rel_provides = pool_rel2id(pool, solv->name, solv->evr, REL_EQ, 1);
+    solvable_add_deparray(solv, SOLVABLE_PROVIDES, rel_provides, 0);
+
+    // add chuck language version constraint
+    Id min_ck_ver = pool_str2id(
+        pool, ver.language_version_min.getVersionString().c_str(), 1);
+    Id req_min_ck_ver =
+        pool_rel2id(pool, cap_ck_name, min_ck_ver, REL_GT | REL_EQ, 1);
+    solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_min_ck_ver, 0);
+
+    // set os
+    Id pkg_os = pool_str2id(pool, ver.os.c_str(), 1);
+    Id req_pkg_os = pool_rel2id(pool, cap_os_id, pkg_os, REL_EQ, 1);
+    solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_pkg_os, 0);
+
+    // set arch
+    Id pkg_arch =
+        pool_str2id(pool, architectureToString.at(ver.arch).c_str(), 1);
+    solvable_add_deparray(solv, SOLVABLE_REQUIRES, pkg_arch, 0);
+
+    // set max lang version (if exists)
+    if (ver.language_version_max) {
+      Id max_ck_ver = pool_str2id(
+          pool, ver.language_version_max.value().getVersionString().c_str(), 1);
+      Id req_max_ck_ver =
+          pool_rel2id(pool, cap_ck_name, max_ck_ver, REL_LT | REL_EQ, 1);
+      solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_max_ck_ver, 0);
+    }
+
+    // set api version (if exists)
+    if (ver.api_version) {
+      Id api_ver = pool_str2id(
+          pool, ver.api_version.value().getVersionString().c_str(), 1);
+      Id req_api_ver = pool_rel2id(pool, cap_api_name, api_ver, REL_EQ, 1);
+      solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_api_ver, 0);
+    }
+
+    // add dependencies (weeee)
+    for (Dependency dep : ver.dependencies) {
+      Id name_id = pool_str2id(pool, dep.name.c_str(), 1);
+
+      // optionally, add min/max version bounds of the dependency
+      if (dep.version_min) {
+        Id evr_id = pool_str2id(
+            pool, dep.version_min.value().getVersionString().c_str(), 1);
+
+        // create an relational ID (i.e. "Rec >= 1.1.0")
+        Id rel_id = pool_rel2id(pool, name_id, evr_id, REL_GT | REL_EQ, 1);
+        solvable_add_deparray(solv, SOLVABLE_REQUIRES, rel_id, 0);
+      }
+
+      if (dep.version_max) {
+        Id evr_id = pool_str2id(
+            pool, dep.version_max.value().getVersionString().c_str(), 1);
+
+        // create an relational ID (i.e. "Rec <= 1.1.0")
+        Id rel_id = pool_rel2id(pool, name_id, evr_id, REL_LT | REL_EQ, 1);
+        solvable_add_deparray(solv, SOLVABLE_REQUIRES, rel_id, 0);
+      }
+
+      if (!dep.version_min && !dep.version_max) {
+        solvable_add_deparray(solv, SOLVABLE_REQUIRES, name_id, 0);
+      }
+    }
+  }
+  repo_internalize(repo);
+
+  // Verify system repo setup
+  // printf("Installed repo populated with %d solvables, %d ids.\n",
+  //        repo->nsolvables, repo->idarraysize);
+
+  return repo;
+}
+
+//-----------------------------------------------------------------------------
+// name: initializeManifestRepo()
+// desc: Create a libsolv repo of all packages available in the manifest
+//-----------------------------------------------------------------------------
+Repo *Manager::initializeManifestRepo() {
+  Repo *repo = repo_create(pool, "manifest");
+
+  // Enable debug printing
+  // pool_setdebuglevel(pool, 2);  // 0 = nothing, 1 = minimal, 2 = verbose
+
+  std::vector<Package> packages = listPackages();
+
+  for (Package package : packages) {
+    for (PackageVersion ver : package.versions) {
+      Id pkgId = repo_add_solvable(repo);
+      Solvable *solv = pool_id2solvable(pool, pkgId);
+
+      solv->name = pool_str2id(pool, package.name.c_str(), 1);
+      solv->evr = pool_str2id(pool, ver.getVersionString().c_str(), 1);
+
+      // this causes a pkg to conflict with itself, which means that
+      // different versions of a package being installed at the same
+      // time will conflict
+      solvable_add_deparray(solv, SOLVABLE_CONFLICTS, solv->name, 0);
+
+      string arch = architectureToString.at(ver.arch);
+      solv->arch = pool_str2id(pool, arch.c_str(), 1);
+
+      Id rel_provides = pool_rel2id(pool, solv->name, solv->evr, REL_EQ, 1);
+      solvable_add_deparray(solv, SOLVABLE_PROVIDES, rel_provides, 0);
+
+      // add chuck language version constraint
+      Id cap_ck_name = pool_str2id(pool, "chuck-version", 1);
+
+      Id min_ck_ver = pool_str2id(
+          pool, ver.language_version_min.getVersionString().c_str(), 1);
+      Id req_min_ck_ver =
+          pool_rel2id(pool, cap_ck_name, min_ck_ver, REL_GT | REL_EQ, 1);
+      solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_min_ck_ver, 0);
+
+      // set os
+      Id pkg_os = pool_str2id(pool, ver.os.c_str(), 1);
+      solvable_add_deparray(solv, SOLVABLE_REQUIRES, pkg_os, 0);
+
+      // set arch
+      Id pkg_arch =
+          pool_str2id(pool, architectureToString.at(ver.arch).c_str(), 1);
+      solvable_add_deparray(solv, SOLVABLE_REQUIRES, pkg_arch, 0);
+
+      // set max lang version (if exists)
+      if (ver.language_version_max) {
+        Id max_ck_ver = pool_str2id(
+            pool, ver.language_version_max.value().getVersionString().c_str(),
+            1);
+        Id req_max_ck_ver =
+            pool_rel2id(pool, cap_ck_name, max_ck_ver, REL_LT | REL_EQ, 1);
+        solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_max_ck_ver, 0);
+      }
+
+      // set api version (if exists)
+      if (ver.api_version) {
+        Id api_name = pool_str2id(pool, "chuck-api", 1);
+        Id api_ver = pool_str2id(
+            pool, ver.api_version.value().getVersionString().c_str(), 1);
+        Id req_api_ver = pool_rel2id(pool, api_name, api_ver, REL_EQ, 1);
+        solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_api_ver, 0);
+      }
+
+      // add dependencies (weeee)
+      for (Dependency dep : ver.dependencies) {
+        Id name_id = pool_str2id(pool, dep.name.c_str(), 1);
+
+        // optionally, add min/max version bounds of the dependency
+        if (dep.version_min) {
+          Id evr_id = pool_str2id(
+              pool, dep.version_min.value().getVersionString().c_str(), 1);
+
+          // create an relational ID (i.e. "Rec >= 1.1.0")
+          Id rel_id = pool_rel2id(pool, name_id, evr_id, REL_GT | REL_EQ, 1);
+          solvable_add_deparray(solv, SOLVABLE_REQUIRES, rel_id, 0);
+        }
+
+        if (dep.version_max) {
+          Id evr_id = pool_str2id(
+              pool, dep.version_max.value().getVersionString().c_str(), 1);
+
+          // create an relational ID (i.e. "Rec <= 1.1.0")
+          Id rel_id = pool_rel2id(pool, name_id, evr_id, REL_LT | REL_EQ, 1);
+          solvable_add_deparray(solv, SOLVABLE_REQUIRES, rel_id, 0);
+        }
+
+        if (!dep.version_min && !dep.version_max) {
+          solvable_add_deparray(solv, SOLVABLE_REQUIRES, name_id, 0);
+        }
+      }
+    }
+  }
+  repo_internalize(repo);
+
+  // Verify system repo setup
+  // printf("Installed repo populated with %d solvables, %d ids.\n",
+  //        repo->nsolvables, repo->idarraysize);
+
+  return repo;
+}
+
+// this is a debugging function, it should not be used in actual release code
+void printDependencies(Pool *pool, const char *packageName) {
+  // 1. Get the ID for the name (pass create=0 because we only want to lookup)
+  Id name_id = pool_str2id(pool, packageName, 0);
+  if (!name_id) {
+    std::cout << "Package '" << packageName
+              << "' does not exist in the pool.\n";
+    return;
+  }
+
+  // 2. Prepare the pool for querying (builds the provider index)
+  pool_createwhatprovides(pool);
+
+  // 3. Iterate through every solvable that provides this name
+  Id p, pp;
+  FOR_PROVIDES(p, pp, name_id) {
+    Solvable *s = pool_id2solvable(pool, p);
+
+    // Print the package name and version
+    std::cout << "Dependencies for " << pool_id2str(pool, s->name) << "="
+              << pool_id2str(pool, s->evr) << ":\n";
+
+    // 4. Iterate through the SOLVABLE_REQUIRES array
+    if (s->dep_requires) {
+      Id req;
+      // FIX 2: The internal array is named 'idarraydata'
+      // clang-format off
+      Id *reqp = s->repo->idarraydata + s->dep_requires;
+      // clang-format on
+
+      // The array is 0-terminated
+      while ((req = *reqp++) != 0) {
+        // pool_dep2str handles both simple names ("foo") and relations ("foo
+        // >= 1.0")
+        std::cout << "  - " << pool_dep2str(pool, req) << "\n";
+      }
+    } else {
+      std::cout << "  (none)\n";
+    }
+  }
+}
+
+const char *solver_transaction_type_to_string(int type) {
+  switch (type) {
+  case SOLVER_TRANSACTION_IGNORE:
+    return "SOLVER_TRANSACTION_IGNORE";
+  case SOLVER_TRANSACTION_ERASE:
+    return "SOLVER_TRANSACTION_ERASE";
+  case SOLVER_TRANSACTION_REINSTALLED:
+    return "SOLVER_TRANSACTION_REINSTALLED";
+  case SOLVER_TRANSACTION_DOWNGRADED:
+    return "SOLVER_TRANSACTION_DOWNGRADED";
+  case SOLVER_TRANSACTION_CHANGED:
+    return "SOLVER_TRANSACTION_CHANGED";
+  case SOLVER_TRANSACTION_UPGRADED:
+    return "SOLVER_TRANSACTION_UPGRADED";
+  case SOLVER_TRANSACTION_OBSOLETED:
+    return "SOLVER_TRANSACTION_OBSOLETED";
+  case SOLVER_TRANSACTION_INSTALL:
+    return "SOLVER_TRANSACTION_INSTALL";
+  case SOLVER_TRANSACTION_REINSTALL:
+    return "SOLVER_TRANSACTION_REINSTALL";
+  case SOLVER_TRANSACTION_DOWNGRADE:
+    return "SOLVER_TRANSACTION_DOWNGRADE";
+  case SOLVER_TRANSACTION_CHANGE:
+    return "SOLVER_TRANSACTION_CHANGE";
+  case SOLVER_TRANSACTION_UPGRADE:
+    return "SOLVER_TRANSACTION_UPGRADE";
+  case SOLVER_TRANSACTION_OBSOLETES:
+    return "SOLVER_TRANSACTION_OBSOLETES";
+  case SOLVER_TRANSACTION_MULTIINSTALL:
+    return "SOLVER_TRANSACTION_MULTIINSTALL";
+  case SOLVER_TRANSACTION_MULTIREINSTALL:
+    return "SOLVER_TRANSACTION_MULTIREINSTALL";
+  default:
+    return "UNKNOWN_TRANSACTION_TYPE";
+  }
+}
+
+// On upgarde/downgrade gets the new version of a package p
+string Manager::getNewVersion(Transaction *trans, Id p) {
+  // takes id of obsolete package and gets the upgraded package
+  Id new_p = transaction_obs_pkg(trans, p);
+
+  if (!new_p) {
+    Solvable *s = pool_id2solvable(pool, p);
+    string s_name = pool_id2str(pool, s->name);
+    std::cerr << chumpPrepend() << "unable to find different version of "
+              << s_name << ". installation cancelled\n";
+
+    return "";
+  }
+
+  Solvable *new_s = pool_id2solvable(pool, new_p);
+
+  // constructs the name and version of the new up/down-graded package to be
+  // installed
+  string s_name = pool_id2str(pool, new_s->name);
+  string s_evr = pool_id2str(pool, new_s->evr);
+  string package_name = s_name + "=" + s_evr;
+
+  return package_name;
 }
