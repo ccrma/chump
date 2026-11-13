@@ -1066,7 +1066,6 @@ TEST_CASE("Dependency Tests - uninstall keeps user-installed dependencies") {
 }
 
 TEST_CASE("Dependency Tests - uninstall package that is not installed") {
-  setDebugEnabled(true);
   fs::path installPath = makeTempDir();
   INFO("Temp Dir: " << installPath);
 
