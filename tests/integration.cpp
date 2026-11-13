@@ -9,8 +9,8 @@
 // std::string manifest_url =
 //     "https://ccrma.stanford.edu/~nshaheed/chump/manifest.json";
 
-// Don't update manifest. This is maybe bad since it's an integration test, but this takes
-// so long
+// Don't update manifest. This is maybe bad since it's an integration test, but
+// this takes so long
 std::string manifest_url = "";
 
 bool install(Manager *m, string pkg) {

@@ -10,7 +10,7 @@
 void printDependencies(Pool *pool, const char *packageName);
 const char *solver_transaction_type_to_string(int type);
 
-void cleanup(Transaction* t, Solver* s) {
+void cleanup(Transaction *t, Solver *s) {
   if (t != nullptr)
     transaction_free(t);
 
@@ -18,11 +18,9 @@ void cleanup(Transaction* t, Solver* s) {
     solver_free(s);
 }
 
-void cleanup(Queue q) {
-  queue_free(&q);
-}
+void cleanup(Queue q) { queue_free(&q); }
 
-void cleanup(Queue q, Transaction* t, Solver* s) {
+void cleanup(Queue q, Transaction *t, Solver *s) {
   queue_free(&q);
 
   if (t != nullptr)
@@ -176,7 +174,7 @@ Manager::install_with_deps_helper(Queue job,
   DEBUG("in helper");
 
   install_with_deps_result *failure_result =
-    new install_with_deps_result("", true, false);
+      new install_with_deps_result("", true, false);
   failure_result->action_type = NONE;
 
   // Create and run solver
@@ -327,7 +325,7 @@ Manager::install_with_deps_helper(Queue job,
               new install_with_deps_result(pkg, true, false);
           res->action_type = NONE;
 
-	  cleanup(trans, solver);
+          cleanup(trans, solver);
           co_return res;
         }
       }
@@ -383,8 +381,8 @@ Manager::install_with_deps_helper(Queue job,
             new install_with_deps_result("", true, false);
         res->action_type = NONE;
 
-	cleanup(trans, solver);
-	cleanupTmps(tmp_dirs);
+        cleanup(trans, solver);
+        cleanupTmps(tmp_dirs);
         co_return res;
       }
 
@@ -406,8 +404,8 @@ Manager::install_with_deps_helper(Queue job,
             new install_with_deps_result(s_name, true, false);
         res->action_type = NONE;
 
-	cleanup(trans, solver);
-	cleanupTmps(tmp_dirs);
+        cleanup(trans, solver);
+        cleanupTmps(tmp_dirs);
         co_return res;
       }
       tmp_dirs[s_name] = tmp_dir.value();
@@ -449,8 +447,8 @@ Manager::install_with_deps_helper(Queue job,
             new install_with_deps_result(s_name, true, false);
         res->action_type = NONE;
 
-	cleanup(trans, solver);
-	cleanupTmps(tmp_dirs);
+        cleanup(trans, solver);
+        cleanupTmps(tmp_dirs);
         co_return res;
       }
     } else if (step_type == SOLVER_TRANSACTION_UPGRADED ||
@@ -464,8 +462,8 @@ Manager::install_with_deps_helper(Queue job,
             new install_with_deps_result(s_name, true, false);
         res->action_type = NONE;
 
-	cleanup(trans, solver);
-	cleanupTmps(tmp_dirs);
+        cleanup(trans, solver);
+        cleanupTmps(tmp_dirs);
         co_return res;
       }
 
@@ -482,8 +480,8 @@ Manager::install_with_deps_helper(Queue job,
             new install_with_deps_result(s_name, true, false);
         res->action_type = NONE;
 
-	cleanup(trans, solver);
-	cleanupTmps(tmp_dirs);
+        cleanup(trans, solver);
+        cleanupTmps(tmp_dirs);
         co_return res;
       }
 
@@ -496,8 +494,8 @@ Manager::install_with_deps_helper(Queue job,
             new install_with_deps_result(s_name, true, false);
         res->action_type = NONE;
 
-	cleanup(trans, solver);
-	cleanupTmps(tmp_dirs);
+        cleanup(trans, solver);
+        cleanupTmps(tmp_dirs);
         co_return res;
       }
     }
@@ -625,7 +623,6 @@ bool Manager::install(string packageName, fs::path tmp_dir) {
 
   // if there is already a packages/PACKAGE directory, error out and tell the
   // user to call update
-  // TODO: call cleanup on exit (to delete tmp dirs)
   fs::path install_dir = chump_dir / name;
 
   if (fs::exists(install_dir / "version.json")) {
@@ -1077,24 +1074,21 @@ bool Manager::uninstall_with_deps(const vector<string> packageNames,
       // if a requestedPackage is not found, throw an error
       // if a dependency is not found, warn and skip
       if (!fs::exists(install_dir)) {
-	if (requestedPackages.contains(s->name)) {
-	  std::cerr
-            << chumpPrepend() << TC::red("error", TRUE)
-            << ": attempting to uninstall requested package ("
-	    << packageStr(s_name)
-	    << "), but the install directory '"
-            << install_dir << "' does not exist. skipping..." << std::endl;
-	  cleanup(job, trans, solver);
-	  return false;
-	} else {
-	  std::cerr
-            << chumpPrepend()
-            << "attempting to uninstall dependency ("
-	    << packageStr(s_name)
-	    << "), but the install directory '"
-            << install_dir << "' does not exist. skipping..." << std::endl;
-	  continue;
-	}
+        if (requestedPackages.contains(s->name)) {
+          std::cerr << chumpPrepend() << TC::red("error", TRUE)
+                    << ": attempting to uninstall requested package ("
+                    << packageStr(s_name) << "), but the install directory '"
+                    << install_dir << "' does not exist. skipping..."
+                    << std::endl;
+          cleanup(job, trans, solver);
+          return false;
+        } else {
+          std::cerr << chumpPrepend() << "attempting to uninstall dependency ("
+                    << packageStr(s_name) << "), but the install directory '"
+                    << install_dir << "' does not exist. skipping..."
+                    << std::endl;
+          continue;
+        }
       }
 
       if (!fs::exists(install_dir)) {
@@ -1102,8 +1096,8 @@ bool Manager::uninstall_with_deps(const vector<string> packageNames,
             << chumpPrepend()
             << "attempting to uninstall package, but the install directory '"
             << install_dir << "' does not exist. skipping..." << std::endl;
-	cleanup(job, trans, solver);
-	return false;
+        cleanup(job, trans, solver);
+        return false;
       }
 
       optional<InstalledVersion> installed_ver =
@@ -1111,15 +1105,17 @@ bool Manager::uninstall_with_deps(const vector<string> packageNames,
 
       // trying to uninstall package without a version.json
       if (!installed_ver && !force) {
-	std::cerr << chumpPrepend() << TC::red("error", TRUE)
-		  << ": attempting to remove a package which chump does not recognize. exiting\n";
-	std::cerr << chumpPrepend() << "(to force removal, use 'chump uninstall -f <package>'\n";
-	cleanup(job, trans, solver);
-	return false;
+        std::cerr << chumpPrepend() << TC::red("error", TRUE)
+                  << ": attempting to remove a package which chump does not "
+                     "recognize. exiting\n";
+        std::cerr << chumpPrepend()
+                  << "(to force removal, use 'chump uninstall -f <package>'\n";
+        cleanup(job, trans, solver);
+        return false;
       }
 
       if (!installed_ver && force) {
-	continue;
+        continue;
       }
 
       // error out if trying to uninstall a user-installed package
@@ -1132,7 +1128,7 @@ bool Manager::uninstall_with_deps(const vector<string> packageNames,
                   << "To proceed, uninstall package with 'chump uninstall "
                   << s_name << "' and then try again.\n";
 
-	cleanup(job, trans, solver);
+        cleanup(job, trans, solver);
         return false;
       } else if (force && !requestedPackages.contains(s->name) &&
                  installed_ver.value().user_installed) {
@@ -1197,7 +1193,7 @@ bool Manager::uninstall_with_deps(const vector<string> packageNames,
         } else {
           std::cerr << chumpPrepend() << TC::red("error", TRUE)
                     << ": attempting to uninstall a user-installed package\n";
-	  cleanup(job, trans, solver);
+          cleanup(job, trans, solver);
           return false;
         }
       }
@@ -1205,7 +1201,7 @@ bool Manager::uninstall_with_deps(const vector<string> packageNames,
       bool res = uninstall(package_name, force);
       if (!res) {
         std::cerr << chumpPrepend() << "failed to complete uninstall \n";
-	cleanup(job, trans, solver);
+        cleanup(job, trans, solver);
         return false;
       }
     } else if (step_type ==
@@ -1739,13 +1735,16 @@ Repo *Manager::initializeSystemRepo() {
   s_arch->evr = pool_str2id(pool, "1", 1); // unsure if evr is even needed here
 
   Id cap_arch_id = pool_str2id(pool, architectureToString.at(arch).c_str(), 1);
-  Id cap_arch_all_id = pool_str2id(pool, architectureToString.at(ARCH_ALL_CHMP).c_str(), 1);
+  Id cap_arch_all_id =
+      pool_str2id(pool, architectureToString.at(ARCH_ALL_CHMP).c_str(), 1);
 
   solvable_add_deparray(s_arch, SOLVABLE_PROVIDES, cap_arch_id, 0);
   solvable_add_deparray(s_arch, SOLVABLE_PROVIDES, cap_arch_all_id, 0);
 
-  if (os == "mac" && (arch == X86_64 || arch == ARM64)) { // macos can have universal binaries
-    Id cap_arch_univ_id = pool_str2id(pool, architectureToString.at(MAC_UNIVERSAL).c_str(), 1);
+  if (os == "mac" &&
+      (arch == X86_64 || arch == ARM64)) { // macos can have universal binaries
+    Id cap_arch_univ_id =
+        pool_str2id(pool, architectureToString.at(MAC_UNIVERSAL).c_str(), 1);
     solvable_add_deparray(s_arch, SOLVABLE_PROVIDES, cap_arch_univ_id, 0);
   }
 
@@ -1761,7 +1760,6 @@ Repo *Manager::initializeSystemRepo() {
 
   solvable_add_deparray(s_os, SOLVABLE_PROVIDES, cap_os_id, 0);
   solvable_add_deparray(s_os, SOLVABLE_PROVIDES, cap_os_any_id, 0);
-
 
   // add all installed packages to system repo
   for (auto ver : installed_versions) {
@@ -1795,7 +1793,8 @@ Repo *Manager::initializeSystemRepo() {
     solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_pkg_os, 0);
 
     // set arch
-    Id pkg_arch = pool_str2id(pool, architectureToString.at(ver.arch).c_str(), 1);
+    Id pkg_arch =
+        pool_str2id(pool, architectureToString.at(ver.arch).c_str(), 1);
     solvable_add_deparray(solv, SOLVABLE_REQUIRES, pkg_arch, 0);
 
     // set max lang version (if exists)
@@ -1897,7 +1896,8 @@ Repo *Manager::initializeManifestRepo() {
       solvable_add_deparray(solv, SOLVABLE_REQUIRES, pkg_os, 0);
 
       // set arch
-      Id pkg_arch = pool_str2id(pool, architectureToString.at(ver.arch).c_str(), 1);
+      Id pkg_arch =
+          pool_str2id(pool, architectureToString.at(ver.arch).c_str(), 1);
       solvable_add_deparray(solv, SOLVABLE_REQUIRES, pkg_arch, 0);
 
       // set max lang version (if exists)

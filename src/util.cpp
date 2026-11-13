@@ -45,8 +45,10 @@ std::string packageStr(std::string pkg, std::string ver) {
 std::string packageStr(std::string pkg) { return TC::bold(pkg); }
 
 std::string packageStr(std::string pkg, optional<std::string> ver) {
-  if (ver) return packageStr(pkg, ver.value());
-  else return packageStr(pkg);
+  if (ver)
+    return packageStr(pkg, ver.value());
+  else
+    return packageStr(pkg);
 }
 
 // Returns the path to the directory where a package will be installed
