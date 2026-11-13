@@ -115,6 +115,7 @@ format:
 	clang-format --style=llvm -i chump-cli/*.cpp
 	clang-format --style=llvm -i chumpinate/*.cpp
 	clang-format --style=llvm -i include/*.h
+	clang-format --style=llvm -i include/*.hpp
 	clang-format --style=llvm -i scripts/*.h
 	# clang-format --style=llvm -i scripts/*.cpp
 	clang-format --style=llvm -i scripts/generate_manifest.cpp

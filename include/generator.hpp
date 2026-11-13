@@ -8,8 +8,7 @@
 
 #pragma once
 
-template<typename T>
-struct Generator {
+template <typename T> struct Generator {
   struct promise_type;
   using handle_type = std::coroutine_handle<promise_type>;
 
@@ -23,15 +22,14 @@ struct Generator {
     std::suspend_always initial_suspend() { return {}; }
     std::suspend_always final_suspend() noexcept { return {}; }
     void unhandled_exception() { exception_ = std::current_exception(); }
-    template<std::convertible_to<T> From> // C++20 concept
+    template <std::convertible_to<T> From> // C++20 concept
     std::suspend_always yield_value(From &&from) {
       value_ = std::forward<From>(from);
       return {};
     }
     // void return_void() {}
 
-    template<std::convertible_to<T> From>
-    void return_value(From &&from) {
+    template <std::convertible_to<T> From> void return_value(From &&from) {
       value_ = std::forward<From>(from);
     }
   };
@@ -47,14 +45,18 @@ struct Generator {
 
   Generator &operator=(Generator &&other) noexcept {
     if (this != &other) {
-      if (h_) h_.destroy();
+      if (h_)
+        h_.destroy();
       h_ = std::exchange(other.h_, {});
       full_ = other.full_;
     }
     return *this;
   }
-  
-  ~Generator() { if (h_) h_.destroy(); }
+
+  ~Generator() {
+    if (h_)
+      h_.destroy();
+  }
   explicit operator bool() {
     fill();
     return !h_.done();
