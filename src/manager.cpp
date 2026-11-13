@@ -32,6 +32,12 @@ void cleanup(Queue q, Transaction* t, Solver* s) {
     solver_free(s);
 }
 
+void cleanupTmps(const map<string, fs::path> tmp_dirs) {
+  for (auto tmp_dir : tmp_dirs) {
+    fs::remove_all(tmp_dir.second);
+  }
+}
+
 Manager::Manager(string package_list_path, fs::path package_install_dir,
                  ChuckVersion ck_ver, ApiVersion api_ver, string system_os,
                  Architecture _arch, string _manifest_url, bool render_tui) {
@@ -378,6 +384,7 @@ Manager::install_with_deps_helper(Queue job,
         res->action_type = NONE;
 
 	cleanup(trans, solver);
+	cleanupTmps(tmp_dirs);
         co_return res;
       }
 
@@ -400,6 +407,7 @@ Manager::install_with_deps_helper(Queue job,
         res->action_type = NONE;
 
 	cleanup(trans, solver);
+	cleanupTmps(tmp_dirs);
         co_return res;
       }
       tmp_dirs[s_name] = tmp_dir.value();
@@ -442,6 +450,7 @@ Manager::install_with_deps_helper(Queue job,
         res->action_type = NONE;
 
 	cleanup(trans, solver);
+	cleanupTmps(tmp_dirs);
         co_return res;
       }
     } else if (step_type == SOLVER_TRANSACTION_UPGRADED ||
@@ -456,6 +465,7 @@ Manager::install_with_deps_helper(Queue job,
         res->action_type = NONE;
 
 	cleanup(trans, solver);
+	cleanupTmps(tmp_dirs);
         co_return res;
       }
 
@@ -473,6 +483,7 @@ Manager::install_with_deps_helper(Queue job,
         res->action_type = NONE;
 
 	cleanup(trans, solver);
+	cleanupTmps(tmp_dirs);
         co_return res;
       }
 
@@ -486,15 +497,10 @@ Manager::install_with_deps_helper(Queue job,
         res->action_type = NONE;
 
 	cleanup(trans, solver);
+	cleanupTmps(tmp_dirs);
         co_return res;
       }
     }
-  }
-
-  DEBUG("clean up temp dirs");
-  // clean up all tmp dirs
-  for (auto tmp_dir : tmp_dirs) {
-    fs::remove_all(tmp_dir.second);
   }
 
   DEBUG("freeing everything up");
@@ -502,6 +508,7 @@ Manager::install_with_deps_helper(Queue job,
   // success
   install_with_deps_result *r = new install_with_deps_result("", true, true);
   cleanup(trans, solver);
+  cleanupTmps(tmp_dirs);
   co_return r;
 }
 
@@ -1789,7 +1796,6 @@ Repo *Manager::initializeSystemRepo() {
 
     // set arch
     Id pkg_arch = pool_str2id(pool, architectureToString.at(ver.arch).c_str(), 1);
-    Id req_pkg_arch = pool_rel2id(pool, cap_arch_id, pkg_arch, REL_EQ, 1);
     solvable_add_deparray(solv, SOLVABLE_REQUIRES, pkg_arch, 0);
 
     // set max lang version (if exists)
