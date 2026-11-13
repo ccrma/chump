@@ -704,6 +704,204 @@
 		    ]
 		}
 	    ]
-	}	
+	},
+        {
+            "name": "LangMax",
+            "authors": [
+                "Nick Shaheed"
+            ],
+            "homepage": "",
+            "repository": "",
+            "license": "gpl3",
+            "description": "test fixture: newest version has a language_version_max of 1.5.2.4",
+            "keywords": [],
+            "versions": [
+                {
+                    "version": "1.0.0",
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 0
+                    },
+                    "os": "linux",
+                    "files": []
+                },
+                {
+                    "version": "2.0.0",
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 0
+                    },
+                    "language_version_max": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 4
+                    },
+                    "os": "linux",
+                    "files": []
+                }
+            ]
+        },
+        {
+            "name": "DepRangeMin",
+            "authors": [
+                "Nick Shaheed"
+            ],
+            "homepage": "",
+            "repository": "",
+            "license": "gpl3",
+            "description": "test fixture: depends on E >= 1.0.0",
+            "keywords": [],
+            "versions": [
+                {
+                    "version": "1.0.0",
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 0
+                    },
+                    "os": "linux",
+                    "files": [],
+                    "dependencies": [
+                        {
+                            "name": "E",
+                            "version_min": "1.0.0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "DepRangeMax",
+            "authors": [
+                "Nick Shaheed"
+            ],
+            "homepage": "",
+            "repository": "",
+            "license": "gpl3",
+            "description": "test fixture: depends on E <= 1.0.0",
+            "keywords": [],
+            "versions": [
+                {
+                    "version": "1.0.0",
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 0
+                    },
+                    "os": "linux",
+                    "files": [],
+                    "dependencies": [
+                        {
+                            "name": "E",
+                            "version_max": "1.0.0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "NeedsA3",
+            "authors": [
+                "Nick Shaheed"
+            ],
+            "homepage": "",
+            "repository": "",
+            "license": "gpl3",
+            "description": "test fixture: depends on A >= 3.0.0 (which requires api 10.1)",
+            "keywords": [],
+            "versions": [
+                {
+                    "version": "1.0.0",
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 0
+                    },
+                    "os": "linux",
+                    "files": [],
+                    "dependencies": [
+                        {
+                            "name": "A",
+                            "version_min": "3.0.0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "BrokenDep",
+            "authors": [
+                "Nick Shaheed"
+            ],
+            "homepage": "",
+            "repository": "",
+            "license": "gpl3",
+            "description": "test fixture: depends on a package that is not in the manifest",
+            "keywords": [],
+            "versions": [
+                {
+                    "version": "1.0.0",
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 0
+                    },
+                    "os": "linux",
+                    "files": [],
+                    "dependencies": [
+                        {
+                            "name": "A"
+                        },
+                        {
+                            "name": "NOEXIST"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "OSPick",
+            "authors": [
+                "Nick Shaheed"
+            ],
+            "homepage": "",
+            "repository": "",
+            "license": "gpl3",
+            "description": "test fixture: newest version is only available on mac",
+            "keywords": [],
+            "versions": [
+                {
+                    "version": "1.0.0",
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 0
+                    },
+                    "os": "linux",
+                    "files": []
+                },
+                {
+                    "version": "2.0.0",
+                    "language_version_min": {
+                        "mega": 1,
+                        "major": 5,
+                        "minor": 2,
+                        "patch": 0
+                    },
+                    "os": "mac",
+                    "files": []
+                }
+            ]
+        }
     ]
 }

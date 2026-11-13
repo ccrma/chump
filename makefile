@@ -98,6 +98,16 @@ test-mac:
 test-mac-integration: build-mac-arm64
 	meson test -C builddir-arm64 -v chump:integration_test
 
+# run a single Catch2 test case
+# usage: make test-mac-one T="Dependency Tests - respects package OS"
+#        make test-mac-one T="Some unit test" SUITE=chump_test
+SUITE ?= integration_test
+test-mac-single:
+ifeq ($(strip $(T)),)
+	$(error usage: make test-mac-one T="<test name>" [SUITE=chump_test|integration_test])
+endif
+	meson test -C builddir-arm64 -v chump:$(SUITE) --test-args '"$(T)"'
+
 # use clang format for c++ code
 format:
 	clang-format --style=llvm -i tests/*.cpp

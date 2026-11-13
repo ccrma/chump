@@ -589,7 +589,6 @@ void validateLocalInstall(fs::path installPath) {
 }
 
 TEST_CASE("Dependency Tests - install local package (no dependencies)") {
-  setDebugEnabled(true);
   fs::path installPath = makeTempDir();
   INFO("Temp Dir: " << installPath);
 
@@ -717,4 +716,366 @@ TEST_CASE("Dependency Tests - install local package with invalid arguments") {
   }
 
   validateUninstall(installPath, "LocalPkg");
+}
+
+//-----------------------------------------------------------------------------
+// Dependency resolution edge cases
+//
+// Packages being tested:
+//   LangMax     - 1.0.0, and 2.0.0 which has language_version_max 1.5.2.4
+//   DepRangeMin - depends on E >= 1.0.0
+//   DepRangeMax - depends on E <= 1.0.0
+//   NeedsA3     - depends on A >= 3.0.0 (A 3.0.0 requires api 10.1)
+//   BrokenDep   - depends on A and NOEXIST (not in the manifest)
+//   OSPick      - 1.0.0 is linux, 2.0.0 is mac-only
+//-----------------------------------------------------------------------------
+Manager *makeDepManager(fs::path installPath,
+                        ChuckVersion ckVersion = ChuckVersion("1.5.2.1"),
+                        ApiVersion apiVersion = ApiVersion("9.1")) {
+  return new Manager(dataPath, installPath, ckVersion, apiVersion, "linux",
+                     X86_64, manifest_url_deps, false);
+}
+
+bool isUserInstalled(fs::path installPath, string package) {
+  return openVer(installPath / package / "version.json").user_installed;
+}
+
+// run the installer to completion (accepting every prompt) and return the
+// final result without asserting on it
+install_with_deps_result *
+runInstallerResult(Generator<install_with_deps_result *> &installer) {
+  auto res = installer();
+  while (!res->finished) {
+    res->cont = true;
+    res = installer();
+  }
+  return res;
+}
+
+//-------------------------------- version selection --------------------------
+
+TEST_CASE("Dependency Tests - picks newest version compatible with API") {
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  // A 3.0.0 is the newest, but requires api 10.1. With api 9.1 the newest
+  // compatible version is 2.0.0.
+  Manager *m = makeDepManager(installPath, ChuckVersion("1.5.2.6"));
+  runInstaller(m->install_with_deps({"A"}));
+
+  validateInstall(installPath, "A", "2.0.0");
+}
+
+TEST_CASE("Dependency Tests - respects language_version_max") {
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  SECTION("chuck version above max picks older version") {
+    Manager *m = makeDepManager(installPath, ChuckVersion("1.5.2.5"));
+    runInstaller(m->install_with_deps({"LangMax"}));
+
+    validateInstall(installPath, "LangMax", "1.0.0");
+  }
+
+  SECTION("chuck version within max picks newest version") {
+    Manager *m = makeDepManager(installPath, ChuckVersion("1.5.2.1"));
+    runInstaller(m->install_with_deps({"LangMax"}));
+
+    validateInstall(installPath, "LangMax", "2.0.0");
+  }
+}
+
+TEST_CASE("Dependency Tests - respects package OS") {
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  // OSPick 2.0.0 only exists for mac, so on linux 1.0.0 should be chosen
+  Manager *m = makeDepManager(installPath);
+  runInstaller(m->install_with_deps({"OSPick"}));
+
+  validateInstall(installPath, "OSPick", "1.0.0");
+}
+
+TEST_CASE("Dependency Tests - dependency with only version_min") {
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  // E >= 1.0.0 should resolve to the newest E (2.0.0)
+  Manager *m = makeDepManager(installPath);
+  runInstaller(m->install_with_deps({"DepRangeMin"}));
+
+  validateInstall(installPath, "DepRangeMin");
+  validateInstall(installPath, "E", "2.0.0");
+}
+
+TEST_CASE("Dependency Tests - dependency with only version_max") {
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  // E <= 1.0.0 should resolve to the newest E within range (1.0.0, not 0.1.0)
+  Manager *m = makeDepManager(installPath);
+  runInstaller(m->install_with_deps({"DepRangeMax"}));
+
+  validateInstall(installPath, "DepRangeMax");
+  validateInstall(installPath, "E", "1.0.0");
+}
+
+//-------------------------------- unsatisfiable installs ---------------------
+
+TEST_CASE("Dependency Tests - dependency has no compatible version") {
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  // NeedsA3 needs A >= 3.0.0, which needs api 10.1 (we have 9.1)
+  Manager *m = makeDepManager(installPath, ChuckVersion("1.5.2.6"));
+  runInstaller(m->install_with_deps({"NeedsA3"}), false);
+
+  validateUninstall(installPath, "NeedsA3");
+  validateUninstall(installPath, "A");
+}
+
+TEST_CASE("Dependency Tests - dependency missing from manifest") {
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  // BrokenDep depends on A (fine) and NOEXIST (not in manifest). Nothing
+  // should be installed, including A.
+  Manager *m = makeDepManager(installPath);
+  runInstaller(m->install_with_deps({"BrokenDep"}), false);
+
+  validateUninstall(installPath, "BrokenDep");
+  validateUninstall(installPath, "A");
+}
+
+TEST_CASE("Dependency Tests - conflicting requested packages") {
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  // G needs E == 1.0.0 and H needs E == 2.0.0, so they can't both be
+  // installed
+  Manager *m = makeDepManager(installPath);
+  runInstaller(m->install_with_deps({"G", "H"}), false);
+
+  validateUninstall(installPath, "G");
+  validateUninstall(installPath, "H");
+  validateUninstall(installPath, "E");
+}
+
+TEST_CASE("Dependency Tests - one requested package does not exist") {
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  Manager *m = makeDepManager(installPath);
+  runInstaller(m->install_with_deps({"A", "NOEXIST"}), false);
+
+  validateUninstall(installPath, "A");
+}
+
+//-------------------------------- already installed --------------------------
+
+TEST_CASE("Dependency Tests - install already-installed package") {
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  Manager *m = makeDepManager(installPath);
+  runInstaller(m->install_with_deps({"E=1.0.0"}));
+  validateInstall(installPath, "E", "1.0.0");
+
+  // installing (not updating) an installed package should fail and leave
+  // it alone
+  m = makeDepManager(installPath);
+  runInstaller(m->install_with_deps({"E"}), false);
+
+  validateInstall(installPath, "E", "1.0.0");
+}
+
+TEST_CASE("Dependency Tests - update already up-to-date package") {
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  Manager *m = makeDepManager(installPath);
+  runInstaller(m->install_with_deps({"E"}));
+  validateInstall(installPath, "E", "2.0.0");
+
+  // there is nothing to update, so the solver produces no transaction steps
+  m = makeDepManager(installPath);
+  auto installer = m->install_with_deps({"E"}, true);
+  auto res = runInstallerResult(installer);
+
+  REQUIRE(res->finished);
+  validateInstall(installPath, "E", "2.0.0");
+}
+
+//-------------------------------- user-installed tracking --------------------
+
+TEST_CASE("Dependency Tests - requested packages are user-installed and "
+          "dependencies are not") {
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  Manager *m = makeDepManager(installPath);
+  runInstaller(m->install_with_deps({"C"}));
+
+  REQUIRE(isUserInstalled(installPath, "C"));
+  REQUIRE_FALSE(isUserInstalled(installPath, "B"));
+  REQUIRE_FALSE(isUserInstalled(installPath, "A"));
+}
+
+TEST_CASE("Dependency Tests - dependency is changed without prompting") {
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  Manager *m = makeDepManager(installPath);
+  runInstaller(m->install_with_deps({"F=1.0.0"}));
+  validateInstall(installPath, "E", "2.0.0");
+  REQUIRE_FALSE(isUserInstalled(installPath, "E"));
+
+  // G needs E == 1.0.0. E is only a dependency, so it should be downgraded
+  // without asking the user
+  m = makeDepManager(installPath);
+  auto installer = m->install_with_deps({"G"});
+  auto res = installer();
+
+  REQUIRE(res->finished);
+  REQUIRE(res->success);
+
+  validateInstall(installPath, "G");
+  validateInstall(installPath, "F", "1.0.0");
+  validateInstall(installPath, "E", "1.0.0");
+
+  // still a dependency after the downgrade
+  REQUIRE_FALSE(isUserInstalled(installPath, "E"));
+}
+
+//-------------------------------- user prompts -------------------------------
+
+TEST_CASE("Dependency Tests - prompts before upgrading user-installed "
+          "package") {
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  Manager *m = makeDepManager(installPath);
+  runInstaller(m->install_with_deps({"E=1.0.0"}));
+  REQUIRE(isUserInstalled(installPath, "E"));
+
+  // H needs E == 2.0.0, and E was installed by the user
+  m = makeDepManager(installPath);
+  auto installer = m->install_with_deps({"H"});
+  auto res = installer();
+
+  REQUIRE_FALSE(res->finished);
+  REQUIRE(res->action_type == UPGRADE);
+  REQUIRE(res->name == "E");
+  REQUIRE(res->old_version == "1.0.0");
+  REQUIRE(res->new_version == "2.0.0");
+
+  SECTION("accept upgrade") {
+    res->cont = true;
+    res = installer();
+
+    REQUIRE(res->finished);
+    REQUIRE(res->success);
+
+    validateInstall(installPath, "H");
+    validateInstall(installPath, "E", "2.0.0");
+
+    // upgrading doesn't change who installed it
+    REQUIRE(isUserInstalled(installPath, "E"));
+  }
+
+  SECTION("decline upgrade") {
+    res->cont = false;
+    res = installer();
+
+    REQUIRE(res->finished);
+    REQUIRE_FALSE(res->success);
+
+    // nothing should have changed
+    validateUninstall(installPath, "H");
+    validateInstall(installPath, "E", "1.0.0");
+  }
+}
+
+TEST_CASE("Dependency Tests - decline uninstalling user-installed package") {
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  Manager *m = makeDepManager(installPath);
+  runInstaller(m->install_with_deps({"G"}));
+
+  // installing H requires removing G (see "conflicting dependencies")
+  m = makeDepManager(installPath);
+  auto installer = m->install_with_deps({"H"});
+  auto res = installer();
+
+  REQUIRE_FALSE(res->finished);
+  REQUIRE(res->action_type == UNINSTALL);
+  REQUIRE(res->name == "G");
+
+  res->cont = false;
+  res = installer();
+
+  REQUIRE(res->finished);
+  REQUIRE_FALSE(res->success);
+
+  // nothing should have changed
+  validateInstall(installPath, "G");
+  validateInstall(installPath, "E", "1.0.0");
+  validateUninstall(installPath, "H");
+}
+
+//-------------------------------- uninstall ----------------------------------
+
+TEST_CASE("Dependency Tests - uninstall removes orphaned dependencies") {
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  Manager *m = makeDepManager(installPath);
+  runInstaller(m->install_with_deps({"C"}));
+
+  m = makeDepManager(installPath);
+  REQUIRE(m->uninstall_with_deps({"C"}, false));
+
+  // A and B were only installed for C, so they should be removed too
+  validateUninstall(installPath, "C");
+  validateUninstall(installPath, "B");
+  validateUninstall(installPath, "A");
+}
+
+TEST_CASE("Dependency Tests - uninstall keeps user-installed dependencies") {
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  Manager *m = makeDepManager(installPath);
+  runInstaller(m->install_with_deps({"A"}));
+
+  // C pulls in B; A is already installed (by the user)
+  m = makeDepManager(installPath);
+  runInstaller(m->install_with_deps({"C"}));
+
+  REQUIRE(isUserInstalled(installPath, "A"));
+  REQUIRE_FALSE(isUserInstalled(installPath, "B"));
+
+  m = makeDepManager(installPath);
+  REQUIRE(m->uninstall_with_deps({"C"}, false));
+
+  validateUninstall(installPath, "C");
+  validateUninstall(installPath, "B");
+  // A was explicitly installed by the user, so it stays
+  validateInstall(installPath, "A");
+}
+
+TEST_CASE("Dependency Tests - uninstall package that is not installed") {
+  setDebugEnabled(true);
+  fs::path installPath = makeTempDir();
+  INFO("Temp Dir: " << installPath);
+
+  Manager *m = makeDepManager(installPath);
+  runInstaller(m->install_with_deps({"A"}));
+
+  m = makeDepManager(installPath);
+  REQUIRE_FALSE(m->uninstall_with_deps({"C"}, false));
+
+  // unrelated packages are left alone
+  validateInstall(installPath, "A");
 }

@@ -82,9 +82,12 @@ Manager::install_with_deps(const vector<string> packageNames, bool update) {
 
   std::unordered_set<Id> requestedPackages;
 
+  DEBUG("Installing the following packages:");
   for (auto packageName : packageNames) {
     // parse packages here
     auto [name, version_string] = parsePackageName(packageName);
+
+    DEBUG("\t- " << packageStr(name, version_string));
 
     // lookup package name (default to latest version)
     auto pkg = package_list->find_package(name);
@@ -181,6 +184,22 @@ Manager::install_with_deps_helper(Queue job,
   // Solve it!
   solver_solve(solver, &job);
 
+  // std::cout << "--- libsolv Pool State Dump ---\n";
+  // // Solvables are stored in a contiguous array from index 1 to
+  // // pool->nsolvables
+  // for (int i = 1; i < pool->nsolvables; i++) {
+  //   Solvable *s = pool->solvables + i;
+
+  //   // Only print actual packages, skip empty slots
+  //   if (s->repo) {
+  //     std::cout << "Repo: " << s->repo->name
+  // 		<< " | Pkg: '" << pool_id2str(pool, s->name) << "'"
+  // 		<< " ver '" << pool_id2str(pool, s->evr) << "'"
+  // 		<< " (Name ID: " << s->name << ")\n";
+  //   }
+  // }
+  // std::cout << "-------------------------------\n";
+
   DEBUG("solved");
 
   // check for solver success
@@ -234,9 +253,6 @@ Manager::install_with_deps_helper(Queue job,
               << "or use `chump uninstall <package>` to remove the package"
               << std::endl;
 
-    transaction_free(trans);
-    solver_free(solver);
-
     install_with_deps_result *res =
         new install_with_deps_result("", true, false);
     res->action_type = NONE;
@@ -248,7 +264,7 @@ Manager::install_with_deps_helper(Queue job,
   transaction_order(trans, 0);
 
   // pass 1: get user permissions on all uninstalls and up/down-grades
-  DEBUG("pass1");
+  DEBUG("Entering pass1");
   for (int i = 0; i < trans->steps.count; ++i) {
     Id p = trans->steps.elements[i];
     Solvable *s = pool_id2solvable(pool, p);
@@ -322,7 +338,7 @@ Manager::install_with_deps_helper(Queue job,
   // filepaths to the tmp dir where packages are downloaded
   map<string, fs::path> tmp_dirs;
 
-  DEBUG("pass2");
+  DEBUG("Entering pass2");
   // pass 2: download everything to a tmp dir
   for (int i = 0; i < trans->steps.count; ++i) {
     Id p = trans->steps.elements[i];
@@ -390,7 +406,7 @@ Manager::install_with_deps_helper(Queue job,
     }
   }
 
-  DEBUG("pass3");
+  DEBUG("Entering pass3");
   // pass 3: finish up installation and uninstallation
   for (int i = 0; i < trans->steps.count; ++i) {
     Id p = trans->steps.elements[i];
@@ -504,6 +520,7 @@ Manager::install_with_deps_helper(Queue job,
 optional<fs::path> Manager::fetch_to_tmp(string packageName, bool isDep) {
   // parse packages here
   auto [name, version_string] = parsePackageName(packageName);
+  DEBUG("fetching package " << packageStr(name, version_string));
 
   // lookup package name (default to latest version)
   auto pkg = package_list->find_package(name);
@@ -652,6 +669,8 @@ Manager::install_local_with_deps(fs::path pkgDefn, fs::path pkgVer,
     called with our package. ezpz
   */
 
+  DEBUG("install local package: " << pkgDefn);
+
   install_with_deps_result *failure_result =
       new install_with_deps_result("", true, false);
   failure_result->action_type = NONE;
@@ -738,9 +757,6 @@ Manager::install_local_with_deps(fs::path pkgDefn, fs::path pkgVer,
   }
 
   res = installer();
-
-  DEBUG("Freeing up job");
-  queue_free(&job);
 
   // don't install the local package if its dependencies failed to install
   // (or the user cancelled)
@@ -868,9 +884,12 @@ bool Manager::uninstall_with_deps(const vector<string> packageNames,
 
   std::unordered_set<Id> requestedPackages;
 
+  DEBUG("Uninstalling the following packages:");
   for (auto packageName : packageNames) {
     // parse packages here
     auto [name, version_string] = parsePackageName(packageName);
+
+    DEBUG("\t- " << packageStr(name, version_string));
 
     // printDependencies(pool, name.c_str());
 
@@ -1021,9 +1040,8 @@ bool Manager::uninstall_with_deps(const vector<string> packageNames,
       return result;
     }
 
-    // this returns a success because there was no uninstall action to fail
     cleanup(job, trans, solver);
-    return true;
+    return false;
   }
 
   // topologically order transactions
@@ -1049,19 +1067,53 @@ bool Manager::uninstall_with_deps(const vector<string> packageNames,
       fs::path packageNamePath = fs::path(s_name);
       fs::path install_dir = chump_dir / packageNamePath;
 
+      // if a requestedPackage is not found, throw an error
+      // if a dependency is not found, warn and skip
+      if (!fs::exists(install_dir)) {
+	if (requestedPackages.contains(s->name)) {
+	  std::cerr
+            << chumpPrepend() << TC::red("error", TRUE)
+            << ": attempting to uninstall requested package ("
+	    << packageStr(s_name)
+	    << "), but the install directory '"
+            << install_dir << "' does not exist. skipping..." << std::endl;
+	  cleanup(job, trans, solver);
+	  return false;
+	} else {
+	  std::cerr
+            << chumpPrepend()
+            << "attempting to uninstall dependency ("
+	    << packageStr(s_name)
+	    << "), but the install directory '"
+            << install_dir << "' does not exist. skipping..." << std::endl;
+	  continue;
+	}
+      }
+
       if (!fs::exists(install_dir)) {
         std::cerr
             << chumpPrepend()
             << "attempting to uninstall package, but the install directory '"
             << install_dir << "' does not exist. skipping..." << std::endl;
-        continue;
+	cleanup(job, trans, solver);
+	return false;
       }
 
       optional<InstalledVersion> installed_ver =
           open_installed_version_file(install_dir / "version.json");
 
-      if (!installed_ver)
-        continue;
+      // trying to uninstall package without a version.json
+      if (!installed_ver && !force) {
+	std::cerr << chumpPrepend() << TC::red("error", TRUE)
+		  << ": attempting to remove a package which chump does not recognize. exiting\n";
+	std::cerr << chumpPrepend() << "(to force removal, use 'chump uninstall -f <package>'\n";
+	cleanup(job, trans, solver);
+	return false;
+      }
+
+      if (!installed_ver && force) {
+	continue;
+      }
 
       // error out if trying to uninstall a user-installed package
       if (!force && !requestedPackages.contains(s->name) &&
@@ -1672,6 +1724,38 @@ Repo *Manager::initializeSystemRepo() {
 
   solvable_add_deparray(s_api, SOLVABLE_PROVIDES, prov_rel_api, 0);
 
+  // add system architecture as a constraint
+  Id arch_id = repo_add_solvable(repo);
+  Solvable *s_arch = pool_id2solvable(pool, arch_id);
+
+  s_arch->name = pool_str2id(pool, "chuck-system-arch", 1);
+  s_arch->evr = pool_str2id(pool, "1", 1); // unsure if evr is even needed here
+
+  Id cap_arch_id = pool_str2id(pool, architectureToString.at(arch).c_str(), 1);
+  Id cap_arch_all_id = pool_str2id(pool, architectureToString.at(ARCH_ALL_CHMP).c_str(), 1);
+
+  solvable_add_deparray(s_arch, SOLVABLE_PROVIDES, cap_arch_id, 0);
+  solvable_add_deparray(s_arch, SOLVABLE_PROVIDES, cap_arch_all_id, 0);
+
+  if (os == "mac" && (arch == X86_64 || arch == ARM64)) { // macos can have universal binaries
+    Id cap_arch_univ_id = pool_str2id(pool, architectureToString.at(MAC_UNIVERSAL).c_str(), 1);
+    solvable_add_deparray(s_arch, SOLVABLE_PROVIDES, cap_arch_univ_id, 0);
+  }
+
+  // add os as a constraint
+  Id os_id = repo_add_solvable(repo);
+  Solvable *s_os = pool_id2solvable(pool, os_id);
+
+  s_os->name = pool_str2id(pool, "chuck-system-os", 1);
+  s_os->evr = pool_str2id(pool, "1", 1); // unsure if evr is even needed here
+
+  Id cap_os_id = pool_str2id(pool, os.c_str(), 1);
+  Id cap_os_any_id = pool_str2id(pool, "any", 1);
+
+  solvable_add_deparray(s_os, SOLVABLE_PROVIDES, cap_os_id, 0);
+  solvable_add_deparray(s_os, SOLVABLE_PROVIDES, cap_os_any_id, 0);
+
+
   // add all installed packages to system repo
   for (auto ver : installed_versions) {
     Id pkgId = repo_add_solvable(repo);
@@ -1697,6 +1781,16 @@ Repo *Manager::initializeSystemRepo() {
     Id req_min_ck_ver =
         pool_rel2id(pool, cap_ck_name, min_ck_ver, REL_GT | REL_EQ, 1);
     solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_min_ck_ver, 0);
+
+    // set os
+    Id pkg_os = pool_str2id(pool, ver.os.c_str(), 1);
+    Id req_pkg_os = pool_rel2id(pool, cap_os_id, pkg_os, REL_EQ, 1);
+    solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_pkg_os, 0);
+
+    // set arch
+    Id pkg_arch = pool_str2id(pool, architectureToString.at(ver.arch).c_str(), 1);
+    Id req_pkg_arch = pool_rel2id(pool, cap_arch_id, pkg_arch, REL_EQ, 1);
+    solvable_add_deparray(solv, SOLVABLE_REQUIRES, pkg_arch, 0);
 
     // set max lang version (if exists)
     if (ver.language_version_max) {
@@ -1791,6 +1885,14 @@ Repo *Manager::initializeManifestRepo() {
       Id req_min_ck_ver =
           pool_rel2id(pool, cap_ck_name, min_ck_ver, REL_GT | REL_EQ, 1);
       solvable_add_deparray(solv, SOLVABLE_REQUIRES, req_min_ck_ver, 0);
+
+      // set os
+      Id pkg_os = pool_str2id(pool, ver.os.c_str(), 1);
+      solvable_add_deparray(solv, SOLVABLE_REQUIRES, pkg_os, 0);
+
+      // set arch
+      Id pkg_arch = pool_str2id(pool, architectureToString.at(ver.arch).c_str(), 1);
+      solvable_add_deparray(solv, SOLVABLE_REQUIRES, pkg_arch, 0);
 
       // set max lang version (if exists)
       if (ver.language_version_max) {
