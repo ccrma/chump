@@ -11,12 +11,12 @@ if host_machine.system() == 'darwin'
   # Set minimum macOS version only for macOS
   add_project_arguments('-mmacosx-version-min=12', language : 'c')
   add_project_arguments('-mmacosx-version-min=12', language : 'cpp')
+endif
 
 # https://github.com/openSUSE/libsolv/issues/372
-  # requires is a keyword in c++20, this flag prepends dep_
-  # to conflicting keywords in libsolv
-  add_project_arguments('-DLIBSOLV_SOLVABLE_PREPEND_DEP', language: 'cpp')
-endif
+# requires is a keyword in c++20, this flag prepends dep_
+# to conflicting keywords in libsolv
+add_project_arguments('-DLIBSOLV_SOLVABLE_PREPEND_DEP', language: 'cpp')
 
 
 inc = [include_directories('include')]
